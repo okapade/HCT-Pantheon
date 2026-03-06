@@ -7,7 +7,23 @@
     }
   ],
   "routes": [
-    { "src": "/static/(.*)", "dest": "/static/$1" },
-    { "src": "/(.*)", "dest": "app.py" }
+    {
+      "src": "/static/css/(.*)",
+      "headers": { "Content-Type": "text/css" },
+      "dest": "app.py"
+    },
+    {
+      "src": "/static/js/(.*)",
+      "headers": { "Content-Type": "application/javascript" },
+      "dest": "app.py"
+    },
+    {
+      "src": "/static/(.*)",
+      "dest": "app.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "app.py"
+    }
   ]
 }
