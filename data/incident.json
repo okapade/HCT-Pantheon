@@ -1,0 +1,1089 @@
+{
+  "incident": {
+    "id": "INC-2025-0741",
+    "title": "Tier III Data Center — Li-Ion UPS Thermal Runaway",
+    "facility": "Site Alpha",
+    "facility_type": "Tier III Colocation Data Center",
+    "region": "APAC",
+    "date": "2025-09-26",
+    "duration_hours": 22,
+    "severity": "CRITICAL",
+    "status": "CLOSED — UNDER REVIEW"
+  },
+  "assets": [
+    {
+      "id": "UPS-BAT-01",
+      "name": "UPS Battery Array A",
+      "type": "Power",
+      "subtype": "Li-Ion UPS",
+      "location": "5F Battery Room",
+      "status": "DESTROYED",
+      "manufacturer": "[OEM-A]",
+      "age_years": 11.1,
+      "rated_life_years": 10,
+      "modules": 384,
+      "proximity_to_servers_cm": 60
+    },
+    {
+      "id": "DET-VESDA-01",
+      "name": "Aspirating Smoke Detector",
+      "type": "Detection",
+      "subtype": "Very Early Smoke Detection",
+      "location": "5F Server Hall",
+      "status": "TRIGGERED",
+      "standard": "NFPA 72"
+    },
+    {
+      "id": "DET-SPOT-01",
+      "name": "Spot Smoke Detector Array",
+      "type": "Detection",
+      "subtype": "Photoelectric",
+      "location": "5F Battery Room",
+      "status": "TRIGGERED",
+      "standard": "NFPA 72"
+    },
+    {
+      "id": "SUP-CO2-01",
+      "name": "CO₂ Suppression System",
+      "type": "Suppression",
+      "subtype": "Carbon Dioxide",
+      "location": "5F Battery Room",
+      "status": "DEPLOYED — INEFFECTIVE",
+      "standard": "NFPA 12"
+    },
+    {
+      "id": "SUP-FM200-01",
+      "name": "Clean Agent System",
+      "type": "Suppression",
+      "subtype": "Clean Agent",
+      "location": "5F Server Hall",
+      "status": "DEPLOYED — INSUFFICIENT",
+      "standard": "NFPA 2001"
+    },
+    {
+      "id": "PWR-MV-01",
+      "name": "MV Switchgear",
+      "type": "Power",
+      "subtype": "Medium Voltage",
+      "location": "Electrical Room 1F",
+      "status": "ONLINE"
+    },
+    {
+      "id": "PWR-GEN-01",
+      "name": "Backup Generator Array",
+      "type": "Power",
+      "subtype": "Diesel Generator",
+      "location": "Ground Floor",
+      "status": "AUTO-STARTED (UNINTENDED)"
+    },
+    {
+      "id": "PWR-EPO-01",
+      "name": "Emergency Power Off",
+      "type": "Power",
+      "subtype": "EPO System",
+      "location": "5F Control Room",
+      "status": "ACTIVATED — PARTIAL FAILURE",
+      "standard": "NEC 645"
+    },
+    {
+      "id": "COOL-CRAH-01",
+      "name": "CRAH Units",
+      "type": "Cooling",
+      "subtype": "Computer Room Air Handler",
+      "location": "5F Mechanical",
+      "status": "OFFLINE"
+    },
+    {
+      "id": "SRV-RACK-01",
+      "name": "Server Cluster A (120 racks)",
+      "type": "IT",
+      "subtype": "Server Infrastructure",
+      "location": "5F Server Hall",
+      "status": "DESTROYED"
+    },
+    {
+      "id": "NET-SW-01",
+      "name": "Core Network Switch",
+      "type": "Comms",
+      "subtype": "Network Infrastructure",
+      "location": "5F Network Room",
+      "status": "OFFLINE"
+    },
+    {
+      "id": "FAC-WALL-01",
+      "name": "Fire-Rated Partition",
+      "type": "Facilities",
+      "subtype": "Passive Fire Protection",
+      "location": "5F Battery/Server Boundary",
+      "status": "INTACT — INSUFFICIENT ISOLATION"
+    }
+  ],
+  "services_affected": [
+    {
+      "name": "Public Service Portal A",
+      "type": "Public Services",
+      "users": "50M+ citizens",
+      "status": "OFFLINE"
+    },
+    {
+      "name": "Emergency Call Routing",
+      "type": "Emergency Services",
+      "users": "National 911-equivalent",
+      "status": "DEGRADED"
+    },
+    {
+      "name": "Logistics Platform B",
+      "type": "Public Services",
+      "users": "30M+ users",
+      "status": "OFFLINE"
+    },
+    {
+      "name": "Identity Verification Service",
+      "type": "Government",
+      "users": "National ID system",
+      "status": "OFFLINE"
+    },
+    {
+      "name": "Document Processing Portal",
+      "type": "Government",
+      "users": "Tax and records",
+      "status": "OFFLINE"
+    },
+    {
+      "name": "Registration System C",
+      "type": "Government",
+      "users": "Civil records",
+      "status": "OFFLINE"
+    }
+  ],
+  "standards_applicable": [
+    {
+      "code": "NFPA 75",
+      "title": "Fire Protection of IT Equipment",
+      "edition": "2024",
+      "relevance": "Primary data center standard"
+    },
+    {
+      "code": "NFPA 76",
+      "title": "Telecom Facilities Protection",
+      "edition": "2024",
+      "relevance": "Government services = telecom class"
+    },
+    {
+      "code": "NFPA 855",
+      "title": "Stationary Energy Storage Systems",
+      "edition": "2023",
+      "relevance": "Li-ion battery fire protection"
+    },
+    {
+      "code": "NFPA 750",
+      "title": "Water Mist Fire Protection Systems",
+      "edition": "2023",
+      "relevance": "Encapsulator Agent system standard"
+    },
+    {
+      "code": "NFPA 72",
+      "title": "Fire Alarm & Signaling Code",
+      "edition": "2022",
+      "relevance": "Detection system requirements"
+    },
+    {
+      "code": "NFPA 2001",
+      "title": "Clean Agent Suppression",
+      "edition": "2022",
+      "relevance": "Clean agent systems"
+    },
+    {
+      "code": "NFPA 13",
+      "title": "Sprinkler Systems",
+      "edition": "2022",
+      "relevance": "Pre-action sprinklers"
+    },
+    {
+      "code": "NEC Art. 645",
+      "title": "IT Equipment Rooms",
+      "edition": "2023",
+      "relevance": "EPO requirements"
+    },
+    {
+      "code": "UL 9540A",
+      "title": "Thermal Runaway Test Method",
+      "edition": "2023",
+      "relevance": "Battery fire testing"
+    },
+    {
+      "code": "ISO 9001",
+      "title": "Quality Management Systems",
+      "edition": "2015",
+      "relevance": "Manufacturing certification"
+    },
+    {
+      "code": "NFPA 18A",
+      "title": "Wetting/Encapsulator Agents",
+      "edition": "2022",
+      "relevance": "F-500 EA classification (§7.7)"
+    },
+    {
+      "code": "FM DS 5.32",
+      "title": "Data Center Loss Prevention",
+      "edition": "2024",
+      "relevance": "Insurance requirements"
+    }
+  ],
+  "acts": {
+    "act_00": {
+      "title": "Baseline Reality",
+      "subtitle": "System state before the event",
+      "time_range": "T-24h → T-0",
+      "system_state": "ALL SYSTEMS NOMINAL",
+      "summary": "Site Alpha is a Tier III colocation facility hosting critical government and public services infrastructure. The facility operates 647 services across 120 server racks with a total hosted data volume of 858 TB — none replicated offsite. UPS Battery Array A consists of 384 Li-ion modules installed 11.1 years ago, exceeding the manufacturer's rated 10-year lifespan by 13 months. Three modules showing elevated temperatures — flagged in BMS but not escalated. Battery-to-server proximity: 60cm (below NFPA 855 recommended separation). No off-gas detection deployed in battery room.",
+      "signals": [
+        {
+          "time": "T-24h",
+          "type": "TELEMETRY",
+          "severity": "INFO",
+          "text": "BMS reports 3 modules with elevated temperature — within alert threshold but trending upward"
+        },
+        {
+          "time": "T-18h",
+          "type": "MAINTENANCE",
+          "severity": "LOW",
+          "text": "Scheduled battery inspection postponed — technician reassigned to unrelated work order"
+        },
+        {
+          "time": "T-12h",
+          "type": "TELEMETRY",
+          "severity": "INFO",
+          "text": "Module temperatures stable at elevated baseline — no automatic escalation triggered"
+        },
+        {
+          "time": "T-6h",
+          "type": "OPERATIONS",
+          "severity": "LOW",
+          "text": "Shift handover — elevated battery temps not included in verbal briefing"
+        },
+        {
+          "time": "T-4h",
+          "type": "TELEMETRY",
+          "severity": "MEDIUM",
+          "text": "One module voltage reading diverges from array average — logged, not flagged"
+        },
+        {
+          "time": "T-1h",
+          "type": "OPERATIONS",
+          "severity": "LOW",
+          "text": "Routine server maintenance begins in adjacent hall — normal traffic"
+        }
+      ],
+      "key_metrics": {
+        "services_online": 647,
+        "services_offline": 0,
+        "battery_age_years": 11.1,
+        "battery_rated_life": 10,
+        "data_hosted_tb": 858,
+        "backup_copies": 0,
+        "server_load_pct": 72,
+        "detection_zones_armed": 12
+      }
+    },
+    "act_01": {
+      "title": "Risk Accumulation",
+      "subtitle": "Conditions that enabled the event",
+      "time_range": "T-30d → T-24h",
+      "system_state": "DEGRADED — UNACKNOWLEDGED",
+      "summary": "Over the preceding 30 days, multiple risk factors converged without recognition. Battery array exceeded rated lifespan — no replacement scheduled. Job Safety Analysis not completed for battery room work. No hot work permit issued. Battery State of Charge not verified before scheduled disconnection. Technician lacked Li-ion-specific hazmat training or third-party certification. Battery-to-server proximity: 60cm (below NFPA 855 recommended separation). No off-gas detection deployed in battery room.",
+      "signals": [
+        {
+          "time": "T-30d",
+          "type": "MAINTENANCE",
+          "severity": "HIGH",
+          "text": "Battery array passes rated lifespan — no replacement scheduled"
+        },
+        {
+          "time": "T-25d",
+          "type": "OPERATIONS",
+          "severity": "MEDIUM",
+          "text": "BMS alert threshold raised by operator to reduce alarm fatigue"
+        },
+        {
+          "time": "T-20d",
+          "type": "COMPLIANCE",
+          "severity": "HIGH",
+          "text": "Quarterly fire suppression inspection delayed — rescheduled indefinitely"
+        },
+        {
+          "time": "T-14d",
+          "type": "OPERATIONS",
+          "severity": "MEDIUM",
+          "text": "Server expansion reduces battery-to-rack clearance below recommended minimum"
+        },
+        {
+          "time": "T-7d",
+          "type": "COMPLIANCE",
+          "severity": "CRITICAL",
+          "text": "Job Safety Analysis for battery maintenance — NOT COMPLETED"
+        },
+        {
+          "time": "T-3d",
+          "type": "MAINTENANCE",
+          "severity": "MEDIUM",
+          "text": "Hot work permit for adjacent electrical panel — NOT ISSUED"
+        },
+        {
+          "time": "T-1d",
+          "type": "COMPLIANCE",
+          "severity": "HIGH",
+          "text": "Off-gas detection budget request denied — classified as non-essential"
+        }
+      ],
+      "risk_matrix": [
+        {
+          "factor": "Battery beyond rated life",
+          "severity": "CRITICAL",
+          "likelihood": "HIGH",
+          "risk_level": "CRITICAL",
+          "status": "UNMITIGATED"
+        },
+        {
+          "factor": "No off-gas detection",
+          "severity": "CRITICAL",
+          "likelihood": "HIGH",
+          "risk_level": "CRITICAL",
+          "status": "UNMITIGATED"
+        },
+        {
+          "factor": "JSA not completed",
+          "severity": "CRITICAL",
+          "likelihood": "HIGH",
+          "risk_level": "CRITICAL",
+          "status": "UNMITIGATED"
+        },
+        {
+          "factor": "Suppression incompatible with Li-ion",
+          "severity": "CRITICAL",
+          "likelihood": "HIGH",
+          "risk_level": "CRITICAL",
+          "status": "UNMITIGATED"
+        },
+        {
+          "factor": "No offsite data backup",
+          "severity": "CRITICAL",
+          "likelihood": "MEDIUM",
+          "risk_level": "CRITICAL",
+          "status": "UNMITIGATED"
+        },
+        {
+          "factor": "Insufficient battery-server separation",
+          "severity": "HIGH",
+          "likelihood": "HIGH",
+          "risk_level": "HIGH",
+          "status": "UNMITIGATED"
+        }
+      ]
+    },
+    "act_02": {
+      "title": "State Change",
+      "subtitle": "The triggering event and initial response",
+      "time_range": "T-0 → T+15min",
+      "system_state": "ACTIVE EMERGENCY",
+      "summary": "At T-0, a single Li-ion module in UPS Battery Array A enters thermal runaway. Voltage spike detected by BMS. Within 90 seconds, cascade propagation begins across adjacent modules. Aspirating detector triggers at T+2min. Spot detector confirms at T+3min. Building alarm activates. Clean agent system deploys at T+5min — agent disperses but does not arrest thermal runaway (designed for Class A/B, not Li-ion thermal decomposition). CO₂ system deploys at T+8min — cooling effect insufficient against exothermic chain reaction. EPO activated at T+10min — partial failure: generator auto-starts, re-energizing partial circuits.",
+      "signals": [
+        {
+          "time": "T+0:00",
+          "type": "TELEMETRY",
+          "severity": "CRITICAL",
+          "text": "Module 247 — voltage spike 4.2V → 5.1V — BMS thermal runaway flag"
+        },
+        {
+          "time": "T+0:30",
+          "type": "TELEMETRY",
+          "severity": "CRITICAL",
+          "text": "Module 247 temperature exceeds 130°C — adjacent modules 246, 248 entering thermal stress"
+        },
+        {
+          "time": "T+1:30",
+          "type": "TELEMETRY",
+          "severity": "CRITICAL",
+          "text": "Cascade propagation confirmed — 12 modules in thermal runaway"
+        },
+        {
+          "time": "T+2:00",
+          "type": "DETECTION",
+          "severity": "HIGH",
+          "text": "Aspirating detector triggers — pre-alarm smoke detection in server hall"
+        },
+        {
+          "time": "T+3:00",
+          "type": "DETECTION",
+          "severity": "CRITICAL",
+          "text": "Spot detector array confirms — battery room smoke density exceeds threshold"
+        },
+        {
+          "time": "T+5:00",
+          "type": "SUPPRESSION",
+          "severity": "HIGH",
+          "text": "Clean agent system deploys — agent concentration achieved but thermal runaway continues"
+        },
+        {
+          "time": "T+8:00",
+          "type": "SUPPRESSION",
+          "severity": "HIGH",
+          "text": "CO₂ system deploys — minimal cooling effect, does not reach thermal runaway threshold"
+        },
+        {
+          "time": "T+10:00",
+          "type": "POWER",
+          "severity": "CRITICAL",
+          "text": "EPO activated — mains disconnected but generator auto-starts, re-energizing partial circuits"
+        },
+        {
+          "time": "T+15:00",
+          "type": "OPERATIONS",
+          "severity": "CRITICAL",
+          "text": "Fire department dispatched — hazmat team requested for lithium-ion event"
+        }
+      ]
+    },
+    "act_03": {
+      "title": "Cascade & Constraint",
+      "subtitle": "Why the situation escalated beyond control",
+      "time_range": "T+15min → T+22h",
+      "system_state": "UNCONTROLLED — MULTI-SYSTEM FAILURE",
+      "summary": "Following initial suppression failure, the fire cascaded through 384 battery modules generating toxic hydrogen fluoride gas and temperatures exceeding 160°C. Clean agent and CO₂ proved chemically incompatible with Li-ion thermal runaway — neither could interrupt the self-sustaining exothermic decomposition. Water suppression was available but ruled out to protect adjacent server equipment — a decision that prioritized hardware over containment. Fire department operations lasted 22 hours with 101 personnel and 22 vehicles. All 647 hosted services went offline. 858 TB of data destroyed with zero offsite backup. Recovery assessment at 2 weeks: 24% of services partially restored.",
+      "signals": [
+        {
+          "time": "T+20m",
+          "type": "TELEMETRY",
+          "severity": "CRITICAL",
+          "text": "Battery room temperature exceeds 160°C — full array in thermal runaway"
+        },
+        {
+          "time": "T+25m",
+          "type": "HAZMAT",
+          "severity": "CRITICAL",
+          "text": "HF gas detected in adjacent corridors — evacuation zone expanded"
+        },
+        {
+          "time": "T+30m",
+          "type": "SUPPRESSION",
+          "severity": "CRITICAL",
+          "text": "Clean agent exhausted — no refill capacity, system cannot re-engage"
+        },
+        {
+          "time": "T+45m",
+          "type": "OPERATIONS",
+          "severity": "CRITICAL",
+          "text": "Fire department establishes command — confirms Li-ion battery fire with toxic off-gassing"
+        },
+        {
+          "time": "T+1h",
+          "type": "INFRASTRUCTURE",
+          "severity": "CRITICAL",
+          "text": "Fire partition holds but heat transfer through cable penetrations to server hall"
+        },
+        {
+          "time": "T+2h",
+          "type": "INFRASTRUCTURE",
+          "severity": "CRITICAL",
+          "text": "Server hall temperatures reach critical — rack thermal shutdown begins"
+        },
+        {
+          "time": "T+3h",
+          "type": "INFRASTRUCTURE",
+          "severity": "CRITICAL",
+          "text": "CRAH units offline — cooling loop compromised"
+        },
+        {
+          "time": "T+4h",
+          "type": "SERVICES",
+          "severity": "CRITICAL",
+          "text": "All 647 services confirmed OFFLINE — national service disruption declared"
+        },
+        {
+          "time": "T+6h",
+          "type": "OPERATIONS",
+          "severity": "HIGH",
+          "text": "Water suppression authorized after server loss confirmed — fire partially contained"
+        },
+        {
+          "time": "T+10h",
+          "type": "OPERATIONS",
+          "severity": "HIGH",
+          "text": "Defensive operations continue — adjacent floors protected"
+        },
+        {
+          "time": "T+16h",
+          "type": "OPERATIONS",
+          "severity": "MEDIUM",
+          "text": "Fire intensity decreasing — overhaul operations begin"
+        },
+        {
+          "time": "T+22h",
+          "type": "OPERATIONS",
+          "severity": "INFO",
+          "text": "Fire declared under control — hazmat decontamination begins"
+        },
+        {
+          "time": "T+48h",
+          "type": "ASSESSMENT",
+          "severity": "HIGH",
+          "text": "858 TB confirmed destroyed — zero offsite backup existed"
+        }
+      ],
+      "cascade_metrics": {
+        "total_modules_affected": 384,
+        "peak_temperature_c": 160,
+        "services_offline": 647,
+        "data_lost_tb": 858,
+        "firefighters_deployed": 101,
+        "fire_vehicles": 22,
+        "duration_hours": 22,
+        "recovery_rate_2wk_pct": 24
+      }
+    },
+    "act_04": {
+      "title": "Post-Event Intel",
+      "subtitle": "Root causes, lessons, and recommended countermeasures",
+      "time_range": "T+48h → Ongoing",
+      "system_state": "RECOVERY — ROOT CAUSE ANALYSIS",
+      "summary": "Post-event analysis identifies 11 root causes across three categories: Technical (suppression chemistry mismatch, detection gap, battery end-of-life), Procedural (JSA failure, hot work permit gap, SoC verification skip, training deficit), and Architectural (proximity violation, single-point data failure, EPO logic error, insufficient passive barriers). The fundamental suppression gap — inability to address Li-ion thermal runaway with conventional clean agent or CO₂ — is the primary technical finding. Encapsulator agent technology (NFPA 18A class) with micelle mist delivery (NFPA 750) addresses all three hazard vectors: flammability, explosivity, and toxicity.",
+      "signals": [],
+      "root_causes": [
+        {
+          "category": "Technical",
+          "finding": "Clean agent system designed for Class A/B fires — chemically cannot arrest Li-ion thermal decomposition"
+        },
+        {
+          "category": "Technical",
+          "finding": "CO₂ cooling insufficient to interrupt exothermic chain reaction above 80°C self-heating threshold"
+        },
+        {
+          "category": "Technical",
+          "finding": "No off-gas detection — missed 25-minute early warning window before visible smoke"
+        },
+        {
+          "category": "Technical",
+          "finding": "Battery array operated 13 months beyond manufacturer rated lifespan"
+        },
+        {
+          "category": "Procedural",
+          "finding": "Job Safety Analysis not completed for battery maintenance work"
+        },
+        {
+          "category": "Procedural",
+          "finding": "Hot work permit not issued for adjacent electrical panel work"
+        },
+        {
+          "category": "Procedural",
+          "finding": "Battery State of Charge not verified before scheduled work"
+        },
+        {
+          "category": "Procedural",
+          "finding": "Technician lacked Li-ion-specific hazmat certification"
+        },
+        {
+          "category": "Architectural",
+          "finding": "60cm battery-to-server proximity below NFPA 855 recommended separation"
+        },
+        {
+          "category": "Architectural",
+          "finding": "858 TB hosted data with zero offsite replication or backup"
+        },
+        {
+          "category": "Architectural",
+          "finding": "EPO logic did not account for generator auto-start — created re-energization hazard"
+        }
+      ],
+      "recommendations": {
+        "what_changed": [
+          "647 services lost — national-scale disruption affecting 50M+ citizens",
+          "858 TB of government data destroyed with no backup",
+          "Critical infrastructure facility rendered non-operational for 22+ hours",
+          "Emergency services degraded during event window"
+        ],
+        "what_it_means": [
+          "Conventional clean agent and CO₂ suppression cannot arrest Li-ion thermal runaway",
+          "The fundamental suppression gap in data center battery rooms remains unaddressed by standard systems",
+          "Off-gas detection provides a 25-minute early warning window that was entirely absent",
+          "Battery end-of-life management is a critical fire prevention control"
+        ],
+        "what_to_do_next": {
+          "immediate": [
+            "Deploy encapsulator agent micelle mist suppression in all battery rooms",
+            "Install off-gas detection (HF, CO, VOC) with automated BMS integration",
+            "Enforce mandatory JSA completion for all battery room work"
+          ],
+          "next": [
+            "Migrate to LFP chemistry (lower thermal runaway risk) at next replacement cycle",
+            "Implement multi-region data failover with 3-2-1 backup strategy",
+            "Install dedicated suppression integration system for encapsulator delivery",
+            "Review and correct EPO logic to prevent generator re-energization"
+          ],
+          "watchlist": [
+            "NFPA 855 2026 edition — Large-Scale Fire Test requirements for BESS",
+            "ISO 9001:2026 revision for quality management updates",
+            "EPA PFAS regulations — verify suppression agents are fluorine-free",
+            "Monitor Li-ion fire incident patterns across APAC data center sector"
+          ]
+        }
+      },
+      "hct_solution": {
+        "product": "F-500 EA® Encapsulator Agent",
+        "standard": "NFPA 750 + NFPA 18A",
+        "description": "Encapsulator agent delivered via water mist nozzle technology. Purpose-built for Li-ion thermal runaway in occupied, electronics-dense environments. Addresses all three hazard vectors simultaneously.",
+        "three_level_mitigation": [
+          "FLAMMABILITY — Encapsulates fuel molecules, interrupts free radical chain reaction, absorbs 10x more heat than plain water",
+          "EXPLOSIVITY — Renders off-gases non-ignitable through micelle encapsulation of volatile organic compounds",
+          "TOXICITY — Reduces HF and other toxic emission concentrations through chemical binding"
+        ],
+        "key_advantages": [
+          "3x cooling capacity vs. plain water — faster thermal runaway arrest",
+          "Safe for occupied spaces — non-toxic, no oxygen displacement",
+          "Electronics-compatible — no residue damage to adjacent server equipment",
+          "Fluorine-free — compliant with emerging EPA PFAS regulations",
+          "Integrates with existing sprinkler infrastructure via proportioning systems"
+        ],
+        "configurations": [
+          {
+            "model": "MM-CF-HP",
+            "type": "Ceiling Flush",
+            "microns": "100-150μm",
+            "pressure": "High Pressure"
+          },
+          {
+            "model": "MM-SA-HP",
+            "type": "Stand-Alone",
+            "microns": "100-150μm",
+            "pressure": "High Pressure"
+          }
+        ],
+        "certifications": [
+          "NFPA 18A §7.7",
+          "UL Listed",
+          "DEKRA Tested",
+          "ISO 9001",
+          "EPA Modified 537",
+          "NFPA 750"
+        ]
+      }
+    }
+  },
+  "inspections": {
+    "in_person": [
+      {
+        "id": "INS-001",
+        "name": "Battery Room Suppression Audit",
+        "type": "In-Person",
+        "category": "Suppression Gap Assessment",
+        "icon": "🔍",
+        "scope": [
+          "Physical inspection of all battery room suppression systems",
+          "FM-200/CO₂ compatibility assessment for Li-ion chemistry",
+          "F-500 EA retrofit feasibility study with mounting survey",
+          "Cable penetration and fire partition integrity check",
+          "Suppression agent coverage mapping with 3D thermal model"
+        ],
+        "deliverables": [
+          "Suppression Gap Analysis Report (NFPA 855 compliant)",
+          "F-500 EA installation blueprint with piping diagrams",
+          "Fire partition remediation plan",
+          "Executive summary for insurance carrier submission"
+        ],
+        "standards": [
+          "NFPA 855",
+          "NFPA 750",
+          "NFPA 18A",
+          "UL 9540A"
+        ],
+        "cost_range": "$18,000 – $32,000",
+        "duration": "2–3 days on-site",
+        "timeline": "IMMEDIATE",
+        "personnel": "2 NFPA-certified fire protection engineers",
+        "links_to_recos": [
+          "F-500 EA Encapsulator Agent",
+          "Off-Gas Detection System"
+        ],
+        "insurance_impact": "Required for premium renegotiation — typically $2.1M/yr savings",
+        "priority": "CRITICAL"
+      },
+      {
+        "id": "INS-002",
+        "name": "Full Facility Fire Protection Survey",
+        "type": "In-Person",
+        "category": "Comprehensive Assessment",
+        "icon": "🏢",
+        "scope": [
+          "All-floor fire protection system inventory and condition assessment",
+          "Detection system coverage verification (VESDA, spot, off-gas)",
+          "EPO logic verification and generator isolation testing",
+          "Passive fire protection survey (partitions, penetrations, dampers)",
+          "Egress and evacuation route assessment",
+          "CRAH/cooling system fire interaction analysis"
+        ],
+        "deliverables": [
+          "Comprehensive Fire Protection Assessment Report",
+          "Asset condition matrix with remaining useful life estimates",
+          "Priority remediation roadmap with cost estimates",
+          "NFPA 75/76 compliance gap analysis",
+          "Board-ready executive briefing deck"
+        ],
+        "standards": [
+          "NFPA 75",
+          "NFPA 76",
+          "NFPA 72",
+          "NFPA 13",
+          "NEC 645"
+        ],
+        "cost_range": "$45,000 – $72,000",
+        "duration": "5–7 days on-site",
+        "timeline": "30-DAY",
+        "personnel": "3–4 engineers (fire protection, electrical, mechanical)",
+        "links_to_recos": [
+          "Suppression Gap Audit",
+          "Emergency Response Update"
+        ],
+        "insurance_impact": "Comprehensive baseline for FM Global DS 5-33 assessment",
+        "priority": "HIGH"
+      },
+      {
+        "id": "INS-003",
+        "name": "Post-Incident Forensic Investigation",
+        "type": "In-Person",
+        "category": "Root Cause Analysis",
+        "icon": "🔬",
+        "scope": [
+          "Physical evidence collection and chain-of-custody documentation",
+          "Battery module failure analysis with thermal imaging",
+          "Suppression system performance reconstruction",
+          "Timeline correlation with BMS/SCADA telemetry data",
+          "Witness interviews and operational procedure review",
+          "Regulatory compliance assessment for incident reporting"
+        ],
+        "deliverables": [
+          "Forensic Investigation Report (court-admissible)",
+          "Root Cause Analysis with fault tree diagram",
+          "Regulatory filing support package",
+          "Insurance claim technical documentation",
+          "Corrective action plan with implementation timeline"
+        ],
+        "standards": [
+          "NFPA 921",
+          "NFPA 1033",
+          "NFPA 855",
+          "UL 9540A"
+        ],
+        "cost_range": "$65,000 – $120,000",
+        "duration": "7–14 days on-site + 30 days analysis",
+        "timeline": "AS-NEEDED",
+        "personnel": "Lead investigator + 2–3 specialists",
+        "links_to_recos": [
+          "Insurance Risk Assessment"
+        ],
+        "insurance_impact": "Critical for claim substantiation and subrogation",
+        "priority": "HIGH"
+      }
+    ],
+    "online_consults": [
+      {
+        "id": "CON-001",
+        "name": "Suppression Chemistry Briefing",
+        "type": "Online Consultation",
+        "category": "Technical Advisory",
+        "icon": "💻",
+        "scope": [
+          "Li-ion thermal runaway chemistry deep-dive",
+          "Why FM-200/CO₂/clean agent fails against Li-ion fires",
+          "F-500 EA micelle encapsulation mechanism explained",
+          "Three-vector mitigation: flammability, explosivity, toxicity",
+          "Q&A with fire protection engineer"
+        ],
+        "deliverables": [
+          "Recorded session with transcript",
+          "Technical brief: 'Why Clean Agent Fails Against Li-Ion'",
+          "Product comparison matrix (F-500 EA vs. alternatives)",
+          "Follow-up action items document"
+        ],
+        "standards": [
+          "NFPA 18A",
+          "NFPA 2001",
+          "UL 9540A"
+        ],
+        "cost_range": "$2,500 – $4,500",
+        "duration": "90-minute session",
+        "timeline": "IMMEDIATE",
+        "personnel": "Senior fire protection engineer",
+        "links_to_recos": [
+          "F-500 EA Encapsulator Agent"
+        ],
+        "format": "Video call + screen share",
+        "priority": "STANDARD"
+      },
+      {
+        "id": "CON-002",
+        "name": "Insurance Strategy Session",
+        "type": "Online Consultation",
+        "category": "Risk & Insurance",
+        "icon": "📊",
+        "scope": [
+          "Current premium analysis and loss history review",
+          "Suppression retrofit impact on underwriting",
+          "FM Global DS 5-33 compliance pathway",
+          "Documentation strategy for carrier submission",
+          "Premium reduction modeling ($890K–$2.1M/yr scenarios)"
+        ],
+        "deliverables": [
+          "Premium Impact Analysis Report",
+          "Carrier submission checklist",
+          "ROI model: suppression investment vs. premium savings",
+          "Timeline to premium adjustment"
+        ],
+        "standards": [
+          "FM Global DS 5-33",
+          "NFPA 855"
+        ],
+        "cost_range": "$3,500 – $6,000",
+        "duration": "2-hour session + follow-up",
+        "timeline": "30-DAY",
+        "personnel": "Risk engineer + insurance specialist",
+        "links_to_recos": [
+          "Insurance Risk Assessment"
+        ],
+        "format": "Video call + financial modeling",
+        "priority": "HIGH"
+      },
+      {
+        "id": "CON-003",
+        "name": "Emergency Response Planning Workshop",
+        "type": "Online Consultation",
+        "category": "Operational Readiness",
+        "icon": "🚨",
+        "scope": [
+          "Li-ion specific emergency response protocol development",
+          "HF gas evacuation zone planning",
+          "Thermal imaging integration for fire response",
+          "Water authorization decision tree creation",
+          "Coordination framework with local fire department"
+        ],
+        "deliverables": [
+          "Emergency Response Plan (Li-ion specific)",
+          "HF gas evacuation zone maps",
+          "Decision tree: suppression agent selection",
+          "Tabletop exercise scenario package",
+          "Training materials for facility operations team"
+        ],
+        "standards": [
+          "NFPA 1620",
+          "NFPA 855",
+          "OSHA 1910.120"
+        ],
+        "cost_range": "$5,000 – $8,500",
+        "duration": "Half-day workshop (4 hours)",
+        "timeline": "30-DAY",
+        "personnel": "Emergency response specialist + fire protection engineer",
+        "links_to_recos": [
+          "Emergency Response Update",
+          "Tabletop Exercise Program"
+        ],
+        "format": "Interactive workshop via video",
+        "priority": "HIGH"
+      },
+      {
+        "id": "CON-004",
+        "name": "BMS Telemetry Architecture Review",
+        "type": "Online Consultation",
+        "category": "Technical Advisory",
+        "icon": "📡",
+        "scope": [
+          "Current BMS configuration audit (remote access)",
+          "Alarm threshold optimization (OEM spec alignment)",
+          "Off-gas detection integration planning",
+          "Anomaly detection algorithm recommendations",
+          "Dashboard and alerting architecture design"
+        ],
+        "deliverables": [
+          "BMS Configuration Assessment Report",
+          "Optimized alarm threshold matrix",
+          "Integration architecture diagram",
+          "Vendor-agnostic specification for off-gas detection",
+          "Implementation roadmap"
+        ],
+        "standards": [
+          "UL 9540A",
+          "NFPA 855",
+          "IEEE 1547"
+        ],
+        "cost_range": "$4,000 – $7,000",
+        "duration": "2-hour session + remote analysis",
+        "timeline": "IMMEDIATE",
+        "personnel": "Controls engineer + battery specialist",
+        "links_to_recos": [
+          "BMS Telemetry Dashboard",
+          "Off-Gas Detection System"
+        ],
+        "format": "Video call + remote BMS access",
+        "priority": "HIGH"
+      }
+    ],
+    "drone_inspections": [
+      {
+        "id": "DRN-001",
+        "name": "Thermal Imaging Survey",
+        "type": "Drone Inspection",
+        "category": "Predictive Maintenance",
+        "icon": "🛸",
+        "scope": [
+          "Exterior thermal imaging of facility envelope",
+          "Roof-level HVAC and cooling infrastructure assessment",
+          "Electrical distribution thermal anomaly detection",
+          "Battery room external thermal signature baseline",
+          "Cable tray and penetration thermal mapping"
+        ],
+        "deliverables": [
+          "Thermal Imaging Survey Report with annotated imagery",
+          "Anomaly detection heatmap with severity classification",
+          "3D thermal model of facility exterior",
+          "Predictive maintenance priority list",
+          "Before/after comparison capability for future surveys"
+        ],
+        "standards": [
+          "NFPA 70B",
+          "ASTM E1934",
+          "ISO 18434-1"
+        ],
+        "cost_range": "$8,000 – $15,000",
+        "duration": "1 day flight + 5 days analysis",
+        "timeline": "30-DAY",
+        "personnel": "FAA Part 107 certified pilot + thermographer",
+        "links_to_recos": [
+          "Suppression Gap Audit"
+        ],
+        "equipment": "DJI Matrice 350 RTK + Zenmuse H20T thermal payload",
+        "priority": "STANDARD"
+      },
+      {
+        "id": "DRN-002",
+        "name": "Post-Incident Aerial Documentation",
+        "type": "Drone Inspection",
+        "category": "Forensic Documentation",
+        "icon": "📸",
+        "scope": [
+          "High-resolution aerial photography of damage extent",
+          "3D photogrammetric reconstruction of affected areas",
+          "Structural damage assessment from aerial perspective",
+          "Smoke/soot distribution pattern documentation",
+          "Adjacent structure impact assessment"
+        ],
+        "deliverables": [
+          "Aerial Documentation Package (court-admissible)",
+          "3D photogrammetric model of facility",
+          "Damage extent overlay on facility blueprints",
+          "Insurance claim visual documentation",
+          "Time-stamped flight log and chain-of-custody records"
+        ],
+        "standards": [
+          "NFPA 921",
+          "ASTM E2018"
+        ],
+        "cost_range": "$12,000 – $22,000",
+        "duration": "1–2 days flight + 10 days processing",
+        "timeline": "AS-NEEDED",
+        "personnel": "FAA Part 107 pilot + forensic photographer + photogrammetrist",
+        "links_to_recos": [
+          "Insurance Risk Assessment"
+        ],
+        "equipment": "DJI Matrice 350 RTK + P1 photogrammetry + L2 LiDAR",
+        "priority": "HIGH"
+      },
+      {
+        "id": "DRN-003",
+        "name": "Quarterly Facility Monitoring Program",
+        "type": "Drone Inspection",
+        "category": "Ongoing Monitoring",
+        "icon": "🔄",
+        "scope": [
+          "Quarterly thermal baseline comparison flights",
+          "Roof and exterior condition monitoring",
+          "Cooling infrastructure performance trending",
+          "Construction/remediation progress documentation",
+          "Change detection analysis between surveys"
+        ],
+        "deliverables": [
+          "Quarterly Monitoring Report with trend analysis",
+          "Thermal change detection overlay (quarter-over-quarter)",
+          "Anomaly tracking dashboard updates",
+          "Annual summary report for insurance carrier",
+          "Digital twin update package"
+        ],
+        "standards": [
+          "NFPA 70B",
+          "ISO 18434-1"
+        ],
+        "cost_range": "$24,000 – $48,000/year",
+        "duration": "1 day per quarter",
+        "timeline": "90-DAY",
+        "personnel": "FAA Part 107 pilot + thermographer",
+        "links_to_recos": [
+          "Suppression Gap Audit",
+          "Insurance Risk Assessment"
+        ],
+        "equipment": "DJI Matrice 350 RTK + thermal + visual payloads",
+        "priority": "STANDARD"
+      }
+    ],
+    "packages": [
+      {
+        "id": "PKG-001",
+        "name": "Rapid Response Package",
+        "description": "Fastest path from incident to remediation. Combines immediate suppression audit with insurance strategy and aerial documentation.",
+        "includes": [
+          "INS-001",
+          "CON-001",
+          "CON-002",
+          "DRN-002"
+        ],
+        "cost_range": "$89,000 – $162,000",
+        "timeline": "Starts within 72 hours",
+        "savings": "15–20% vs. individual services",
+        "priority": "CRITICAL",
+        "recommended_for": "full"
+      },
+      {
+        "id": "PKG-002",
+        "name": "Comprehensive Protection Program",
+        "description": "Full facility assessment with ongoing monitoring. The complete path from gap identification to verified remediation.",
+        "includes": [
+          "INS-001",
+          "INS-002",
+          "CON-001",
+          "CON-002",
+          "CON-003",
+          "CON-004",
+          "DRN-001",
+          "DRN-003"
+        ],
+        "cost_range": "$145,000 – $235,000 (Year 1)",
+        "timeline": "90-day implementation",
+        "savings": "25–30% vs. individual services",
+        "priority": "HIGH",
+        "recommended_for": "both"
+      },
+      {
+        "id": "PKG-003",
+        "name": "Near-Miss Hardening Package",
+        "description": "For facilities that narrowly avoided catastrophic loss. Close the suppression gap before the next event.",
+        "includes": [
+          "INS-001",
+          "CON-001",
+          "CON-003",
+          "CON-004",
+          "DRN-001"
+        ],
+        "cost_range": "$62,000 – $98,000",
+        "timeline": "30-day implementation",
+        "savings": "18% vs. individual services",
+        "priority": "HIGH",
+        "recommended_for": "partial"
+      }
+    ]
+  }
+}

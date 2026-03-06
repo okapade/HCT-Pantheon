@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pantheon — Admin</title>
+  <link rel="icon" type="image/png" href="/static/assets/PantheonLogoGold.png">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root{--s0:#0a0a0a;--s1:#111;--s2:#1a1a1a;--s3:#222;--b1:#2a2a2a;--b2:#333;--t0:#f5f5f5;--t1:#ccc;--t2:#999;--t3:#666;--t4:#444;--acc:#c9a84c;--red:#e74c3c;--green:#2ecc71;--sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',monospace}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:var(--sans);background:var(--s0);color:var(--t0);min-height:100vh;padding:32px}
+
+    .admin-header{display:flex;align-items:center;gap:12px;margin-bottom:32px}
+    .admin-header img{width:28px;height:28px;border-radius:6px}
+    .admin-header h1{font:700 18px/1 var(--sans);color:var(--acc);letter-spacing:2px}
+    .admin-header span{font:400 12px/1 var(--mono);color:var(--t3);margin-left:auto}
+
+    .admin-auth{max-width:400px;margin:80px auto;text-align:center}
+    .admin-auth input{width:100%;padding:14px;background:var(--s2);border:1px solid var(--b2);border-radius:8px;color:var(--t0);font:400 14px/1 var(--sans);text-align:center;outline:none;margin-bottom:12px}
+    .admin-auth input:focus{border-color:var(--acc)}
+    .admin-auth button{padding:12px 32px;background:var(--acc);color:var(--s0);font:600 13px/1 var(--sans);border:none;border-radius:8px;cursor:pointer}
+
+    .admin-grid{display:grid;grid-template-columns:380px 1fr;gap:24px;max-width:1200px}
+
+    .panel{background:var(--s1);border:1px solid var(--b1);border-radius:12px;padding:24px}
+    .panel-title{font:600 14px/1 var(--sans);color:var(--t0);margin-bottom:16px;text-transform:uppercase;letter-spacing:.5px}
+
+    .invite-field{margin-bottom:14px}
+    .invite-field label{display:block;font:500 10px/1 var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+    .invite-field input{width:100%;padding:10px 12px;background:var(--s2);border:1px solid var(--b2);border-radius:6px;color:var(--t0);font:400 13px/1 var(--sans);outline:none}
+    .invite-field input:focus{border-color:var(--acc)}
+    .invite-btn{width:100%;padding:12px;background:var(--acc);color:var(--s0);font:600 13px/1 var(--sans);border:none;border-radius:8px;cursor:pointer;margin-top:8px}
+
+    .invite-result{margin-top:16px;padding:14px;background:var(--s2);border:1px solid var(--b2);border-radius:8px;display:none}
+    .invite-result.show{display:block}
+    .invite-result .code{font:700 28px/1 var(--mono);color:var(--acc);letter-spacing:6px;text-align:center;margin:8px 0}
+    .invite-result .copy-btn{display:block;width:100%;padding:8px;background:var(--s3);border:1px solid var(--b2);border-radius:6px;color:var(--t1);font:400 11px/1 var(--mono);cursor:pointer;text-align:center;margin-top:8px}
+    .invite-result .copy-btn:hover{background:var(--b2)}
+
+    .user-row{display:flex;align-items:center;gap:12px;padding:12px;background:var(--s2);border:1px solid var(--b1);border-radius:8px;margin-bottom:8px}
+    .user-row .name{font:500 13px/1 var(--sans);color:var(--t0);min-width:120px}
+    .user-row .id{font:400 11px/1 var(--mono);color:var(--t3);min-width:180px}
+    .user-row .code{font:600 11px/1 var(--mono);color:var(--acc);min-width:60px}
+    .user-row .meta{font:400 10px/1 var(--mono);color:var(--t4);margin-left:auto;text-align:right}
+    .user-row .revoke{padding:4px 10px;background:transparent;border:1px solid var(--red);border-radius:4px;color:var(--red);font:500 10px/1 var(--mono);cursor:pointer;margin-left:8px}
+    .user-row .revoke:hover{background:rgba(231,76,60,.1)}
+
+    .empty{font:400 12px/1 var(--mono);color:var(--t4);text-align:center;padding:24px}
+
+    @media(max-width:800px){.admin-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div id="authGate" class="admin-auth">
+    <img src="/static/assets/PantheonLogoGold.png" alt="P" style="width:48px;margin-bottom:16px;border-radius:10px">
+    <div style="font:600 16px/1 var(--sans);color:var(--t0);margin-bottom:4px">Admin Access</div>
+    <div style="font:400 12px/1 var(--sans);color:var(--t3);margin-bottom:24px">HCT personnel only</div>
+    <input type="password" id="adminPw" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')adminAuth()">
+    <br><button onclick="adminAuth()">Authenticate</button>
+  </div>
+
+  <div id="adminPanel" style="display:none">
+    <div class="admin-header">
+      <img src="/static/assets/PantheonLogoGold.png" alt="P">
+      <h1>PANTHEON ADMIN</h1>
+      <span id="userCount">0 users</span>
+    </div>
+
+    <div class="admin-grid">
+      <div class="panel">
+        <div class="panel-title">Invite New User</div>
+        <div class="invite-field">
+          <label>Email or Phone *</label>
+          <input id="invId" placeholder="prospect@company.com">
+        </div>
+        <div class="invite-field">
+          <label>Name</label>
+          <input id="invName" placeholder="Jane Smith">
+        </div>
+        <div class="invite-field">
+          <label>Organization</label>
+          <input id="invOrg" placeholder="UCSD Health / Equinix / etc">
+        </div>
+        <button class="invite-btn" onclick="inviteUser()">Generate Access Code</button>
+
+        <div class="invite-result" id="invResult">
+          <div style="font:400 11px/1 var(--mono);color:var(--t3);text-align:center">ACCESS CODE</div>
+          <div class="code" id="invCode"></div>
+          <div style="font:400 11px/1.4 var(--sans);color:var(--t2);text-align:center" id="invMsg"></div>
+          <button class="copy-btn" onclick="copyInvite()">Copy invite message</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Active Users</div>
+        <div id="userList"><div class="empty">No users yet. Invite someone to get started.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let adminPw = '';
+
+    function adminAuth() {
+      adminPw = document.getElementById('adminPw').value;
+      fetch('/api/admin/users', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({admin_password: adminPw})
+      }).then(r => {
+        if (r.ok) {
+          document.getElementById('authGate').style.display = 'none';
+          document.getElementById('adminPanel').style.display = 'block';
+          loadUsers();
+        } else {
+          alert('Invalid password');
+        }
+      });
+    }
+
+    function loadUsers() {
+      fetch('/api/admin/users', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({admin_password: adminPw})
+      }).then(r => r.json()).then(d => {
+        const list = document.getElementById('userList');
+        const users = d.users || [];
+        document.getElementById('userCount').textContent = users.length + ' user' + (users.length !== 1 ? 's' : '');
+        if (!users.length) {
+          list.innerHTML = '<div class="empty">No users yet. Invite someone to get started.</div>';
+          return;
+        }
+        list.innerHTML = users.map(u => {
+          const lastLogin = u.last_login ? new Date(u.last_login * 1000).toLocaleDateString() : 'Never';
+          return '<div class="user-row">' +
+            '<span class="name">' + (u.name || '—') + '</span>' +
+            '<span class="id">' + u.identifier + '</span>' +
+            '<span class="code">' + u.code + '</span>' +
+            '<span class="meta">' + u.days_left + 'd left · ' + u.sims_this_week + ' sims · Last: ' + lastLogin + '</span>' +
+            '<button class="revoke" onclick="revokeUser(\'' + u.identifier + '\')">Revoke</button>' +
+          '</div>';
+        }).join('');
+      });
+    }
+
+    function inviteUser() {
+      const id = document.getElementById('invId').value.trim();
+      const name = document.getElementById('invName').value.trim();
+      const org = document.getElementById('invOrg').value.trim();
+      if (!id) return alert('Email or phone required');
+
+      fetch('/api/admin/invite', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({admin_password: adminPw, identifier: id, name: name, org: org})
+      }).then(r => r.json()).then(d => {
+        if (d.ok) {
+          document.getElementById('invCode').textContent = d.code;
+          document.getElementById('invMsg').textContent = 'Send to ' + (name || id);
+          document.getElementById('invResult').classList.add('show');
+          loadUsers();
+        } else {
+          alert(d.error);
+        }
+      });
+    }
+
+    function copyInvite() {
+      const id = document.getElementById('invId').value.trim();
+      const name = document.getElementById('invName').value.trim();
+      const code = document.getElementById('invCode').textContent;
+      const url = window.location.origin + '/login';
+      const msg = (name ? 'Hi ' + name + ',\n\n' : '') +
+        'You\'ve been invited to Pantheon — HCT\'s fire protection intelligence platform.\n\n' +
+        'Access: ' + url + '\n' +
+        'Your email/phone: ' + id + '\n' +
+        'Access code: ' + code + '\n\n' +
+        'This gives you 90 days of access with 3 simulations per week.\n\n' +
+        '— HCT Team';
+      navigator.clipboard.writeText(msg).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = 'Copy invite message', 2000);
+      });
+    }
+
+    function revokeUser(id) {
+      if (!confirm('Revoke access for ' + id + '?')) return;
+      fetch('/api/admin/revoke', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({admin_password: adminPw, identifier: id})
+      }).then(() => loadUsers());
+    }
+  </script>
+</body>
+</html>

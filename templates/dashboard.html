@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pantheon</title>
+  <link rel="icon" type="image/png" href="/static/assets/PantheonLogoGold.png">
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+</head>
+
+<body>
+
+  <!-- LOGIN GATE -->
+  <div class="login-gate" id="loginGate">
+    <div class="login-inner">
+      <img src="/static/assets/PantheonLogoGold.png" alt="Pantheon" class="login-logo">
+      <div class="login-title">PANTHEON</div>
+      <div class="login-subtitle">Fire Protection Intelligence</div>
+      <div class="login-form">
+        <input type="text" id="loginCode" class="login-input" placeholder="Enter access code" autocomplete="off" spellcheck="false">
+        <button class="login-btn" id="loginBtn" onclick="submitAccessCode()">ENTER</button>
+        <div class="login-error" id="loginError"></div>
+      </div>
+      <div class="login-footer">Powered by HCT &middot; Embedded Logix</div>
+    </div>
+    <!-- Admin toggle (hidden, triple-click logo to reveal) -->
+    <div class="admin-panel" id="adminPanel">
+      <input type="password" id="adminPass" class="login-input" placeholder="Admin password">
+      <input type="text" id="adminPhone" class="login-input" placeholder="Prospect phone (optional)">
+      <input type="text" id="adminNewCode" class="login-input" placeholder="Custom code (or auto-generate)">
+      <button class="login-btn admin-btn" onclick="createAccessCode()">Generate Code</button>
+      <div class="admin-result" id="adminResult"></div>
+    </div>
+  </div>
+
+  <!-- BOOT -->
+  <div class="boot" id="boot">
+    <div class="boot-inner">
+      <img src="/static/assets/PantheonLogoGold.png" alt="Pantheon" class="boot-logo">
+      <div class="boot-bar">
+        <div class="boot-fill"></div>
+      </div>
+      <div class="boot-text">INITIALIZING SYSTEM</div>
+    </div>
+  </div>
+
+  <!-- APP SHELL -->
+  <div class="app" id="app">
+
+    <!-- COL 1: Rail -->
+    <nav class="rail">
+      <div class="rail-top">
+        <button class="rail-logo" id="railLogo" title="Home">
+          <img src="/static/assets/PantheonLogoGold.png" alt="P" class="rail-logo-img">
+        </button>
+        <button class="rail-btn active" data-view="home" title="Home">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4">
+            <path d="M3 8.5L10 3l7 5.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1z" />
+            <path d="M8 17v-5h4v5" />
+          </svg>
+        </button>
+        <button class="rail-btn" data-view="simulate" title="Simulate">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4">
+            <circle cx="10" cy="10" r="7" />
+            <path d="M10 6v4l2.5 1.5" />
+          </svg>
+        </button>
+        <button class="rail-btn" data-view="catalog" title="Catalog">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4">
+            <rect x="2" y="2" width="6.5" height="6.5" rx="1.5" />
+            <rect x="11.5" y="2" width="6.5" height="6.5" rx="1.5" />
+            <rect x="2" y="11.5" width="6.5" height="6.5" rx="1.5" />
+            <rect x="11.5" y="11.5" width="6.5" height="6.5" rx="1.5" />
+          </svg>
+        </button>
+        <button class="rail-btn" data-view="channels" title="Channels">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4">
+            <path d="M3 3h14a1 1 0 011 1v9a1 1 0 01-1 1H7l-4 3V4a1 1 0 011-1z" />
+          </svg>
+        </button>
+        <button class="rail-btn" data-view="emergency" title="Emergency Response">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4">
+            <path d="M10 2L2 18h16L10 2z" />
+            <line x1="10" y1="8" x2="10" y2="12" />
+            <circle cx="10" cy="14.5" r=".8" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+        <button class="rail-btn" data-view="monitor" title="Live Monitor">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4">
+            <rect x="2" y="3" width="16" height="11" rx="1.5"/>
+            <path d="M8 17h4"/><path d="M10 14v3"/>
+            <path d="M5 9l3-2.5 2.5 2L14 5"/>
+            <circle cx="14" cy="5" r="1" fill="currentColor" stroke="none"/>
+          </svg>
+        </button>
+        <button class="rail-btn" data-view="training" title="Training &amp; Readiness">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4">
+            <path d="M10 2L2 6l8 4 8-4-8-4z"/>
+            <path d="M4 7.5v5c0 2 2.7 3.5 6 3.5s6-1.5 6-3.5v-5"/>
+            <line x1="16" y1="6" x2="16" y2="13"/>
+            <circle cx="16" cy="14" r="1"/>
+          </svg>
+        </button>
+      </div>
+      <div class="rail-bottom">
+        <button class="rail-expand" id="railExpand" title="Show sidebar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M13 5l7 7-7 7" />
+            <path d="M6 5l7 7-7 7" />
+          </svg>
+        </button>
+        <button class="rail-theme" id="themeToggle" title="Toggle dark mode">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4">
+            <path d="M17.3 11.3A8 8 0 118.7 2.7a6 6 0 008.6 8.6z"/>
+          </svg>
+        </button>
+        <button class="rail-btn" data-view="settings" title="Settings">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3">
+            <path d="M8.3 2h3.4l.5 2.2a6 6 0 011.5.9l2.1-.8 1.7 3-1.6 1.5a6 6 0 010 1.7l1.6 1.5-1.7 3-2.1-.8a6 6 0 01-1.5.9L11.7 18H8.3l-.5-2.2a6 6 0 01-1.5-.9l-2.1.8-1.7-3 1.6-1.5a6 6 0 010-1.7L2.5 7.9l1.7-3 2.1.8a6 6 0 011.5-.9L8.3 2z"/>
+            <circle cx="10" cy="10" r="2.5"/>
+          </svg>
+        </button>
+        <div class="rail-status"><span class="rail-dot dot-ok"></span></div>
+      </div>
+    </nav>
+
+    <!-- COL 2: Context -->
+    <aside class="context" id="context">
+      <div class="ctx-head">
+        <span class="ctx-title" id="ctxTitle">Pantheon</span>
+        <button class="ctx-collapse" id="ctxCollapse" title="Collapse">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M10 3L5 8l5 5" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Home ctx -->
+      <div class="ctx-view ctx-active" id="ctxHome">
+        <!-- Nav links — always visible -->
+        <div class="ctx-section">
+          <div class="ctx-nav-list">
+            <button class="ctx-nav-btn" id="ctxNavSim"
+              onclick="document.querySelector('#facilitySelector').scrollIntoView({behavior:'smooth'})">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
+                <circle cx="8" cy="8" r="6" />
+                <path d="M8 5v3l2 2" />
+              </svg>
+              New simulation
+            </button>
+            <button class="ctx-nav-btn" onclick="switchView('catalog')">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
+                <rect x="2" y="2" width="5" height="5" rx="1" />
+                <rect x="9" y="2" width="5" height="5" rx="1" />
+                <rect x="2" y="9" width="5" height="5" rx="1" />
+                <rect x="9" y="9" width="5" height="5" rx="1" />
+              </svg>
+              Browse catalog
+            </button>
+          </div>
+        </div>
+        <div class="ctx-sep"></div>
+
+        <!-- Facility context — appears after facility selected -->
+        <div id="ctxFacilityInfo" class="hidden">
+          <div class="ctx-section">
+            <div class="ctx-sh">Facility</div>
+            <div class="ctx-facility-detail" id="ctxFacilityDetail"></div>
+          </div>
+          <div class="ctx-sep"></div>
+        </div>
+
+        <!-- Threat landscape — appears after config complete -->
+        <div id="ctxThreatSection" class="hidden">
+          <div class="ctx-section">
+            <div class="ctx-sh">Threat landscape</div>
+            <div class="ctx-stats" id="ctxThreatStats"></div>
+          </div>
+          <div class="ctx-sep"></div>
+          <div class="ctx-section">
+            <div class="ctx-sh">Suppression gap</div>
+            <div class="ctx-gap" id="ctxGap"></div>
+          </div>
+          <div class="ctx-sep"></div>
+        </div>
+
+        <!-- Recents — appears after simulations run -->
+        <div class="ctx-section">
+          <div id="ctxRecentSection" class="hidden">
+            <div class="ctx-sh">Recents</div>
+            <div class="ctx-list open" id="ctxRecent"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Simulate ctx -->
+      <div class="ctx-view" id="ctxSimulate">
+        <div class="ctx-incident">
+          <div class="ctx-iid" id="ctxIID">—</div>
+          <div class="ctx-facility" id="ctxFacility">—</div>
+        </div>
+        <div class="ctx-sep"></div>
+        <div class="ctx-section">
+          <div class="ctx-sh ctx-sh-toggle" id="ctxAssetsToggle"><svg class="ctx-sh-icon" viewBox="0 0 16 16"
+              fill="none" stroke="currentColor" stroke-width="1.2">
+              <rect x="1" y="3" width="14" height="10" rx="1.5" />
+              <line x1="1" y1="6" x2="15" y2="6" />
+              <line x1="7" y1="6" x2="7" y2="13" />
+            </svg> Assets <span class="ctx-cnt" id="ctxACnt">0</span><span class="ctx-arrow open">▸</span></div>
+          <div class="ctx-list open" id="ctxAList"></div>
+        </div>
+        <div class="ctx-sep"></div>
+        <div class="ctx-section">
+          <div class="ctx-sh ctx-sh-toggle" id="ctxServicesToggle"><svg class="ctx-sh-icon" viewBox="0 0 16 16"
+              fill="none" stroke="currentColor" stroke-width="1.2">
+              <circle cx="8" cy="5" r="2.5" />
+              <path d="M3 14v-.5a5 5 0 0110 0v.5" />
+            </svg> Services <span class="ctx-cnt" id="ctxSCnt">0</span><span class="ctx-arrow open">▸</span></div>
+          <div class="ctx-list open" id="ctxSList"></div>
+        </div>
+        <div class="ctx-sep"></div>
+        <div class="ctx-section">
+          <div class="ctx-sh ctx-sh-toggle" id="ctxStdsToggle"><svg class="ctx-sh-icon" viewBox="0 0 16 16" fill="none"
+              stroke="currentColor" stroke-width="1.2">
+              <path d="M3 1h10v14l-5-2.8L3 15V1z" />
+            </svg> Standards <span class="ctx-cnt" id="ctxStdCnt">0</span><span class="ctx-arrow">▸</span></div>
+          <div class="ctx-list" id="ctxStdList">
+            <div class="ctx-jurisdiction hidden" id="ctxJurisdictionWrap"><span class="ctx-jurisdiction-label" id="ctxJurisdiction"></span></div>
+          </div>
+        </div>
+        <div class="ctx-sep"></div>
+        <div class="ctx-section">
+          <div class="ctx-sh ctx-sh-toggle" id="ctxGapsToggle"><svg class="ctx-sh-icon" viewBox="0 0 16 16" fill="none"
+              stroke="currentColor" stroke-width="1.2">
+              <circle cx="8" cy="8" r="6"/>
+              <line x1="8" y1="5" x2="8" y2="9"/>
+              <circle cx="8" cy="11" r=".5" fill="currentColor" stroke="none"/>
+            </svg> Compliance Gaps <span class="ctx-cnt" id="ctxGapCnt">0</span><span class="ctx-arrow">▸</span></div>
+          <div class="ctx-list" id="ctxGapList"></div>
+        </div>
+        <div class="ctx-reco" id="ctxReco">
+          <div class="ctx-sep"></div>
+          <div class="ctx-section">
+            <div class="ctx-sh ctx-sh-toggle" id="ctxRecosToggle"><svg class="ctx-sh-icon" viewBox="0 0 16 16"
+                fill="none" stroke="currentColor" stroke-width="1.2">
+                <path d="M8 1l2 4h4l-3 3 1 4-4-2-4 2 1-4-3-3h4z" />
+              </svg> Recommendations <span class="ctx-cnt" id="ctxRecoCnt">0</span><span class="ctx-arrow open">▸</span>
+            </div>
+            <div class="ctx-list open" id="ctxRecoList"></div>
+          </div>
+        </div>
+        <div class="ctx-insp" id="ctxInsp">
+          <div class="ctx-sep"></div>
+          <div class="ctx-section">
+            <div class="ctx-sh ctx-sh-toggle" id="ctxInspIPToggle"><svg class="ctx-sh-icon" viewBox="0 0 16 16"
+                fill="none" stroke="currentColor" stroke-width="1.2">
+                <circle cx="8" cy="8" r="5" />
+                <line x1="11" y1="11" x2="14" y2="14" stroke-width="1.5" stroke-linecap="round" />
+              </svg> In-person <span class="ctx-cnt" id="ctxInspIPCnt">0</span><span class="ctx-arrow open">▸</span>
+            </div>
+            <div class="ctx-list open" id="ctxInspIPList"></div>
+          </div>
+          <div class="ctx-sep"></div>
+          <div class="ctx-section">
+            <div class="ctx-sh ctx-sh-toggle" id="ctxInspOCToggle"><svg class="ctx-sh-icon" viewBox="0 0 16 16"
+                fill="none" stroke="currentColor" stroke-width="1.2">
+                <rect x="2" y="3" width="12" height="8" rx="1.5" />
+                <line x1="5" y1="14" x2="11" y2="14" />
+                <line x1="8" y1="11" x2="8" y2="14" />
+              </svg> Online <span class="ctx-cnt" id="ctxInspOCCnt">0</span><span class="ctx-arrow open">▸</span></div>
+            <div class="ctx-list open" id="ctxInspOCList"></div>
+          </div>
+          <div class="ctx-sep"></div>
+          <div class="ctx-section">
+            <div class="ctx-sh ctx-sh-toggle" id="ctxInspDRToggle"><svg class="ctx-sh-icon" viewBox="0 0 16 16"
+                fill="none" stroke="currentColor" stroke-width="1.2">
+                <path d="M8 4v8M4 8h8M3 5l2 2M13 5l-2 2M3 11l2-2M13 11l-2-2" />
+              </svg> Drone <span class="ctx-cnt" id="ctxInspDRCnt">0</span><span class="ctx-arrow open">▸</span></div>
+            <div class="ctx-list open" id="ctxInspDRList"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Catalog ctx -->
+      <div class="ctx-view" id="ctxCatalog">
+        <div class="ctx-section">
+          <div class="ctx-sh">Categories</div>
+          <div class="ctx-nav-list" id="ctxCatNav">
+            <button class="ctx-nav-btn active" data-cat="all">All Products</button>
+            <button class="ctx-nav-btn" data-cat="suppression">Suppression</button>
+            <button class="ctx-nav-btn" data-cat="detection">Detection</button>
+            <button class="ctx-nav-btn" data-cat="inspections">Inspections</button>
+            <button class="ctx-nav-btn" data-cat="consults">Consultations</button>
+            <button class="ctx-nav-btn" data-cat="drone">Drone Services</button>
+          </div>
+        </div>
+        <div class="ctx-sep"></div>
+        <div class="ctx-section">
+          <div class="ctx-filter-group">
+            <div class="ctx-filter-label">Timeline</div>
+            <div class="ctx-filter-chips" id="ctxFilterTimeline">
+              <button class="ctx-chip active" data-filter="all">All</button>
+              <button class="ctx-chip" data-filter="immediate">Now</button>
+              <button class="ctx-chip" data-filter="30-day">30d</button>
+              <button class="ctx-chip" data-filter="90-day">90d</button>
+            </div>
+          </div>
+          <div class="ctx-filter-group">
+            <div class="ctx-filter-label">Priority</div>
+            <div class="ctx-filter-chips" id="ctxFilterPriority">
+              <button class="ctx-chip active" data-filter="all">All</button>
+              <button class="ctx-chip" data-filter="critical">Critical</button>
+              <button class="ctx-chip" data-filter="high">High</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Channels ctx -->
+      <div class="ctx-view" id="ctxChannels">
+        <div class="ctx-section">
+          <div class="ctx-sh">Channels</div>
+          <div class="ctx-nav-list" id="ctxChannelList">
+            <button class="ctx-nav-btn ctx-channel active" data-channel="general"><span
+                class="ctx-channel-hash">#</span>General</button>
+            <button class="ctx-nav-btn ctx-channel" data-channel="engineering"><span
+                class="ctx-channel-hash">#</span>Engineering</button>
+            <button class="ctx-nav-btn ctx-channel" data-channel="sales"><span
+                class="ctx-channel-hash">#</span>Sales</button>
+            <button class="ctx-nav-btn ctx-channel" data-channel="services"><span
+                class="ctx-channel-hash">#</span>Services</button>
+            <button class="ctx-nav-btn ctx-channel" data-channel="marketing"><span
+                class="ctx-channel-hash">#</span>Marketing</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings ctx -->
+      <div class="ctx-view" id="ctxSettings">
+        <div class="ctx-section">
+          <div class="ctx-sh">Configuration</div>
+          <div class="ctx-nav-list">
+            <button class="ctx-nav-btn active">Preferences</button>
+            <button class="ctx-nav-btn">Facilities</button>
+            <button class="ctx-nav-btn">Team</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ctx-footer">
+        <div class="ctx-status"><span class="ctx-dot dot-ok"></span><span id="ctxApiDot">System Online</span></div>
+      </div>
+
+      <!-- Monitor ctx -->
+      <div class="ctx-view" id="ctxMonitor">
+        <div class="ctx-section">
+          <div class="ctx-sh">FACILITY STATUS</div>
+          <div class="ctx-stats" id="monCtxStats">
+            <div class="ctx-stat"><div class="ctx-stat-val" id="monAssetCount">--</div><div class="ctx-stat-label">Assets</div></div>
+            <div class="ctx-stat"><div class="ctx-stat-val" id="monAlertCount">0</div><div class="ctx-stat-label">Active alerts</div></div>
+            <div class="ctx-stat"><div class="ctx-stat-val" id="monTempMax">--</div><div class="ctx-stat-label">Peak temp</div></div>
+            <div class="ctx-stat"><div class="ctx-stat-val" id="monUptime">99.7%</div><div class="ctx-stat-label">Uptime</div></div>
+          </div>
+        </div>
+        <div class="ctx-sep"></div>
+        <div class="ctx-section">
+          <div class="ctx-sh ctx-sh-toggle" id="monZonesToggle">ZONES <span class="ctx-cnt" id="monZoneCnt">0</span><span class="ctx-arrow open">&#9656;</span></div>
+          <div class="ctx-list open" id="monZoneList"></div>
+        </div>
+        <div class="ctx-sep"></div>
+        <div class="ctx-section">
+          <div class="ctx-sh ctx-sh-toggle" id="monSensorsToggle">SMART-LX SENSORS <span class="ctx-cnt" id="monSensorCnt">0</span><span class="ctx-arrow">&#9656;</span></div>
+          <div class="ctx-list" id="monSensorList"></div>
+        </div>
+      </div>
+
+      <!-- Training ctx -->
+      <div class="ctx-view" id="ctxTraining">
+        <div class="ctx-section">
+          <div class="ctx-sh">READINESS SCORE</div>
+          <div class="ctx-stats" id="trainCtxStats">
+            <div class="ctx-stat"><div class="ctx-stat-val" id="trainScore">--</div><div class="ctx-stat-label">Overall</div></div>
+            <div class="ctx-stat"><div class="ctx-stat-val" id="trainGaps">--</div><div class="ctx-stat-label">Open gaps</div></div>
+            <div class="ctx-stat"><div class="ctx-stat-val" id="trainComplete">0</div><div class="ctx-stat-label">Completed</div></div>
+            <div class="ctx-stat"><div class="ctx-stat-val" id="trainOverdue">0</div><div class="ctx-stat-label">Overdue</div></div>
+          </div>
+        </div>
+        <div class="ctx-sep"></div>
+        <div class="ctx-section">
+          <div class="ctx-sh ctx-sh-toggle" id="trainCatToggle">CATEGORIES <span class="ctx-arrow open">&#9656;</span></div>
+          <div class="ctx-list open" id="trainCatList"></div>
+        </div>
+        <div class="ctx-sep"></div>
+        <div class="ctx-section">
+          <div class="ctx-sh">PRESCRIBED BY</div>
+          <div class="ctx-gap" id="trainSourceList"></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- COL 3: Main -->
+    <main class="main">
+      <div class="main-view main-active" id="viewHome">
+        <div class="main-scroll" id="homeScroll">
+          <div class="main-scroll-center" id="homeCenter">
+            <!-- Role selector — THE landing page -->
+            <div class="role-selector" id="roleSelector">
+              <div class="role-hero">
+                <h1 class="role-hero-title">Pantheon</h1>
+                <p class="role-hero-sub">Operational intelligence for fire protection, emergency response, and facility
+                  compliance.</p>
+              </div>
+              <div class="role-label">I am a...</div>
+              <div class="role-grid" id="roleGrid"></div>
+            </div>
+
+            <!-- Hero + facility — hidden until role is selected -->
+            <div class="hero hidden" id="heroSection">
+              <h1 class="hero-title" id="heroTitle">Pantheon</h1>
+              <p class="hero-sub" id="heroSub">Configure your facility to begin.</p>
+            </div>
+            <div class="facility-selector hidden" id="facilitySelector">
+              <div class="fs-label">Select facility type</div>
+              <div class="fs-grid" id="fsGrid"></div>
+            </div>
+          </div>
+          <div class="config-flow hidden" id="configFlow">
+            <div class="cf-progress" id="cfProgress"></div>
+            <div class="cf-header" id="cfHeader">Configure</div>
+            <div class="cf-body" id="cfBody"></div>
+            <div class="cf-actions">
+              <button class="cf-btn cf-btn-back hidden" id="cfBack">Back</button>
+              <button class="cf-btn cf-btn-primary" id="cfNext">Next</button>
+            </div>
+          </div>
+          <div class="scenario-select hidden" id="scenarioSelect">
+            <div class="ss-summary" id="ssSummary"></div>
+            <div class="ss-cards">
+              <button class="ss-card" id="btnFull">
+                <div class="ss-card-badge ss-badge-full">FULL FAILURE</div>
+                <div class="ss-card-loss" id="ssFullLoss">$47M</div>
+                <div class="ss-card-label">estimated loss</div>
+                <div class="ss-card-desc">Complete cascade. All suppression fails.</div>
+              </button>
+              <button class="ss-card" id="btnPartial">
+                <div class="ss-card-badge ss-badge-partial">PARTIAL FAILURE</div>
+                <div class="ss-card-loss" id="ssPartialLoss">$3.2M</div>
+                <div class="ss-card-label">estimated loss</div>
+                <div class="ss-card-desc">Early detection limits cascade. Contained.</div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="main-input">
+          <input type="text" id="homeChat" placeholder="Describe your facility or ask a question..." autocomplete="off">
+          <button class="main-send" id="homeSend" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></button>
+        </div>
+      </div>
+      <div class="main-view" id="viewSimulate">
+        <div class="main-scroll" id="simScroll"></div>
+        <div class="main-input">
+          <input type="text" id="simChat" placeholder="Ask about this incident..." autocomplete="off">
+          <button class="main-send" id="simSend" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></button>
+        </div>
+      </div>
+      <div class="main-view" id="viewCatalog">
+        <div class="main-scroll">
+          <div class="cat-header">
+            <h2 class="cat-title" id="catTitle">All Products & Services</h2>
+            <div class="cat-search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3">
+                <circle cx="7" cy="7" r="4.5" />
+                <line x1="10.5" y1="10.5" x2="14" y2="14" stroke-linecap="round" />
+              </svg><input type="text" id="catSearch" placeholder="Search..." autocomplete="off"></div>
+          </div>
+          <div class="cat-grid" id="catGrid"></div>
+        </div>
+      </div>
+      <div class="main-view" id="viewChannels">
+        <div class="chan-head"><span class="chan-hash">#</span><span class="chan-name" id="chanName">General</span><span
+            class="chan-desc" id="chanDesc">Company-wide updates</span></div>
+        <div class="main-scroll" id="chanScroll">
+          <div class="empty-state"><svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1">
+              <path d="M4 4h16a1 1 0 011 1v10a1 1 0 01-1 1H8l-4 3V5a1 1 0 011-1z" />
+            </svg>
+            <div class="empty-text">Coming soon</div>
+          </div>
+        </div>
+        <div class="main-input"><input type="text" id="chanChat" placeholder="Message #General..."
+            autocomplete="off"><button class="main-send" id="chanSend" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></button></div>
+      </div>
+
+      <!-- Emergency Response -->
+      <div class="main-view" id="viewEmergency">
+        <div class="main-scroll" id="emScroll">
+          <div class="main-scroll-center" id="emCenter">
+            <div class="em-hero">
+              <div class="em-hero-icon">
+                <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6">
+                  <path d="M16 3L2 28h28L16 3z" />
+                  <line x1="16" y1="13" x2="16" y2="20" />
+                  <circle cx="16" cy="23" r="1" fill="currentColor" stroke="none" />
+                </svg>
+              </div>
+              <h1 class="em-hero-title">Emergency Response</h1>
+              <p class="em-hero-sub">Classify the incident. Get immediate action steps, AHJ routing, and documentation
+                requirements.</p>
+            </div>
+            <div class="em-type-selector" id="emTypeSelector">
+              <div class="em-type-label">What's happening?</div>
+              <div class="em-type-grid" id="emTypeGrid"></div>
+            </div>
+          </div>
+          <div class="em-flow hidden" id="emFlow">
+            <div class="em-progress" id="emProgress"></div>
+            <div class="em-flow-header" id="emFlowHeader">Classify incident</div>
+            <div class="em-flow-body" id="emFlowBody"></div>
+            <div class="em-flow-actions">
+              <button class="cf-btn cf-btn-back hidden" id="emBack">Back</button>
+              <button class="cf-btn cf-btn-primary" id="emNext">Next</button>
+            </div>
+          </div>
+          <div class="em-report hidden" id="emReport"></div>
+        </div>
+        <div class="main-input">
+          <input type="text" id="emChat" placeholder="Describe the situation..." autocomplete="off">
+          <button class="main-send" id="emSend" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></button>
+        </div>
+      </div>
+
+      <div class="main-view" id="viewSettings">
+        <div class="main-scroll" id="settScroll">
+          <div class="sett-container">
+            <h2 class="sett-title">Settings</h2>
+            <div class="sett-tabs" id="settTabs">
+              <button class="sett-tab active" data-tab="preferences">Preferences</button>
+              <button class="sett-tab" data-tab="facilities">Facilities</button>
+              <button class="sett-tab" data-tab="team">Team</button>
+            </div>
+
+            <div class="sett-panel active" id="settPreferences">
+              <div class="sett-section">
+                <div class="sett-sh">System</div>
+                <div class="sett-row"><span class="sett-label">Platform</span><span class="sett-val">Pantheon
+                    v1.0</span></div>
+                <div class="sett-row"><span class="sett-label">Status</span><span class="sett-val"><span
+                      class="sett-dot dot-ok">●</span> Online</span></div>
+              </div>
+              <div class="sett-section">
+                <div class="sett-sh">User preferences</div>
+                <div class="sett-row"><span class="sett-label">Role</span><span class="sett-val" id="settRole">Not
+                    set</span></div>
+                <div class="sett-row"><span class="sett-label">Region</span><span class="sett-val" id="settRegion">Not
+                    set</span></div>
+                <div class="sett-row"><span class="sett-label">Default facility</span><span class="sett-val"
+                    id="settDefaultFacility">Not set</span></div>
+              </div>
+              <div class="sett-section">
+                <div class="sett-sh">Notifications</div>
+                <div class="sett-row"><span class="sett-label">Simulation complete</span><span
+                    class="sett-val">Enabled</span></div>
+                <div class="sett-row"><span class="sett-label">Inspection reminders</span><span
+                    class="sett-val">Enabled</span></div>
+                <div class="sett-row"><span class="sett-label">Emergency alerts</span><span
+                    class="sett-val">Enabled</span></div>
+              </div>
+            </div>
+
+            <div class="sett-panel" id="settFacilities">
+              <div class="sett-section">
+                <div class="sett-sh">Saved facilities</div>
+                <div class="sett-empty">No facilities saved yet. Configure a facility from the home screen to save it
+                  here.</div>
+              </div>
+              <div class="sett-section">
+                <div class="sett-sh">Facility defaults</div>
+                <div class="sett-row"><span class="sett-label">Default battery chemistry</span><span
+                    class="sett-val">NMC</span></div>
+                <div class="sett-row"><span class="sett-label">Default suppression</span><span
+                    class="sett-val">FM-200</span></div>
+                <div class="sett-row"><span class="sett-label">Default region</span><span class="sett-val"
+                    id="settFacRegion">Not set</span></div>
+              </div>
+              <div class="sett-section">
+                <div class="sett-sh">Compliance standards</div>
+                <div class="sett-row"><span class="sett-label">NFPA 855 (BESS)</span><span
+                    class="sett-val">Active</span></div>
+                <div class="sett-row"><span class="sett-label">NFPA 75 (IT Equipment)</span><span
+                    class="sett-val">Active</span></div>
+                <div class="sett-row"><span class="sett-label">NFPA 13 (Sprinkler)</span><span
+                    class="sett-val">Active</span></div>
+                <div class="sett-row"><span class="sett-label">UL 9540A (ESS Testing)</span><span
+                    class="sett-val">Active</span></div>
+              </div>
+            </div>
+
+            <div class="sett-panel" id="settTeam">
+              <div class="sett-section">
+                <div class="sett-sh">Team members</div>
+                <div class="sett-empty">No team members added. Invite colleagues to collaborate on facility assessments
+                  and simulations.</div>
+              </div>
+              <div class="sett-section">
+                <div class="sett-sh">Roles & permissions</div>
+                <div class="sett-row"><span class="sett-label">Admin</span><span class="sett-val">Full access —
+                    configure, simulate, export</span></div>
+                <div class="sett-row"><span class="sett-label">Analyst</span><span class="sett-val">View simulations,
+                    export reports</span></div>
+                <div class="sett-row"><span class="sett-label">Viewer</span><span class="sett-val">Read-only access to
+                    results</span></div>
+              </div>
+              <div class="sett-section">
+                <div class="sett-sh">Integrations</div>
+                <div class="sett-row"><span class="sett-label">LMS connection</span><span class="sett-val">Not
+                    configured</span></div>
+                <div class="sett-row"><span class="sett-label">Insurance portal</span><span class="sett-val">Not
+                    configured</span></div>
+                <div class="sett-row"><span class="sett-label">AHJ filing system</span><span class="sett-val">Not
+                    configured</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Monitor view -->
+      <div class="main-view" id="viewMonitor">
+        <div class="main-scroll">
+          <div class="mon-hero">
+            <div class="hero-title">Live Monitor</div>
+            <div class="hero-sub">Real-time facility intelligence powered by Smart-LX sensor network</div>
+          </div>
+          <div class="mon-alert-banner hidden" id="monAlertBanner"></div>
+          <div class="mon-grid" id="monGrid"></div>
+          <div class="mon-section">
+            <div class="mon-sh">ALERT FEED</div>
+            <div class="mon-feed" id="monFeed"></div>
+          </div>
+        </div>
+        <div class="main-input">
+          <input type="text" id="monInput" placeholder="Ask about sensor readings, trends, or thresholds..." autocomplete="off">
+          <button class="main-send" id="monSend" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></button>
+        </div>
+      </div>
+
+      <!-- Training view -->
+      <div class="main-view" id="viewTraining">
+        <div class="main-scroll">
+          <div class="train-hero">
+            <div class="hero-title">Training &amp; Readiness</div>
+            <div class="hero-sub">AI-prescribed training plans based on simulation findings, emergency gaps, and facility risk profile</div>
+          </div>
+          <div class="train-prescriptions" id="trainPrescriptions"></div>
+          <div class="train-section">
+            <div class="train-sh">RECOMMENDED COURSES</div>
+            <div class="train-course-grid" id="trainCourseGrid"></div>
+          </div>
+          <div class="train-section">
+            <div class="train-sh">CERTIFICATIONS &amp; COMPLIANCE</div>
+            <div class="train-cert-grid" id="trainCertGrid"></div>
+          </div>
+        </div>
+        <div class="main-input">
+          <input type="text" id="trainInput" placeholder="Ask about training requirements, certifications, or readiness..." autocomplete="off">
+          <button class="main-send" id="trainSend" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+  <script src="/static/js/dashboard.js"></script>
+</body>
+
+</html>
