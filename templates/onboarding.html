@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pantheon — Setup</title>
+  <link rel="icon" type="image/png" href="/static/assets/PantheonLogoGold.png">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── LIGHT (default) ─────────────────────────────────────────── */
+    :root {
+      --gold: #9A7A28;
+      --gold-sel: #B8922E;
+      --gold-pale: rgba(154,122,40,0.09);
+      --gold-ring: rgba(154,122,40,0.2);
+
+      --bg:      #F4F2ED;
+      --bg2:     #FFFFFF;
+      --bg3:     #EDEAE3;
+      --bg4:     #E2DDD4;
+
+      --border:  rgba(0,0,0,0.09);
+      --border-sel: #9A7A28;
+
+      --text:    #111110;
+      --sub:     #4A4740;
+      --muted:   #8A8278;
+
+      --logo-filter: brightness(0);   /* gold PNG → black in light */
+      --logo-text-color: #111110;
+
+      --red: #A83030;
+      --red-bg: rgba(168,48,48,0.06);
+      --red-border: rgba(168,48,48,0.18);
+
+      --shadow-xs: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.07), 0 3px 10px rgba(0,0,0,0.04);
+      --shadow-md: 0 2px 6px rgba(0,0,0,0.09), 0 6px 20px rgba(0,0,0,0.05);
+
+      --grid-color: rgba(0,0,0,0.055);
+
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'IBM Plex Sans', sans-serif;
+    }
+
+    /* ── DARK ────────────────────────────────────────────────────── */
+    [data-theme="dark"] {
+      --gold: #C8A84B;
+      --gold-sel: #E2C46A;
+      --gold-pale: rgba(200,168,75,0.12);
+      --gold-ring: rgba(200,168,75,0.25);
+
+      --bg:      #0A0A0B;
+      --bg2:     #111113;
+      --bg3:     #17171A;
+      --bg4:     #1E1E22;
+
+      --border:  rgba(255,255,255,0.07);
+      --border-sel: #C8A84B;
+
+      --text:    #F0EDE8;
+      --sub:     #A09890;
+      --muted:   #6A6460;
+
+      --logo-filter: none;
+      --logo-text-color: #C8A84B;
+
+      --red: #E05555;
+      --red-bg: rgba(224,85,85,0.08);
+      --red-border: rgba(224,85,85,0.22);
+
+      --shadow-xs: 0 1px 3px rgba(0,0,0,0.4);
+      --shadow-sm: 0 1px 4px rgba(0,0,0,0.35), 0 4px 16px rgba(0,0,0,0.25);
+      --shadow-md: 0 2px 10px rgba(0,0,0,0.5), 0 8px 28px rgba(0,0,0,0.3);
+
+      --grid-color: rgba(200,168,75,0.04);
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.22s, color 0.22s;
+    }
+
+    /* Grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-image:
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+
+    .shell {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── TOPBAR ──────────────────────────────────────────────────── */
+    .topbar {
+      height: 54px;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      gap: 10px;
+      transition: background 0.22s, border-color 0.22s;
+      box-shadow: var(--shadow-xs);
+    }
+
+    .t-brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      flex: 1;
+    }
+
+    .t-logo {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+      filter: var(--logo-filter);
+      transition: filter 0.22s;
+    }
+
+    .t-name {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.13em;
+      color: var(--logo-text-color);
+      transition: color 0.22s;
+      text-transform: uppercase;
+    }
+
+    .t-sep {
+      width: 1px;
+      height: 14px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+
+    .t-subtitle {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+
+    /* Theme toggle button */
+    .theme-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      height: 32px;
+      padding: 0 11px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: var(--bg3);
+      cursor: pointer;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .theme-btn:hover {
+      border-color: var(--gold);
+      background: var(--bg4);
+    }
+    .theme-btn svg {
+      width: 13px;
+      height: 13px;
+      stroke: var(--sub);
+      fill: none;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+      transition: stroke 0.2s;
+    }
+    .theme-btn-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      transition: color 0.2s;
+      text-transform: uppercase;
+    }
+    .theme-btn:hover .theme-btn-label { color: var(--text); }
+    .theme-btn:hover svg { stroke: var(--text); }
+
+    /* ── PROGRESS ─────────────────────────────────────────────────── */
+    .prog-track {
+      height: 2px;
+      background: var(--bg4);
+      transition: background 0.22s;
+    }
+    .prog-fill {
+      height: 100%;
+      background: var(--gold);
+      transition: width 0.4s cubic-bezier(.4,0,.2,1), background 0.22s;
+    }
+
+    .prog-row {
+      padding: 16px 24px 0;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      max-width: 560px;
+    }
+    .pdot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--bg4);
+      border: 1px solid var(--border);
+      transition: all 0.25s;
+      flex-shrink: 0;
+    }
+    .pdot.done   { background: var(--gold); border-color: var(--gold); }
+    .pdot.active { background: var(--gold-sel); border-color: var(--gold-sel); transform: scale(1.6); }
+    .plabel {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-left: 10px;
+    }
+
+    /* ── CONTENT ─────────────────────────────────────────────────── */
+    .content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 36px 20px 52px;
+    }
+    .panel { width: 100%; max-width: 600px; }
+
+    .step-wrap { }
+    .step-enter { animation: fadeUp 0.2s ease both; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(7px); } }
+
+    /* step header */
+    .pstep  {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--gold);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+    .ptitle {
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 7px;
+      color: var(--text);
+    }
+    .psub {
+      font-size: 14px;
+      color: var(--sub);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    /* ── OPTION CARDS ─────────────────────────────────────────────── */
+    .opts { display: grid; gap: 8px; margin-bottom: 24px; }
+    .opts.g2 { grid-template-columns: 1fr 1fr; }
+    .opts.g3 { grid-template-columns: 1fr 1fr 1fr; }
+
+    .opt {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 12px 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      transition: border-color 0.13s, background 0.13s, box-shadow 0.13s;
+      box-shadow: var(--shadow-sm);
+    }
+    .opt:hover { border-color: var(--gold); background: var(--bg3); }
+    .opt.sel   {
+      border-color: var(--border-sel);
+      background: var(--gold-pale);
+      box-shadow: 0 0 0 1px var(--border-sel), var(--shadow-sm);
+    }
+
+    .oico {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.13s, border-color 0.13s;
+    }
+    .opt.sel .oico { background: var(--gold-pale); border-color: var(--gold); }
+    .oico svg {
+      width: 13px; height: 13px;
+      stroke: var(--muted); fill: none;
+      stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round;
+      transition: stroke 0.13s;
+    }
+    .opt.sel .oico svg { stroke: var(--gold-sel); }
+    .opt:hover .oico svg { stroke: var(--sub); }
+
+    .olabel { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.3; margin-bottom: 1px; }
+    .odesc  { font-size: 11px; color: var(--muted); line-height: 1.4; }
+
+    /* custom text input that appears when "Other / Custom" picked */
+    .custom-input-wrap {
+      margin-top: 10px;
+      display: none;
+    }
+    .custom-input-wrap.show { display: block; }
+    .custom-input-wrap input {
+      width: 100%;
+      height: 40px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 0 12px;
+      font-family: var(--sans);
+      font-size: 13px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.13s, box-shadow 0.13s;
+    }
+    .custom-input-wrap input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px var(--gold-ring);
+    }
+    ::placeholder { color: var(--muted); }
+
+    /* ── FIELDS ───────────────────────────────────────────────────── */
+    .fields { display: grid; gap: 12px; margin-bottom: 22px; }
+    .fields.f2 { grid-template-columns: 1fr 1fr; }
+    .field label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+    .field input, .field select {
+      width: 100%;
+      height: 42px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 0 12px;
+      font-family: var(--sans);
+      font-size: 13px;
+      color: var(--text);
+      outline: none;
+      -webkit-appearance: none;
+      box-shadow: var(--shadow-xs);
+      transition: border-color 0.13s, box-shadow 0.13s, background 0.22s;
+    }
+    .field input:focus, .field select:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px var(--gold-ring);
+    }
+    [data-theme="dark"] .field input,
+    [data-theme="dark"] .field select { background: var(--bg3); }
+    .field select option { background: var(--bg3); }
+
+    /* custom text reveal inside select group */
+    .field-custom { display: none; margin-top: 8px; }
+    .field-custom.show { display: block; }
+    .field-custom input {
+      height: 38px;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px var(--gold-ring);
+    }
+
+    /* ── GAP CALLOUT ──────────────────────────────────────────────── */
+    .gap-box {
+      display: none;
+      border-radius: 9px;
+      padding: 13px 15px;
+      margin-bottom: 18px;
+      background: var(--red-bg);
+      border: 1px solid var(--red-border);
+    }
+    .gap-box.show { display: flex; gap: 11px; align-items: flex-start; }
+    .gap-ico svg { width: 17px; height: 17px; stroke: var(--red); fill: none; stroke-width: 1.5; stroke-linecap: round; flex-shrink: 0; margin-top: 1px; }
+    .gap-title { font-family: var(--mono); font-size: 10px; font-weight: 600; color: var(--red); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
+    .gap-text  { font-size: 12px; color: var(--sub); line-height: 1.55; }
+
+    /* ── NAV ──────────────────────────────────────────────────────── */
+    .nav { display: flex; gap: 9px; align-items: center; padding-top: 4px; }
+
+    .btn-primary {
+      height: 42px;
+      background: var(--text);
+      border: none;
+      border-radius: 8px;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.09em;
+      color: var(--bg2);
+      cursor: pointer;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      transition: background 0.15s, opacity 0.15s;
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--gold-sel); color: #fff; }
+    [data-theme="dark"] .btn-primary:hover:not(:disabled) { color: #0A0A0B; }
+    .btn-primary:disabled { opacity: 0.28; cursor: not-allowed; }
+
+    .btn-ghost {
+      height: 42px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: var(--sans);
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0 16px;
+      transition: border-color 0.13s, color 0.13s;
+    }
+    .btn-ghost:hover { border-color: var(--gold); color: var(--text); }
+
+    .step-num {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      margin-left: auto;
+      letter-spacing: 0.06em;
+    }
+
+    .spin {
+      width: 13px; height: 13px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: sp 0.7s linear infinite;
+      display: none;
+    }
+    @keyframes sp { to { transform: rotate(360deg); } }
+
+    /* ── FINISH ───────────────────────────────────────────────────── */
+    .finish { text-align: center; padding: 24px 0; }
+    .finish-ring {
+      width: 50px; height: 50px;
+      border-radius: 50%;
+      background: var(--gold-pale);
+      border: 1px solid var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+    }
+    .finish-ring svg { width: 20px; height: 20px; stroke: var(--gold-sel); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .finish h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+    .finish p  { font-size: 14px; color: var(--sub); margin-bottom: 28px; line-height: 1.65; max-width: 340px; margin-left: auto; margin-right: auto; }
+
+    @media(max-width:560px) {
+      .opts.g2,.opts.g3,.fields.f2 { grid-template-columns: 1fr; }
+      .ptitle { font-size: 20px; }
+      .content { padding: 20px 14px 40px; }
+    }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="t-brand">
+      <img class="t-logo" src="/static/assets/PantheonLogoGold.png" alt="Pantheon" id="topLogo">
+      <span class="t-name" id="topName">Pantheon</span>
+      <div class="t-sep"></div>
+      <span class="t-subtitle">Life Safety OS</span>
+    </div>
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">
+      <!-- icon + label update on toggle -->
+      <svg id="themeIco" viewBox="0 0 20 20">
+        <path id="themeP" d=""/>
+      </svg>
+      <span class="theme-btn-label" id="themeLbl"></span>
+    </button>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+  <div class="prog-row">
+    <div class="pdot active" id="d0"></div>
+    <div class="pdot" id="d1"></div>
+    <div class="pdot" id="d2"></div>
+    <div class="pdot" id="d3"></div>
+    <span class="plabel" id="plabel">Your role</span>
+  </div>
+
+  <div class="content">
+    <div class="panel">
+
+      <!-- ══ S0: Role ═══════════════════════════════════════════════ -->
+      <div id="s0" class="step-enter">
+        <div class="pstep">Step 1 of 4</div>
+        <div class="ptitle">What's your role?</div>
+        <div class="psub">Pantheon tailors every briefing, standard, and recommendation to how you actually work.</div>
+        <div class="opts g2">
+
+          <div class="opt" data-val="Facility Manager" onclick="pickRole(this)">
+            <div class="oico"><svg viewBox="0 0 20 20"><rect x="2" y="4" width="16" height="12" rx="1.5"/><line x1="2" y1="8" x2="18" y2="8"/><line x1="8" y1="8" x2="8" y2="16"/></svg></div>
+            <div><div class="olabel">Facility Manager</div><div class="odesc">Operations, maintenance, compliance</div></div>
+          </div>
+
+          <div class="opt" data-val="Fire Chief / AHJ" onclick="pickRole(this)">
+            <div class="oico"><svg viewBox="0 0 20 20"><path d="M10 3C7.5 6 6 8.5 6 11a4 4 0 008 0c0-2.5-1.5-5-4-8z"/><line x1="10" y1="14.5" x2="10" y2="17"/><line x1="7.5" y1="17" x2="12.5" y2="17"/></svg></div>
+            <div><div class="olabel">Fire Chief / AHJ</div><div class="odesc">Emergency response, code enforcement</div></div>
+          </div>
+
+          <div class="opt" data-val="Insurance Underwriter" onclick="pickRole(this)">
+            <div class="oico"><svg viewBox="0 0 20 20"><rect x="3" y="3" width="14" height="14" rx="1.5"/><line x1="6" y1="7" x2="14" y2="7"/><line x1="6" y1="10" x2="11" y2="10"/><line x1="6" y1="13" x2="9" y2="13"/></svg></div>
+            <div><div class="olabel">Insurance Underwriter</div><div class="odesc">Risk assessment, premium modelling</div></div>
+          </div>
+
+          <div class="opt" data-val="Safety Engineer" onclick="pickRole(this)">
+            <div class="oico"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/><polyline points="7,10 9,12.5 13,8"/></svg></div>
+            <div><div class="olabel">Safety Engineer</div><div class="odesc">System design, gap analysis</div></div>
+          </div>
+
+          <div class="opt" data-val="HCT Sales Engineer" onclick="pickRole(this)">
+            <div class="oico"><svg viewBox="0 0 20 20"><polyline points="3,14 7,9 11,12 15,6"/><polyline points="13,6 17,6 17,10"/></svg></div>
+            <div><div class="olabel">HCT Sales Engineer</div><div class="odesc">Product recommendations, site surveys</div></div>
+          </div>
+
+          <div class="opt" data-val="Executive / Leadership" onclick="pickRole(this)">
+            <div class="oico"><svg viewBox="0 0 20 20"><circle cx="10" cy="6" r="3"/><path d="M4 17v-1a6 6 0 0112 0v1"/></svg></div>
+            <div><div class="olabel">Executive / Leadership</div><div class="odesc">Risk overview, strategic decisions</div></div>
+          </div>
+
+          <!-- Custom role -->
+          <div class="opt" data-val="_custom" onclick="pickRole(this)" style="grid-column:1/-1">
+            <div class="oico"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="1.3" fill="currentColor" style="stroke:none"/><circle cx="4" cy="10" r="1.3" fill="currentColor" style="stroke:none"/><circle cx="16" cy="10" r="1.3" fill="currentColor" style="stroke:none"/></svg></div>
+            <div style="flex:1">
+              <div class="olabel">Other / Custom</div>
+              <div class="odesc">Describe your role below</div>
+              <div class="custom-input-wrap" id="roleCustomWrap">
+                <input type="text" id="roleCustomInput" placeholder="e.g. Fire Investigator, Risk Consultant…" onclick="event.stopPropagation()">
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="nav">
+          <button class="btn-primary" id="n0" onclick="go(1)" disabled>Continue</button>
+          <span class="step-num">01 / 04</span>
+        </div>
+      </div>
+
+      <!-- ══ S1: Org + Location ═════════════════════════════════════ -->
+      <div id="s1" style="display:none">
+        <div class="pstep">Step 2 of 4</div>
+        <div class="ptitle">Where do you work?</div>
+        <div class="psub">Your jurisdiction auto-surfaces NFPA, NEC, and local AHJ requirements — filtered to where you actually operate.</div>
+        <div class="fields f2">
+          <div class="field"><label>Organisation</label><input type="text" id="orgI" placeholder="ACME Data Centers Inc." autocomplete="organization"></div>
+          <div class="field"><label>City / Country</label><input type="text" id="locI" placeholder="Phoenix, AZ  ·  London, UK"></div>
+        </div>
+        <div class="nav">
+          <button class="btn-ghost" onclick="go(0)">Back</button>
+          <button class="btn-primary" onclick="go(2)">Continue</button>
+          <span class="step-num">02 / 04</span>
+        </div>
+      </div>
+
+      <!-- ══ S2: Facility ═══════════════════════════════════════════ -->
+      <div id="s2" style="display:none">
+        <div class="pstep">Step 3 of 4</div>
+        <div class="ptitle">What type of facility?</div>
+        <div class="psub">Each environment carries a distinct threat profile. Pantheon adapts its zones, suppression analysis, training, and standards accordingly.</div>
+        <div class="opts g3">
+          <div class="opt" data-val="Data Center" onclick="pickFacility(this)">
+            <div class="oico"><svg viewBox="0 0 20 20"><rect x="3" y="4" width="14" height="4" rx="1"/><rect x="3" y="10" width="14" height="4" rx="1"/><circle cx="14.5" cy="6" r="0.8" fill="currentColor" style="stroke:none"/><circle cx="14.5" cy="12" r="0.8" fill="currentColor" style="stroke:none"/></svg></div>
+            <div><div class="olabel">Data Center</div></div>
+          </div>
+          <div class="opt" data-val="BESS" onclick="pickFacility(this)">
+            <div class="oico"><svg viewBox="0 0 20 20"><rect x="4" y="7" width="12" height="8" rx="1.5"/><path d="M7 7V5.5h6V7"/><line x1="8" y1="11" x2="12" y2="11"/><line x1="10" y1="9" x2="10" y2="13"/></svg></div>
+            <div><div class="olabel">BESS</div></div>
+          </div>
+          <div class="opt" data-val="EV Charging Hub" onclick="pickFacility(this)">
+            <div class="oico"><svg viewBox="0 0 20 20"><path d="M7 3l-3 7h5l-2 7 6-9h-5l2-5H7z"/></svg></div>
+            <div><div class="olabel">EV Charging</div></div>
+          </div>
+          <div class="opt" data-val="Electrical Substation" onclick="pickFacility(this)">
+            <div class="oico"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="6"/><line x1="10" y1="4" x2="10" y2="7"/><line x1="10" y1="13" x2="10" y2="16"/><line x1="4" y1="10" x2="7" y2="10"/><line x1="13" y1="10" x2="16" y2="10"/></svg></div>
+            <div><div class="olabel">Substation</div></div>
+          </div>
+          <div class="opt" data-val="Manufacturing" onclick="pickFacility(this)">
+            <div class="oico"><svg viewBox="0 0 20 20"><rect x="2" y="11" width="16" height="7" rx="1"/><path d="M2 11l4-6h8l4 6"/></svg></div>
+            <div><div class="olabel">Manufacturing</div></div>
+          </div>
+          <div class="opt" data-val="Warehouse" onclick="pickFacility(this)">
+            <div class="oico"><svg viewBox="0 0 20 20"><path d="M2 9l8-6 8 6v9H2z"/><rect x="7" y="13" width="6" height="5" rx="0.5"/></svg></div>
+            <div><div class="olabel">Warehouse</div></div>
+          </div>
+          <div class="opt" data-val="Marine / Port" onclick="pickFacility(this)">
+            <div class="oico"><svg viewBox="0 0 20 20"><path d="M4 14c2-1.5 4-2 6-2s4 .5 6 2"/><line x1="10" y1="4" x2="10" y2="12"/><line x1="7" y1="7" x2="13" y2="7"/><line x1="2" y1="17" x2="18" y2="17"/></svg></div>
+            <div><div class="olabel">Marine / Port</div></div>
+          </div>
+          <div class="opt" data-val="Aviation / Hangar" onclick="pickFacility(this)">
+            <div class="oico"><svg viewBox="0 0 20 20"><path d="M2 13l3.5-4 2 2 4.5-7 1.5.5-4 8.5h5l1 2.5H4L2 13z"/></svg></div>
+            <div><div class="olabel">Aviation</div></div>
+          </div>
+          <div class="opt" data-val="Healthcare / Hospital" onclick="pickFacility(this)">
+            <div class="oico"><svg viewBox="0 0 20 20"><rect x="3" y="3" width="14" height="14" rx="2"/><line x1="10" y1="7" x2="10" y2="13"/><line x1="7" y1="10" x2="13" y2="10"/></svg></div>
+            <div><div class="olabel">Healthcare</div></div>
+          </div>
+          <div class="opt" data-val="Solar + BESS" onclick="pickFacility(this)">
+            <div class="oico"><svg viewBox="0 0 20 20"><circle cx="10" cy="7" r="3"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="10" y1="10" x2="10" y2="12"/><line x1="4" y1="7" x2="6" y2="7"/><line x1="14" y1="7" x2="16" y2="7"/><rect x="5" y="14" width="10" height="3.5" rx="0.5"/></svg></div>
+            <div><div class="olabel">Solar + BESS</div></div>
+          </div>
+          <div class="opt" data-val="Telecom" onclick="pickFacility(this)">
+            <div class="oico"><svg viewBox="0 0 20 20"><line x1="10" y1="3" x2="10" y2="17"/><path d="M6.5 6c-2 1.5-2 7 0 8.5"/><path d="M13.5 6c2 1.5 2 7 0 8.5"/><path d="M4 4C1 6.5 1 13.5 4 16"/><path d="M16 4c3 2.5 3 9.5 0 12"/></svg></div>
+            <div><div class="olabel">Telecom</div></div>
+          </div>
+          <!-- Custom facility -->
+          <div class="opt" data-val="_custom" onclick="pickFacility(this)">
+            <div class="oico"><svg viewBox="0 0 20 20"><circle cx="5" cy="10" r="1.3" fill="currentColor" style="stroke:none"/><circle cx="10" cy="10" r="1.3" fill="currentColor" style="stroke:none"/><circle cx="15" cy="10" r="1.3" fill="currentColor" style="stroke:none"/></svg></div>
+            <div style="flex:1">
+              <div class="olabel">Other</div>
+              <div class="custom-input-wrap" id="facCustomWrap">
+                <input type="text" id="facCustomInput" placeholder="Describe your facility…" onclick="event.stopPropagation()">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="nav">
+          <button class="btn-ghost" onclick="go(1)">Back</button>
+          <button class="btn-primary" id="n2" onclick="go(3)" disabled>Continue</button>
+          <span class="step-num">03 / 04</span>
+        </div>
+      </div>
+
+      <!-- ══ S3: Suppression picture ════════════════════════════════ -->
+      <div id="s3" style="display:none">
+        <div class="pstep">Step 4 of 4</div>
+        <div class="ptitle">Your suppression picture</div>
+        <div class="psub">Tell Pantheon what's installed. This is where gaps are identified — before an incident does it for you.</div>
+        <div class="fields" id="suppFields"></div>
+        <div class="gap-box" id="gapBox">
+          <div class="gap-ico"><svg viewBox="0 0 20 20"><path d="M10 3L2 17h16L10 3z"/><line x1="10" y1="9" x2="10" y2="13"/><circle cx="10" cy="15.5" r="0.65" fill="currentColor" style="stroke:none"/></svg></div>
+          <div><div class="gap-title">Suppression Gap Detected</div><div class="gap-text" id="gapTxt"></div></div>
+        </div>
+        <div class="nav">
+          <button class="btn-ghost" onclick="go(2)">Back</button>
+          <button class="btn-primary" id="n3" onclick="finish()">
+            <span id="finLbl">Launch Pantheon</span>
+            <div class="spin" id="finSpin"></div>
+          </button>
+          <span class="step-num">04 / 04</span>
+        </div>
+      </div>
+
+      <!-- ══ FINISH ═════════════════════════════════════════════════ -->
+      <div id="sFin" style="display:none">
+        <div class="finish">
+          <div class="finish-ring"><svg viewBox="0 0 20 20"><polyline points="4,10 8,14 16,6"/></svg></div>
+          <h2>You're set, <span id="finName"></span>.</h2>
+          <p>Pantheon is calibrated to your facility, role, and jurisdiction. Monitor zones, product catalog, training courses, and applicable standards are ready.</p>
+          <button class="btn-primary" style="margin:0 auto" onclick="window.location.href='/'">Enter Pantheon</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ── SVG paths for theme icon ───────────────────────────────────────────────
+var MOON_ICO = "M15 10.5a6 6 0 01-8.5-8.5 7 7 0 108.5 8.5z";
+var SUN_ICO  = "M10 2v2M10 16v2M2 10h2M16 10h2M4.93 4.93l1.41 1.41M13.66 13.66l1.41 1.41M4.93 15.07l1.41-1.41M13.66 6.34l1.41-1.41M10 7a3 3 0 100 6 3 3 0 000-6z";
+
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  // In light mode → button shows moon + DARK (to go dark)
+  // In dark mode  → button shows sun  + LIGHT (to go light)
+  var going = t === 'light' ? 'dark' : 'light';
+  document.getElementById('themeP').setAttribute('d', going === 'dark' ? MOON_ICO : SUN_ICO);
+  document.getElementById('themeLbl').textContent = going === 'dark' ? 'Dark' : 'Light';
+  localStorage.setItem('pantheon-theme', t);
+}
+
+function toggleTheme() {
+  var cur = document.documentElement.getAttribute('data-theme');
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+}
+
+// init from storage
+applyTheme(localStorage.getItem('pantheon-theme') || 'light');
+
+// ── State ──────────────────────────────────────────────────────────────────
+var P = { role:'', org:'', location:'', facility_type:'', chemistry:'', suppression:'', detection:'', modules:'', extra:{} };
+var cur = 0;
+var LABELS = ['Your role', 'Organisation', 'Facility type', 'Suppression picture'];
+
+// ── Role picker ────────────────────────────────────────────────────────────
+function pickRole(el) {
+  document.querySelectorAll('#s0 .opt').forEach(function(o){ o.classList.remove('sel'); });
+  el.classList.add('sel');
+  var val = el.dataset.val;
+  // show/hide custom input
+  var wrap = document.getElementById('roleCustomWrap');
+  if (val === '_custom') {
+    wrap.classList.add('show');
+    setTimeout(function(){ document.getElementById('roleCustomInput').focus(); }, 50);
+    P.role = document.getElementById('roleCustomInput').value.trim() || '_custom';
+  } else {
+    wrap.classList.remove('show');
+    P.role = val;
+  }
+  document.getElementById('n0').disabled = false;
+}
+document.getElementById('roleCustomInput').addEventListener('input', function(){
+  P.role = this.value.trim() || '_custom';
+});
+
+// ── Facility picker ────────────────────────────────────────────────────────
+function pickFacility(el) {
+  document.querySelectorAll('#s2 .opt').forEach(function(o){ o.classList.remove('sel'); });
+  el.classList.add('sel');
+  var val = el.dataset.val;
+  var wrap = document.getElementById('facCustomWrap');
+  if (val === '_custom') {
+    wrap.classList.add('show');
+    setTimeout(function(){ document.getElementById('facCustomInput').focus(); }, 50);
+    P.facility_type = document.getElementById('facCustomInput').value.trim() || '_custom';
+  } else {
+    wrap.classList.remove('show');
+    P.facility_type = val;
+    renderSuppFields(val);
+  }
+  document.getElementById('n2').disabled = false;
+}
+document.getElementById('facCustomInput').addEventListener('input', function(){
+  P.facility_type = this.value.trim() || '_custom';
+  renderSuppFields('_default');
+});
+
+// ── Facility suppression fields ────────────────────────────────────────────
+var FF = {
+  'Data Center':[ {id:'chemistry',label:'Battery / UPS Chemistry',opts:['NMC (Li-ion)','LFP (Li-ion)','VRLA / Lead-Acid','Other','None / No Battery','Custom…']}, {id:'suppression',label:'Suppression System',opts:['FM-200 (HFC-227ea)','CO₂','Novec 1230','F-500 EA','Dry Chemical','Water Mist','Sprinkler Only','None','Custom…']}, {id:'detection',label:'Smoke / Off-Gas Detection',opts:['VESDA','Standard Smoke','Smart-LX Gateway','None','Custom…']} ],
+  'BESS':[ {id:'chemistry',label:'Cell Chemistry',opts:['NMC (Nickel Manganese Cobalt)','LFP (Lithium Iron Phosphate)','NCA (Nickel Cobalt Aluminium)','LTO (Lithium Titanate)','Other','Custom…']}, {id:'modules',label:'Module Count (approx.)',opts:['<50','50–200','200–500','500–1000','1000+']}, {id:'suppression',label:'Suppression System',opts:['FM-200','CO₂','Water Mist','F-500 EA','Sprinkler Only','None','Custom…']}, {id:'detection',label:'Off-Gas Detection',opts:['Smart-LX Gateway','VESDA','Standard Smoke Only','None','Custom…']} ],
+  'EV Charging Hub':[ {id:'suppression',label:'Suppression System',opts:['Sprinkler','Water Mist','F-500 EA','Dry Chemical','None','Custom…']}, {id:'detection',label:'Detection System',opts:['Smart-LX Gateway','Standard Smoke','Heat Detection','None','Custom…']} ],
+  'Manufacturing':[ {id:'suppression',label:'Suppression System',opts:['Sprinkler','Foam','Dry Chemical','CO₂','F-500 EA','Water Mist','None','Custom…']}, {id:'detection',label:'Detection System',opts:['Smart-LX Gateway','VESDA','Standard Smoke','Flame Detection','None','Custom…']} ],
+  '_default':[ {id:'suppression',label:'Suppression System',opts:['Sprinkler','FM-200','CO₂','Water Mist','Dry Chemical','F-500 EA','Foam','None','Custom…']}, {id:'detection',label:'Detection / Monitoring',opts:['Smart-LX Gateway','VESDA','Standard Smoke','Heat Detection Only','None','Custom…']} ]
+};
+
+var INCOMPAT = {
+  'FM-200 (HFC-227ea)':['NMC (Li-ion)','NMC (Nickel Manganese Cobalt)','NCA (Nickel Cobalt Aluminium)','LFP (Li-ion)','LFP (Lithium Iron Phosphate)'],
+  'FM-200':['NMC (Nickel Manganese Cobalt)','NCA (Nickel Cobalt Aluminium)','LFP (Lithium Iron Phosphate)'],
+  'CO₂':['NMC (Li-ion)','NMC (Nickel Manganese Cobalt)'],
+  'Dry Chemical':['NMC (Li-ion)','NMC (Nickel Manganese Cobalt)']
+};
+var NO_DET = ['None','Standard Smoke Only','Standard Smoke','Heat Detection Only','Heat Detection'];
+
+function checkGap() {
+  var box = document.getElementById('gapBox'), txt = document.getElementById('gapTxt');
+  var msgs = [], s = P.suppression||'', c = P.chemistry||'', d = P.detection||'';
+  if (s && c && INCOMPAT[s] && INCOMPAT[s].indexOf(c) >= 0)
+    msgs.push(s + ' cannot arrest ' + c + ' thermal runaway — chemically incompatible. F-500 EA Micelle Mist is the validated countermeasure per NFPA 855.');
+  if (d && NO_DET.indexOf(d) >= 0)
+    msgs.push('No off-gas detection means the first alert arrives at visible smoke — 25+ minutes after electrolyte vapour begins accumulating. Smart-LX Gateway + VESDA closes this window.');
+  txt.textContent = msgs.join(' ');
+  box.className = 'gap-box' + (msgs.length ? ' show' : '');
+}
+
+function renderSuppFields(ft) {
+  var fields = FF[ft] || FF['_default'];
+  var c = document.getElementById('suppFields');
+  c.innerHTML = '';
+  c.className = 'fields' + (fields.length >= 3 ? ' f2' : '');
+  fields.forEach(function(f) {
+    var d = document.createElement('div'); d.className = 'field';
+    var l = document.createElement('label'); l.textContent = f.label; d.appendChild(l);
+    var s = document.createElement('select'); s.id = 'fld_'+f.id;
+    var blank = document.createElement('option'); blank.value=''; blank.textContent='Select…'; s.appendChild(blank);
+    f.opts.forEach(function(o){
+      var op = document.createElement('option'); op.value=o; op.textContent=o; s.appendChild(op);
+    });
+    // Custom text reveal
+    var customDiv = document.createElement('div'); customDiv.className='field-custom'; customDiv.id='fc_'+f.id;
+    var customInp = document.createElement('input'); customInp.type='text'; customInp.placeholder='Describe…';
+    customInp.addEventListener('input', function(){ P[f.id] = this.value; checkGap(); });
+    customDiv.appendChild(customInp); d.appendChild(s); d.appendChild(customDiv);
+    s.addEventListener('change', function(){
+      var v = this.value;
+      if (v === 'Custom…') {
+        customDiv.className='field-custom show';
+        customInp.focus();
+        P[f.id] = customInp.value;
+      } else {
+        customDiv.className='field-custom';
+        P[f.id] = v;
+      }
+      checkGap();
+    });
+    c.appendChild(d);
+  });
+}
+
+// ── Navigation ─────────────────────────────────────────────────────────────
+function go(step) {
+  if (step === 2) { P.org = document.getElementById('orgI').value.trim(); P.location = document.getElementById('locI').value.trim(); }
+  document.getElementById('s'+cur).style.display = 'none';
+  cur = step;
+  var el = document.getElementById('s'+step); el.style.display = ''; el.className = 'step-enter';
+  setTimeout(function(){ el.className = ''; }, 250);
+  for (var i=0; i<4; i++) {
+    document.getElementById('d'+i).className = 'pdot' + (i<step?' done':i===step?' active':'');
+  }
+  document.getElementById('plabel').textContent = LABELS[step] || '';
+  document.getElementById('progFill').style.width = ['0%','25%','50%','75%','100%'][step];
+  window.scrollTo(0,0);
+}
+
+function finish() {
+  document.getElementById('n3').disabled = true;
+  document.getElementById('finLbl').style.display = 'none';
+  document.getElementById('finSpin').style.display = 'block';
+  // Resolve custom values
+  if (P.role === '_custom') P.role = document.getElementById('roleCustomInput').value.trim() || 'Other';
+  if (P.facility_type === '_custom') P.facility_type = document.getElementById('facCustomInput').value.trim() || 'Other';
+  fetch('/api/onboarding/save', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(P)})
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if (d.ok) {
+      document.getElementById('s3').style.display = 'none';
+      document.getElementById('sFin').style.display = '';
+      document.getElementById('progFill').style.width = '100%';
+      fetch('/api/auth/me').then(function(r){return r.json();}).then(function(u){
+        document.getElementById('finName').textContent = (u.name||'there').split(' ')[0];
+      }).catch(function(){ document.getElementById('finName').textContent = 'there'; });
+    }
+  })
+  .catch(function(){
+    document.getElementById('n3').disabled = false;
+    document.getElementById('finLbl').style.display = '';
+    document.getElementById('finSpin').style.display = 'none';
+  });
+}
+</script>
+</body>
+</html>
