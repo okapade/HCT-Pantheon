@@ -104,14 +104,65 @@ def sheets_update_cell_sync(tab, row, col, value):
 # 8=first_login 9=last_login 10=trial_days 11=sims_week 12=sims_total 13=status
 # 14=email_verified 15=role 16=facility_type 17=location 18=onboarding_complete
 
+# ── Simple JSON user store — no Sheets dependency for auth ────────────────────
+import fcntl
+
+USERS_FILE = '/tmp/pantheon_users.json'
+
+def _load_users():
+    try:
+        if os.path.exists(USERS_FILE):
+            with open(USERS_FILE, 'r') as f:
+                return json.load(f)
+    except Exception as e:
+        print(f"[USERS] Load error: {e}")
+    return {}
+
+def _save_users(users):
+    try:
+        with open(USERS_FILE, 'w') as f:
+            fcntl.flock(f, fcntl.LOCK_EX)
+            json.dump(users, f)
+            fcntl.flock(f, fcntl.LOCK_UN)
+    except Exception as e:
+        print(f"[USERS] Save error: {e}")
+
 def find_user(email):
-    rows = sheets_read('Users')
-    for i, row in enumerate(rows[1:], start=2):
-        # Pad to 20 cols so index access never throws — Sheets drops trailing empty cells
-        row = list(row) + [''] * (20 - len(row))
-        if row[1].strip().lower() == email.strip().lower():
-            return row, i
+    users = _load_users()
+    u = users.get(email.strip().lower())
+    if u:
+        # Return as padded row for compatibility, and index=-1 (unused)
+        return [
+            u.get('name',''), u.get('email',''), '', u.get('org',''),
+            u.get('password',''), u.get('created',''), 'self-registered',
+            '', '', '90', '0', '0', 'Active',
+            u.get('email_verified','false'), u.get('role',''),
+            u.get('facility_type',''), u.get('location',''),
+            u.get('onboarding_complete','false'),
+            '', ''
+        ], email
     return None, -1
+
+def save_user(email, data):
+    users = _load_users()
+    users[email.strip().lower()] = data
+    _save_users(users)
+    # Also log to Sheets async — non-blocking, auth doesn't depend on it
+    sheets_append('Users', [
+        data.get('name',''), email, '', data.get('org',''),
+        data.get('password',''), data.get('created',''), 'self-registered',
+        '', '', '90', '0', '0', 'Active',
+        data.get('email_verified','false'), data.get('role',''),
+        data.get('facility_type',''), data.get('location',''),
+        data.get('onboarding_complete','false')
+    ])
+
+def update_user(email, key, value):
+    users = _load_users()
+    em = email.strip().lower()
+    if em in users:
+        users[em][key] = value
+        _save_users(users)
 
 def get_user_profile(email):
     row, _ = find_user(email)
@@ -129,34 +180,51 @@ def get_user_profile(email):
 
 # ── OTP store ──────────────────────────────────────────────────────────────────
 
-_otp_store   = {}  # { email: { code, expires, purpose } }
-_token_store = {}  # { token: { email, expires } }
+TOKENS_FILE = '/tmp/pantheon_tokens.json'
 
-def generate_otp(email, purpose='verify'):
-    code = str(secrets.randbelow(900000) + 100000)
-    _otp_store[email] = {'code': code, 'expires': time.time() + 600, 'purpose': purpose}
-    return code
+def _load_tokens():
+    try:
+        if os.path.exists(TOKENS_FILE):
+            with open(TOKENS_FILE, 'r') as f:
+                return json.load(f)
+    except: pass
+    return {}
 
-def verify_otp_code(email, code):
-    entry = _otp_store.get(email)
-    if not entry: return False
-    if time.time() > entry['expires']: del _otp_store[email]; return False
-    if entry['code'] != code.strip(): return False
-    del _otp_store[email]; return True
+def _save_tokens(t):
+    try:
+        with open(TOKENS_FILE, 'w') as f:
+            json.dump(t, f)
+    except Exception as e:
+        print(f"[TOKENS] Save error: {e}")
 
 def generate_verify_token(email):
     token = secrets.token_urlsafe(32)
-    _token_store[token] = {'email': email, 'expires': time.time() + 86400}
+    t = _load_tokens()
+    t[token] = {'email': email, 'expires': time.time() + 86400}
+    _save_tokens(t)
+    print(f"[TOKEN] Generated for {email}")
     return token
 
 def consume_verify_token(token):
-    entry = _token_store.get(token)
-    if not entry: return None
+    t = _load_tokens()
+    entry = t.get(token)
+    if not entry:
+        print(f"[TOKEN] Not found in store (keys={len(t)})")
+        return None
     if time.time() > entry['expires']:
-        del _token_store[token]; return None
+        print(f"[TOKEN] Expired")
+        del t[token]; _save_tokens(t)
+        return None
     email = entry['email']
-    del _token_store[token]
+    del t[token]; _save_tokens(t)
+    print(f"[TOKEN] Consumed OK for {email}")
     return email
+
+def generate_otp(email, purpose='verify'):
+    return '000000'  # OTP disabled
+
+def verify_otp_code(email, code):
+    return False  # OTP disabled
 
 
 # ── Email sending ──────────────────────────────────────────────────────────────
@@ -317,10 +385,14 @@ def auth_register():
     if existing: return jsonify({"error": "Account already exists. Sign in instead."}), 409
     pw_clean = password.strip()
     if not pw_clean: return jsonify({"error": "Password required"}), 400
-    print(f"[REGISTER] email={email} pw_len={len(pw_clean)} pw_repr={repr(pw_clean[:4])}...")
-    # Store unverified — email_verified col starts as 'false'
-    sheets_append_sync('Users', [name, email, '', '', pw_clean, now_str(), 'self-registered', '', '', str(TRIAL_DAYS), '0', '0', 'Active', 'false', '', '', '', 'false'])
-    print(f"[REGISTER] Written to Sheets OK")
+    # Save to local JSON store — instant, no network
+    save_user(email, {
+        'name': name, 'email': email, 'password': pw_clean,
+        'created': now_str(), 'email_verified': 'false',
+        'onboarding_complete': 'false', 'role': '', 'facility_type': '',
+        'location': '', 'org': ''
+    })
+    print(f"[REGISTER] Saved user {email}")
     # Send verification link
     token = generate_verify_token(email)
     send_verify_link(email, token)
@@ -339,8 +411,7 @@ def verify_email_link():
     row, row_num = find_user(email)
     if not row:
         return redirect(url_for('login_page') + '?msg=user_not_found')
-    sheets_update_cell_sync('Users', row_num, 14, 'true')  # col N = email_verified
-    # Re-read so session gets fresh verified row
+    update_user(email, 'email_verified', 'true')
     row, row_num = find_user(email)
     _create_session(email, row, row_num)
     device, browser = get_device_info()
@@ -828,7 +899,7 @@ def auth_forgot_password():
     # Always return ok to prevent email enumeration
     if row:
         token = generate_verify_token(email + ':reset')  # namespace reset tokens
-        _token_store[token] = {'email': email, 'expires': time.time() + 3600, 'purpose': 'reset'}
+        t = _load_tokens(); t[token] = {'email': email, 'expires': time.time() + 3600, 'purpose': 'reset'}; _save_tokens(t)
         reset_url = f"https://hct-pantheon.vercel.app/reset-password?token={token}"
         if SENDGRID_KEY:
             try:
@@ -861,9 +932,9 @@ def auth_forgot_password():
 def reset_password_page():
     token = request.args.get('token', '').strip()
     # Validate token exists before showing form
-    if not token or token not in _token_store:
+    if not token or token not in _load_tokens():
         return redirect(url_for('login_page') + '?msg=invalid_token')
-    entry = _token_store.get(token, {})
+    entry = _load_tokens().get(token, {})
     if time.time() > entry.get('expires', 0):
         return redirect(url_for('login_page') + '?msg=invalid_token')
     return render_template('reset_password.html', token=token)
@@ -875,12 +946,12 @@ def auth_reset_password():
     new_pw = b.get('password', '').strip()
     if not token or not new_pw: return jsonify({"error": "Token and password required"}), 400
     if len(new_pw) < 8: return jsonify({"error": "Password must be at least 8 characters"}), 400
-    entry = _token_store.get(token)
+    t = _load_tokens(); entry = t.get(token)
     if not entry: return jsonify({"error": "Invalid or expired link"}), 401
     if time.time() > entry.get('expires', 0):
-        del _token_store[token]; return jsonify({"error": "Link has expired"}), 401
+        del t[token]; _save_tokens(t); return jsonify({"error": "Link has expired"}), 401
     email = entry['email']
-    del _token_store[token]
+    del t[token]; _save_tokens(t)
     row, row_num = find_user(email)
     if not row: return jsonify({"error": "Account not found"}), 404
     sheets_update_cell_sync('Users', row_num, 5, new_pw.strip())
