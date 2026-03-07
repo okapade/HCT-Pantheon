@@ -74,7 +74,7 @@
     </div>
     <div class="field">
       <label>Password</label>
-      <input type="password" id="pw" placeholder="••••••••" autocomplete="current-password">
+      <div style="position:relative"><input type="password" id="pw" placeholder="••••••••" autocomplete="current-password" style="padding-right:44px"><button type="button" onclick="togglePw()" style="position:absolute;right:0;top:0;height:44px;width:44px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;display:flex;align-items:center;justify-content:center" id="eyeBtn">👁</button></div>
     </div>
 
     <button class="btn" id="btn" onclick="submit()">
@@ -160,6 +160,12 @@
       setLoading(false);
       showMsg('Connection error. Please try again.', 'err');
     });
+  }
+  function togglePw() {
+    var inp = document.getElementById("pw");
+    var btn = document.getElementById("eyeBtn");
+    if (inp.type === "password") { inp.type = "text"; btn.textContent = "🙈"; }
+    else { inp.type = "password"; btn.textContent = "👁"; }
   }
 </script>
 </body>
