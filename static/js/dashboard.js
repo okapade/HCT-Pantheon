@@ -165,15 +165,15 @@ function populateThreatLandscape() {
 /* ═══ FACILITY TYPES ═══ */
 function getFacilityTypes() {
   return [
-    { id: 'datacenter', svg: 'datacenter', name: 'Data Center', sub: 'Server, UPS, BESS', battery: 'NMC', modules: 384, suppression: 'FM-200', services: 647, loss: '$47M', partialLoss: '$3.2M' },
-    { id: 'ev-charging', svg: 'ev', name: 'EV Charging', sub: 'Level 2/3, buffer', battery: 'NMC/LFP', modules: 48, suppression: 'None', services: 12, loss: '$8M', partialLoss: '$1.1M' },
-    { id: 'solar-bess', svg: 'solar', name: 'Solar / BESS', sub: 'Grid-scale storage', battery: 'LFP/NMC', modules: 960, suppression: 'None', services: 50, loss: '$85M', partialLoss: '$6M' },
-    { id: 'warehouse', svg: 'warehouse', name: 'Warehouse', sub: 'AGV, charging bays', battery: 'LFP', modules: 120, suppression: 'Sprinkler', services: 200, loss: '$22M', partialLoss: '$2.5M' },
-    { id: 'manufacturing', svg: 'manufacturing', name: 'Manufacturing', sub: 'Process, backup', battery: 'NMC', modules: 96, suppression: 'CO2', services: 80, loss: '$35M', partialLoss: '$4M' },
-    { id: 'telecom', svg: 'telecom', name: 'Telecom', sub: 'Tower BESS, backup', battery: 'LFP/NMC', modules: 64, suppression: 'None', services: 500, loss: '$12M', partialLoss: '$1.5M' },
-    { id: 'marine', svg: 'marine', name: 'Marine', sub: 'Hybrid propulsion', battery: 'NMC', modules: 200, suppression: 'CO2', services: 300, loss: '$60M', partialLoss: '$5M' },
-    { id: 'aviation', svg: 'aviation', name: 'Aviation', sub: 'GSE, APU backup', battery: 'NMC/LFP', modules: 80, suppression: 'Halon', services: 150, loss: '$28M', partialLoss: '$3M' },
-    { id: 'hospital', svg: 'hospital', name: 'Healthcare', sub: 'Critical backup', battery: 'NMC', modules: 72, suppression: 'FM-200', services: 400, loss: '$40M', partialLoss: '$4.5M' },
+    { id: 'datacenter', svg: 'datacenter', name: 'Data Center', sub: 'Server, UPS, BESS', battery: 'NMC', modules: 384, suppression: 'FM-200', employees: 150, revenue: 50000000, sector: 'Information', services: 647, loss: '$47M', partialLoss: '$3.2M' },
+    { id: 'ev-charging', svg: 'ev', name: 'EV Charging', sub: 'Level 2/3, buffer', battery: 'NMC/LFP', modules: 48, suppression: 'None', employees: 25, revenue: 8000000, sector: 'Transportation', services: 12, loss: '$8M', partialLoss: '$1.1M' },
+    { id: 'solar-bess', svg: 'solar', name: 'Solar / BESS', sub: 'Grid-scale storage', battery: 'LFP/NMC', modules: 960, suppression: 'None', employees: 40, revenue: 25000000, sector: 'Utilities', services: 50, loss: '$85M', partialLoss: '$6M' },
+    { id: 'warehouse', svg: 'warehouse', name: 'Warehouse', sub: 'AGV, charging bays', battery: 'LFP', modules: 120, suppression: 'Sprinkler', employees: 200, revenue: 35000000, sector: 'Wholesale Trade', services: 200, loss: '$22M', partialLoss: '$2.5M' },
+    { id: 'manufacturing', svg: 'manufacturing', name: 'Manufacturing', sub: 'Process, backup', battery: 'NMC', modules: 96, suppression: 'CO2', employees: 300, revenue: 75000000, sector: 'Manufacturing', services: 80, loss: '$35M', partialLoss: '$4M' },
+    { id: 'telecom', svg: 'telecom', name: 'Telecom', sub: 'Tower BESS, backup', battery: 'LFP/NMC', modules: 64, suppression: 'None', employees: 30, revenue: 12000000, sector: 'Information', services: 500, loss: '$12M', partialLoss: '$1.5M' },
+    { id: 'marine', svg: 'marine', name: 'Marine', sub: 'Hybrid propulsion', battery: 'NMC', modules: 200, suppression: 'CO2', employees: 80, revenue: 30000000, sector: 'Transportation', services: 300, loss: '$60M', partialLoss: '$5M' },
+    { id: 'aviation', svg: 'aviation', name: 'Aviation', sub: 'GSE, APU backup', battery: 'NMC/LFP', modules: 80, suppression: 'Halon', employees: 120, revenue: 45000000, sector: 'Transportation', services: 150, loss: '$28M', partialLoss: '$3M' },
+    { id: 'hospital', svg: 'hospital', name: 'Healthcare', sub: 'Critical backup', battery: 'NMC', modules: 72, suppression: 'FM-200', employees: 500, revenue: 100000000, sector: 'Health Care', services: 400, loss: '$40M', partialLoss: '$4.5M' },
     { id: 'custom', svg: 'custom', name: 'Custom', sub: 'Your setup', battery: '---', modules: 0, suppression: 'Unknown', services: 0, loss: '---', partialLoss: '---' }
   ];
 }
@@ -194,7 +194,7 @@ function selectFacilityType(typeId) {
   const type = getFacilityTypes().find(t => t.id === typeId); if (!type) return;
   $$('.fs-card').forEach(c => c.classList.remove('selected'));
   const sel = $(`.fs-card[data-type="${typeId}"]`); if (sel) sel.classList.add('selected');
-  facilityConfig = { type: typeId, typeName: type.name, svg: type.svg, battery: type.battery, modules: type.modules, suppression: type.suppression, services: type.services, loss: type.loss, partialLoss: type.partialLoss, facilityName: '', region: '', customNotes: '' };
+  facilityConfig = { type: typeId, typeName: type.name, svg: type.svg, battery: type.battery, modules: type.modules, suppression: type.suppression, services: type.services, loss: type.loss, partialLoss: type.partialLoss, employees: type.employees || 150, revenue: type.revenue || 50000000, sector: type.sector || 'Information', facilityName: '', region: '', customNotes: '' }
   configStep = 0;
   showFacilityInfo(type);
   showConfigFlow();
@@ -217,7 +217,7 @@ function nextConfigStep() { saveConfigInputs(); configStep++; renderConfigStep()
 function prevConfigStep() { saveConfigInputs(); configStep = Math.max(0, configStep - 1); renderConfigStep() }
 
 function renderProgressBar() {
-  const total = facilityConfig.type === 'custom' ? 1 : 3;
+  const total = facilityConfig.type === 'custom' ? 1 : 4;
   const p = $('#cfProgress');
   p.innerHTML = Array.from({ length: total }, (_, i) =>
     `<div class="cf-progress-step ${i < configStep ? 'done' : i === configStep ? 'active' : ''}"></div>`
@@ -275,8 +275,16 @@ function renderConfigStep() {
           ${['Yes', 'No', 'Unknown'].map(v => `<div class="cf-chip" data-val="${v}">${v}</div>`).join('')}
         </div></div></div>`;
       initChipSelect('cfSupp'); initChipSelect('cfDetect', true); initChipSelect('cfEPO');
+      next.textContent = 'Next'; break;
+    case 3:
+      body.innerHTML = `<div class="cf-step"><div class="cf-step-title">Step 4 — Facility economics</div>
+        <div class="cf-field"><label class="cf-label">Number of employees</label><div class="cf-range-row"><input type="range" class="cf-range" id="cfEmployees" min="10" max="2000" value="${facilityConfig.employees || 150}"><span class="cf-range-val" id="cfEmpVal">${facilityConfig.employees || 150}</span></div></div>
+        <div class="cf-field"><label class="cf-label">Annual revenue ($)</label><div class="cf-range-row"><input type="range" class="cf-range" id="cfRevenue" min="1000000" max="500000000" step="1000000" value="${facilityConfig.revenue || 50000000}"><span class="cf-range-val" id="cfRevVal">$${((facilityConfig.revenue || 50000000)/1000000).toFixed(0)}M</span></div></div>
+      </div>`;
+      const er = $('#cfEmployees'), ev2 = $('#cfEmpVal'); if (er) er.oninput = () => { ev2.textContent = er.value; facilityConfig.employees = +er.value };
+      const rr = $('#cfRevenue'), rv = $('#cfRevVal'); if (rr) rr.oninput = () => { rv.textContent = '$' + (+rr.value/1000000).toFixed(0) + 'M'; facilityConfig.revenue = +rr.value };
       next.textContent = 'Review'; break;
-    case 3: showScenarioSelect(); return;
+    case 4: showScenarioSelect(); return;
   }
 }
 function renderCustomStep(body, next) {
@@ -288,10 +296,28 @@ function renderCustomStep(body, next) {
     next.textContent = 'Configure';
   } else { saveConfigInputs(); showScenarioSelect() }
 }
+function updateLocationIndicator() {
+  var loc = facilityConfig ? facilityConfig.region : '';
+  var el = document.getElementById('ctxLocationLabel');
+  if (el && loc) { el.textContent = loc; el.parentElement.classList.remove('hidden'); }
+}
+
+function promptLocationChange() {
+  var current = facilityConfig ? facilityConfig.region : '';
+  var newLoc = prompt('Enter your facility location (City, State, Country):', current);
+  if (newLoc && newLoc.trim()) {
+    facilityConfig.region = newLoc.trim();
+    updateLocationIndicator();
+    if (typeof onRegionEntered === 'function') onRegionEntered(newLoc.trim());
+    if (typeof showToast === 'function') showToast('Location updated to: ' + newLoc.trim(), 'ok', 3000);
+    _logAction('Changed Location', newLoc.trim());
+  }
+}
 function saveConfigInputs() {
   const n = $('#cfName'); if (n) facilityConfig.facilityName = n.value;
   const r = $('#cfRegion'); if (r) {
     facilityConfig.region = r.value;
+    updateLocationIndicator();
     // Trigger jurisdiction-aware standards detection
     if (r.value && typeof onRegionEntered === 'function') onRegionEntered(r.value);
   }
@@ -314,8 +340,18 @@ function showScenarioSelect() {
   const ss = $('#scenarioSelect'); ss.classList.remove('hidden');
   const fc = facilityConfig;
   $('#ssSummary').innerHTML = `<div class="ss-sum-top"><span class="ss-sum-name">${icon(fc.svg, 'ss-sum-icon')} ${fc.facilityName || fc.typeName}</span><span class="ss-sum-region">${fc.region || 'Location not set'}</span></div><div class="ss-sum-specs"><span>Battery: <strong>${fc.battery}</strong></span><span>Modules: <strong>${fc.modules}</strong></span><span>Suppression: <strong>${fc.suppression}</strong></span>${fc.detection ? `<span>Detection: <strong>${fc.detection.join(', ')}</strong></span>` : ''}</div>`;
-  $('#ssFullLoss').textContent = fc.loss || '$47M';
-  $('#ssPartialLoss').textContent = fc.partialLoss || '$3.2M';
+  // Calculate real economic impact from facility config
+  if (typeof calculateCommunityImpact === 'function') {
+    var fullImpact = calculateCommunityImpact(fc, 'full');
+    var partialImpact = calculateCommunityImpact(fc, 'partial');
+    fc._fullImpact = fullImpact;
+    fc._partialImpact = partialImpact;
+    $('#ssFullLoss').textContent = fullImpact.fmt(fullImpact.gsp);
+    $('#ssPartialLoss').textContent = partialImpact.fmt(partialImpact.gsp);
+  } else {
+    $('#ssFullLoss').textContent = fc.loss || '$47M';
+    $('#ssPartialLoss').textContent = fc.partialLoss || '$3.2M';
+  }
   populateThreatLandscape();
   ss.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
@@ -1724,6 +1760,16 @@ function updateMonitorPulse() {
 
 /* === TRAINING & READINESS === */
 function initTraining() {
+  // Show empty state until simulation or emergency runs
+  var trainView = document.getElementById('viewTraining');
+  if (trainView) {
+    var emptyEls = trainView.querySelectorAll('.train-courses, .train-certs');
+    emptyEls.forEach(function(el) {
+      if (el && el.children.length === 0) {
+        el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--t4);font:400 13px/1.5 var(--sans)">Run a simulation or file an emergency response to generate training prescriptions for your facility.</div>';
+      }
+    });
+  }
   renderTrainingPrescriptions();
   renderTrainingCourses();
   renderTrainingCerts();
