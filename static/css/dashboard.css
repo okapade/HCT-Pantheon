@@ -1045,3 +1045,356 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--t1);font:
 .ctx-location:hover{background:var(--s2)}
 .ctx-location-icon{font-size:12px}
 #ctxLocationLabel{font:500 11px/1 var(--mono);color:var(--acc);letter-spacing:.3px}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PANTHEON — UI OVERHAUL PATCH
+   Suggestion chips · Refined chat · Editable settings · Profile bar
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── CHAT: Refined input bar ──────────────────────────────────────── */
+.main-input {
+  padding: 12px 40px 18px;
+  border-top: 1px solid var(--b2);
+  background: var(--bg);
+  position: relative;
+}
+.main-input-inner {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  background: var(--card);
+  border: 1px solid var(--b2);
+  border-radius: 14px;
+  padding: 10px 10px 10px 18px;
+  max-width: 840px;
+  margin: 0 auto;
+  transition: border-color .15s, box-shadow .15s;
+}
+.main-input-inner:focus-within {
+  border-color: var(--b1);
+  box-shadow: 0 0 0 3px rgba(17,24,39,.05);
+}
+.main-input-inner input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font: 400 16px/1.5 var(--sans);
+  color: var(--t1);
+  padding: 6px 0;
+  resize: none;
+}
+.main-input-inner input::placeholder { color: var(--t3); }
+.main-send-new {
+  width: 36px; height: 36px;
+  background: var(--acc);
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: opacity .12s, transform .12s;
+}
+.main-send-new:hover { opacity: .85; transform: translateY(-1px); }
+.main-send-new svg { width: 17px; height: 17px; }
+.dark .main-send-new { background: var(--acc); color: var(--bg); }
+
+/* ── CHAT: Suggestion chips ───────────────────────────────────────── */
+.suggestion-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  max-width: 840px;
+  margin: 0 auto 10px;
+  padding: 0 2px;
+  animation: fadeUp .25s var(--ease);
+}
+.suggestion-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--card);
+  border: 1px solid var(--b2);
+  border-radius: 20px;
+  font: 400 14px/1 var(--sans);
+  color: var(--t2);
+  cursor: pointer;
+  transition: all .13s var(--ease);
+  white-space: nowrap;
+}
+.suggestion-chip:hover {
+  border-color: var(--b1);
+  color: var(--t0);
+  background: var(--s2);
+  transform: translateY(-1px);
+}
+.suggestion-chip svg {
+  width: 13px; height: 13px;
+  stroke: currentColor; fill: none;
+  stroke-width: 1.5; flex-shrink: 0;
+}
+.dark .suggestion-chip { background: var(--s2); border-color: var(--b2); }
+.dark .suggestion-chip:hover { background: var(--s3); border-color: var(--b1); color: var(--t0); }
+
+/* ── CHAT: Avatar upgrade ─────────────────────────────────────────── */
+.chat-avatar {
+  width: 28px; height: 28px;
+  background: var(--acc);
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+.chat-avatar svg {
+  width: 14px; height: 14px;
+  stroke: #fff; fill: none;
+  stroke-width: 1.8;
+}
+.dark .chat-avatar { background: var(--s3); }
+.dark .chat-avatar svg { stroke: var(--t1); }
+
+/* ── CHAT: Message refinements ────────────────────────────────────── */
+.chat-msg-user .chat-bubble {
+  background: var(--s2);
+  color: var(--t0);
+  border: 1px solid var(--b2);
+  font-size: 15px;
+}
+.chat-msg-assistant .chat-bubble { font-size: 15px; line-height: 1.7; }
+.dark .chat-msg-user .chat-bubble { background: var(--s3); color: var(--t0); border-color: var(--b2); }
+
+/* ── HOME: Starter prompts (before first message) ─────────────────── */
+.starter-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  max-width: 680px;
+  width: 100%;
+  margin-top: 24px;
+}
+.starter-card {
+  background: var(--card);
+  border: 1px solid var(--b2);
+  border-radius: 12px;
+  padding: 16px 18px;
+  cursor: pointer;
+  text-align: left;
+  transition: all .14s var(--ease);
+}
+.starter-card:hover {
+  border-color: var(--b1);
+  box-shadow: 0 4px 16px rgba(0,0,0,.06);
+  transform: translateY(-1px);
+}
+.starter-card-label {
+  font: 600 13px/1 var(--sans);
+  color: var(--t0);
+  margin-bottom: 4px;
+}
+.starter-card-sub {
+  font: 400 12px/1.4 var(--sans);
+  color: var(--t3);
+}
+.dark .starter-card { background: var(--s1); border-color: var(--b2); }
+.dark .starter-card:hover { background: var(--s2); border-color: var(--b1); }
+
+/* ── PROFILE BAR in header area (home view top) ───────────────────── */
+.home-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 14px 40px 0;
+  gap: 10px;
+}
+.profile-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  background: var(--s1);
+  border: 1px solid var(--b2);
+  border-radius: 20px;
+  font: 500 13px/1 var(--sans);
+  color: var(--t2);
+  cursor: default;
+}
+.profile-chip-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  flex-shrink: 0;
+}
+
+/* ── SETTINGS: Editable rows ──────────────────────────────────────── */
+.sett-row-editable {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--b0);
+  gap: 16px;
+}
+.sett-row-editable:last-child { border-bottom: none; }
+.sett-row-left { flex: 1; min-width: 0; }
+.sett-row-label {
+  font: 500 13px/1 var(--sans);
+  color: var(--t3);
+  margin-bottom: 4px;
+  font-family: var(--mono);
+  letter-spacing: .08em;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+.sett-row-value {
+  font: 400 16px/1 var(--sans);
+  color: var(--t1);
+}
+.sett-edit-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 6px 12px;
+  background: var(--bg);
+  border: 1px solid var(--b2);
+  border-radius: 7px;
+  font: 500 12px/1 var(--mono);
+  color: var(--t3);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .12s;
+  flex-shrink: 0;
+}
+.sett-edit-btn:hover { border-color: var(--b1); color: var(--t1); background: var(--s2); }
+.sett-edit-btn svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+
+/* inline edit field inside settings row */
+.sett-inline-edit {
+  display: none;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+}
+.sett-inline-edit.open { display: flex; }
+.sett-inline-input {
+  flex: 1;
+  height: 36px;
+  padding: 0 10px;
+  background: var(--bg);
+  border: 1px solid var(--b1);
+  border-radius: 7px;
+  font: 400 15px/1 var(--sans);
+  color: var(--t1);
+  outline: none;
+  transition: border-color .12s, box-shadow .12s;
+}
+.sett-inline-input:focus {
+  border-color: var(--acc);
+  box-shadow: 0 0 0 2px var(--aa);
+}
+.sett-inline-select {
+  flex: 1;
+  height: 36px;
+  padding: 0 10px;
+  background: var(--bg);
+  border: 1px solid var(--b1);
+  border-radius: 7px;
+  font: 400 15px/1 var(--sans);
+  color: var(--t1);
+  outline: none;
+  -webkit-appearance: none;
+}
+.sett-save-btn {
+  height: 36px;
+  padding: 0 14px;
+  background: var(--acc);
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font: 600 12px/1 var(--mono);
+  cursor: pointer;
+  transition: opacity .12s;
+  flex-shrink: 0;
+}
+.sett-save-btn:hover { opacity: .85; }
+.dark .sett-save-btn { color: var(--bg); }
+.sett-cancel-btn {
+  height: 36px;
+  padding: 0 10px;
+  background: none;
+  color: var(--t3);
+  border: 1px solid var(--b2);
+  border-radius: 7px;
+  font: 400 12px/1 var(--mono);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.sett-cancel-btn:hover { color: var(--t1); border-color: var(--b1); }
+
+/* Settings section with card wrapper */
+.sett-card {
+  background: var(--card);
+  border: 1px solid var(--b2);
+  border-radius: 12px;
+  padding: 20px 22px;
+  margin-bottom: 16px;
+}
+.sett-card-title {
+  font: 600 11px/1 var(--mono);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--t3);
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--b0);
+}
+
+/* Settings save toast */
+.sett-save-toast {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: 500 12px/1 var(--mono);
+  color: var(--green);
+  opacity: 0;
+  transition: opacity .2s;
+  margin-left: 8px;
+}
+.sett-save-toast.show { opacity: 1; }
+.sett-save-toast svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2.5; }
+
+/* ── CHIP SELECT in settings (role/facility type pickers) ─────────── */
+.sett-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.sett-chip {
+  padding: 7px 13px;
+  background: var(--bg);
+  border: 1px solid var(--b2);
+  border-radius: 20px;
+  font: 400 13px/1 var(--sans);
+  color: var(--t2);
+  cursor: pointer;
+  transition: all .12s;
+}
+.sett-chip:hover { border-color: var(--b1); color: var(--t1); }
+.sett-chip.active { background: var(--acc); color: #fff; border-color: var(--acc); }
+.dark .sett-chip.active { color: var(--bg); }
+
+/* ── TYPING indicator refinement ─────────────────────────────────── */
+.chat-typing::after {
+  content: '▌';
+  animation: blink 1s step-end infinite;
+  color: var(--acc);
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ── Dark overrides for new elements ─────────────────────────────── */
+.dark .main-input { background: var(--bg); }
+.dark .main-input-inner { background: var(--s1); border-color: var(--b2); }
+.dark .main-input-inner:focus-within { border-color: var(--b1); box-shadow: 0 0 0 3px rgba(255,255,255,.04); }
+.dark .sett-inline-input, .dark .sett-inline-select { background: var(--s2); border-color: var(--b1); }
+.dark .sett-card { background: var(--s1); border-color: var(--b2); }
+.dark .sett-edit-btn { background: var(--s2); }
