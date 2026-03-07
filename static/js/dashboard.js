@@ -3674,3 +3674,358 @@ if (document.readyState === 'loading') {
 } else {
   makeStandardsClickable();
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   PANTHEON — UI OVERHAUL PATCH
+   Suggestion chips · Profile loading · Editable settings
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── USER PROFILE (loaded from /api/auth/me on boot) ──────────────── */
+var USER_PROFILE = {};
+
+async function loadUserProfile() {
+  try {
+    var r = await fetch('/api/auth/me');
+    if (!r.ok) return;
+    var u = await r.json();
+    USER_PROFILE = u || {};
+    applyProfileToUI();
+  } catch(e) {}
+}
+
+function applyProfileToUI() {
+  var u = USER_PROFILE;
+  var name   = u.name || '';
+  var org    = u.org || u.organization || '';
+  var loc    = u.location || '';
+  var role   = u.role || '';
+  var title  = u.title || '';
+
+  // Home topbar profile chip
+  var tb = document.getElementById('homeTopbar');
+  if (tb && (name || org)) {
+    tb.innerHTML = '<div class="profile-chip"><div class="profile-chip-dot"></div>' +
+      '<span>' + escHtml(name || org) + (role ? ' · ' + escHtml(role) : '') + '</span></div>';
+  }
+
+  // Settings profile tab values
+  setSettVal('settName',    name    || '—');
+  setSettVal('settTitle',   title   || role || '—');
+  setSettVal('settOrg',     org     || '—');
+  setSettVal('settLoc',     loc     || '—');
+  setSettVal('settRole',    role    || '—');
+
+  // Pre-fill inline inputs
+  setInpVal('siNameInput',  name);
+  setInpVal('siTitleInput', title || role);
+  setInpVal('siOrgInput',   org);
+  setInpVal('siLocInput',   loc);
+
+  // Facility tab from facilityConfig or user profile
+  var fc = facilityConfig || {};
+  var facType  = fc.typeName || u.facility_type || '—';
+  var chem     = fc.battery  || u.chemistry     || '—';
+  var supp     = fc.suppression || u.suppression || '—';
+  var det      = fc.detection   || u.detection   || '—';
+  var region   = fc.region      || u.location    || '—';
+
+  setSettVal('settFacType', facType);
+  setSettVal('settChem',    chem);
+  setSettVal('settSupp',    supp);
+  setSettVal('settDet',     det);
+  setSettVal('settRegion',  region);
+
+  // Role chips
+  renderSettRoleChips(role);
+
+  // Starter prompts on home (only before first message)
+  renderStarterPrompts(name);
+
+  // Context panel IDs
+  var iid = document.getElementById('ctxIID');
+  var fac = document.getElementById('ctxFacility');
+  if (iid && name) iid.textContent = name.split(' ')[0].toUpperCase();
+  if (fac && org)  fac.textContent = org;
+}
+
+function setSettVal(id, val) {
+  var el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+function setInpVal(id, val) {
+  var el = document.getElementById(id);
+  if (el) el.value = val || '';
+}
+
+/* ── SETTINGS: Role chips ─────────────────────────────────────────── */
+var ROLE_CHIPS = [
+  'Facility Manager','Fire Chief / AHJ','Insurance Underwriter',
+  'Safety Engineer','HCT Sales Engineer','Executive / Leadership'
+];
+
+function renderSettRoleChips(currentRole) {
+  var wrap = document.getElementById('settRoleChips');
+  if (!wrap) return;
+  wrap.innerHTML = ROLE_CHIPS.map(function(r) {
+    var active = (currentRole === r || currentRole === r.toLowerCase()) ? ' active' : '';
+    return '<button class="sett-chip' + active + '" onclick="pickSettRole(this,\'' + escAttr(r) + '\')">' + escHtml(r) + '</button>';
+  }).join('');
+}
+
+function pickSettRole(btn, role) {
+  document.querySelectorAll('#settRoleChips .sett-chip').forEach(function(c) { c.classList.remove('active'); });
+  btn.classList.add('active');
+  USER_PROFILE.role = role;
+  setSettVal('settTitle', role);
+  setSettVal('settRole', role);
+  if (userRole !== null) userRole = role;
+  saveProfileField('role', role);
+  var toast = document.getElementById('roleSaveToast');
+  if (toast) { toast.classList.add('show'); setTimeout(function(){ toast.classList.remove('show'); }, 2000); }
+}
+
+/* ── SETTINGS: Inline edit ────────────────────────────────────────── */
+var SETT_FIELD_MAP = {
+  name:    { valId:'settName',    inpId:'siNameInput',    wrapId:'siName',    profKey:'name' },
+  title:   { valId:'settTitle',   inpId:'siTitleInput',   wrapId:'siTitle',   profKey:'title' },
+  org:     { valId:'settOrg',     inpId:'siOrgInput',     wrapId:'siOrg',     profKey:'org' },
+  loc:     { valId:'settLoc',     inpId:'siLocInput',     wrapId:'siLoc',     profKey:'location' },
+  factype: { valId:'settFacType', inpId:'siFacTypeInput', wrapId:'siFacType', profKey:'facility_type' },
+  chem:    { valId:'settChem',    inpId:'siChemInput',    wrapId:'siChem',    profKey:'chemistry' },
+  supp:    { valId:'settSupp',    inpId:'siSuppInput',    wrapId:'siSupp',    profKey:'suppression' },
+  det:     { valId:'settDet',     inpId:'siDetInput',     wrapId:'siDet',     profKey:'detection' },
+  region:  { valId:'settRegion',  inpId:'siRegionInput',  wrapId:'siRegion',  profKey:'region' }
+};
+
+function settEdit(field) {
+  var f = SETT_FIELD_MAP[field]; if (!f) return;
+  // close any other open edits
+  Object.keys(SETT_FIELD_MAP).forEach(function(k) {
+    var w = document.getElementById(SETT_FIELD_MAP[k].wrapId);
+    if (w) w.classList.remove('open');
+  });
+  // hide value + edit button in this row
+  var row = document.getElementById('sr' + capitalize(field));
+  if (row) { var left = row.querySelector('.sett-row-left'); if (left) left.style.display = 'none'; var btn = row.querySelector('.sett-edit-btn'); if (btn) btn.style.display = 'none'; }
+  var wrap = document.getElementById(f.wrapId);
+  if (wrap) { wrap.classList.add('open'); var inp = document.getElementById(f.inpId); if (inp) { inp.focus(); if (inp.select) inp.select(); } }
+}
+
+function settCancel(field) {
+  var f = SETT_FIELD_MAP[field]; if (!f) return;
+  var wrap = document.getElementById(f.wrapId); if (wrap) wrap.classList.remove('open');
+  var row = document.getElementById('sr' + capitalize(field));
+  if (row) { var left = row.querySelector('.sett-row-left'); if (left) left.style.display = ''; var btn = row.querySelector('.sett-edit-btn'); if (btn) btn.style.display = ''; }
+}
+
+function settSave(field) {
+  var f = SETT_FIELD_MAP[field]; if (!f) return;
+  var inp = document.getElementById(f.inpId); if (!inp) return;
+  var val = inp.value.trim();
+  if (!val) { settCancel(field); return; }
+  setSettVal(f.valId, val);
+  USER_PROFILE[f.profKey] = val;
+  // Update facilityConfig for suppression/chemistry/detection/region
+  if (facilityConfig) {
+    if (field === 'chem')    facilityConfig.battery    = val;
+    if (field === 'supp')    facilityConfig.suppression = val;
+    if (field === 'det')     facilityConfig.detection   = val;
+    if (field === 'region')  facilityConfig.region      = val;
+    if (field === 'factype') { facilityConfig.typeName  = val; facilityConfig.type = val.toLowerCase().replace(/[^a-z]/g,''); }
+  }
+  settCancel(field);
+  saveProfileField(f.profKey, val);
+  showSettToast(field);
+}
+
+function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+function escAttr(s) { return s.replace(/'/g, "\\'"); }
+
+function saveProfileField(key, val) {
+  try {
+    fetch('/api/profile/update', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({field: key, value: val})
+    }).catch(function(){});
+  } catch(e) {}
+}
+
+var _settToastTimers = {};
+function showSettToast(field) {
+  // brief inline feedback — use the role toast or just a quick border flash
+  var inp = document.getElementById(SETT_FIELD_MAP[field]?.inpId?.replace('Input',''));
+  // just flash green on save btn briefly — handled by settCancel restore
+}
+
+/* ── CHAT: Suggestion chips ────────────────────────────────────────── */
+var SUGGESTION_SETS = {
+  home_init: [
+    { label: 'Assess my suppression setup', icon: 'shield' },
+    { label: 'Run a thermal runaway simulation', icon: 'fire' },
+    { label: 'Show applicable NFPA standards', icon: 'check' },
+    { label: 'What training does my team need?', icon: 'star' }
+  ],
+  post_chat: function(lastMsg) {
+    // Contextual chips based on the assistant's last response topic
+    var m = (lastMsg||'').toLowerCase();
+    if (m.includes('nfpa') || m.includes('standard') || m.includes('code'))
+      return [{label:'What does this mean for my facility?'},{label:'Show full compliance checklist'},{label:'Which codes apply in my region?'}];
+    if (m.includes('thermal') || m.includes('battery') || m.includes('runaway'))
+      return [{label:'What suppression is validated for this?'},{label:'Show F-500 EA comparison'},{label:'Run a simulation now'}];
+    if (m.includes('f-500') || m.includes('suppression') || m.includes('agent'))
+      return [{label:'How does F-500 EA compare to FM-200?'},{label:'Request a site survey'},{label:'View case studies'}];
+    if (m.includes('training') || m.includes('certification') || m.includes('course'))
+      return [{label:'View recommended courses'},{label:'Check certifications due'},{label:'Schedule drill'}];
+    return [{label:'Tell me more'},{label:'How does this affect my facility?'},{label:'What should I do next?'}];
+  }
+};
+
+var CHIP_ICONS = {
+  shield: '<svg viewBox="0 0 16 16"><path d="M8 1l5 2.5v4c0 3.5-2.5 6-5 7C5.5 13.5 3 11 3 7.5v-4z" stroke-width="1.3"/></svg>',
+  fire:   '<svg viewBox="0 0 16 16"><path d="M8 2c0 3-4 5-4 8a4 4 0 008 0c0-3-4-5-4-8z" stroke-width="1.3"/></svg>',
+  check:  '<svg viewBox="0 0 16 16"><polyline points="2,8 6,12 14,4" stroke-width="1.8"/></svg>',
+  star:   '<svg viewBox="0 0 16 16"><path d="M8 1l2 4 5 .5-3.5 3.5 1 5L8 12l-4.5 2 1-5L1 5.5 6 5z" stroke-width="1.3"/></svg>'
+};
+
+function renderSuggestions(containerEl, chips) {
+  if (!containerEl) return;
+  containerEl.innerHTML = chips.map(function(c) {
+    var ico = c.icon ? (CHIP_ICONS[c.icon] || '') : '';
+    return '<button class="suggestion-chip" onclick="sendChipMsg(this,\'' + escAttr(c.label) + '\')">' +
+      ico + escHtml(c.label) + '</button>';
+  }).join('');
+}
+
+function sendChipMsg(btn, msg) {
+  // Determine which view we're in
+  var inSim = (currentView === 'simulate');
+  var inputEl = document.getElementById(inSim ? 'simChat' : 'homeChat');
+  if (!inputEl) return;
+  inputEl.value = msg;
+  // Hide chips immediately
+  var row = btn.closest('.suggestion-row');
+  if (row) row.innerHTML = '';
+  // Trigger send
+  var scrollId = inSim ? '#simScroll' : '#homeScroll';
+  sendChat(inputEl, scrollId);
+}
+
+/* ── STARTER PROMPTS on home (shown before first chat message) ─────── */
+function renderStarterPrompts(userName) {
+  // inject into homeCenter after the scenario/config flow area
+  var center = document.getElementById('homeCenter');
+  if (!center) return;
+  var existing = document.getElementById('starterGrid');
+  if (existing) return; // only once
+
+  var greeting = userName ? ('Welcome back, ' + userName.split(' ')[0] + '.') : 'Life Safety OS.';
+  var grid = document.createElement('div');
+  grid.id = 'starterGrid';
+  grid.style.cssText = 'max-width:680px;width:100%;margin-top:20px;display:none'; // hidden, revealed after role selected
+  grid.className = 'starter-grid';
+  var prompts = [
+    {label:'Assess my suppression gap',    sub:'Compare installed systems vs. NFPA requirements'},
+    {label:'Simulate thermal runaway',      sub:'Run a full or partial failure scenario'},
+    {label:'Check compliance standards',    sub:'NFPA 855, 75, 13 · NEC 706 · UL 9540A'},
+    {label:'Review training readiness',     sub:'Certifications, gaps, and drill schedule'}
+  ];
+  grid.innerHTML = prompts.map(function(p) {
+    return '<div class="starter-card" onclick="sendStarterPrompt(\'' + escAttr(p.label) + '\')">' +
+      '<div class="starter-card-label">' + escHtml(p.label) + '</div>' +
+      '<div class="starter-card-sub">' + escHtml(p.sub) + '</div></div>';
+  }).join('');
+  center.appendChild(grid);
+}
+
+function sendStarterPrompt(msg) {
+  var inputEl = document.getElementById('homeChat');
+  if (!inputEl) return;
+  var grid = document.getElementById('starterGrid');
+  if (grid) grid.style.display = 'none';
+  inputEl.value = msg;
+  sendChat(inputEl, '#homeScroll');
+}
+
+/* ── PATCH sendChat to inject suggestion chips after response ───────── */
+var _patchedSendChat = false;
+(function patchSendChat() {
+  if (_patchedSendChat) return;
+  _patchedSendChat = true;
+  var _orig = sendChat;
+  sendChat = async function(input, scrollId) {
+    // Clear suggestion chips before sending
+    var sugId = scrollId === '#simScroll' ? 'simSuggestions' : 'homeSuggestions';
+    var sugEl = document.getElementById(sugId);
+    if (sugEl) sugEl.innerHTML = '';
+    // Hide starter grid
+    var sg = document.getElementById('starterGrid'); if (sg) sg.style.display = 'none';
+
+    await _orig(input, scrollId);
+
+    // After response, render contextual chips
+    setTimeout(function() {
+      var feed = document.querySelector(scrollId);
+      var msgs = feed ? feed.querySelectorAll('.chat-msg-assistant .chat-bubble') : [];
+      var lastText = msgs.length ? msgs[msgs.length-1].textContent : '';
+      var chips = SUGGESTION_SETS.post_chat(lastText);
+      if (sugEl) renderSuggestions(sugEl, chips);
+    }, 300);
+  };
+})();
+
+/* ── BOOT: load profile + init suggestions ──────────────────────────── */
+document.addEventListener('DOMContentLoaded', function() {
+  loadUserProfile();
+  // Show init chips on home after a short delay
+  setTimeout(function() {
+    var sugEl = document.getElementById('homeSuggestions');
+    if (sugEl && !sugEl.innerHTML) renderSuggestions(sugEl, SUGGESTION_SETS.home_init);
+  }, 2600); // after boot screen fades
+});
+
+/* ── SETTINGS TABS: wire up the new profile + facility tabs ────────── */
+(function wireSettingsTabs() {
+  document.addEventListener('DOMContentLoaded', function() {
+    var tabs = document.querySelectorAll('.sett-tabs .sett-tab[data-sett-tab]');
+    if (!tabs.length) return;
+    tabs.forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        var parent = tab.closest('.sett-container');
+        parent.querySelectorAll('.sett-tab').forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        var target = tab.dataset.settTab;
+        parent.querySelectorAll('.sett-panel').forEach(function(p) { p.classList.remove('active'); });
+        var panel = document.getElementById('sett' + target.charAt(0).toUpperCase() + target.slice(1) + 'Panel');
+        if (panel) panel.classList.add('active');
+        // sync sidebar
+        var sidebtns = document.querySelectorAll('#ctxSettings .ctx-nav-btn[data-sett-tab]');
+        sidebtns.forEach(function(b) {
+          b.classList.toggle('active', b.dataset.settTab === target);
+        });
+      });
+    });
+    // Sidebar → tab sync
+    var sideBtns = document.querySelectorAll('#ctxSettings .ctx-nav-btn[data-sett-tab]');
+    sideBtns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var target = btn.dataset.settTab;
+        var matchTab = document.querySelector('.sett-tabs .sett-tab[data-sett-tab="' + target + '"]');
+        if (matchTab) matchTab.click();
+      });
+    });
+  });
+})();
+
+/* ── Show starter grid when facility is configured ───────────────────── */
+(function watchFacilityConfig() {
+  var _origPopulateFacilityGrid = typeof populateFacilityGrid === 'function' ? populateFacilityGrid : null;
+  // hook: when facilityConfig is set and role is selected, show starter grid
+  var _pollStart = setInterval(function() {
+    if (facilityConfig && userRole) {
+      clearInterval(_pollStart);
+      var sg = document.getElementById('starterGrid');
+      if (sg) sg.style.display = 'grid';
+    }
+  }, 800);
+})();
