@@ -268,6 +268,35 @@ def auth_verify():
         "sims_remaining": max(0, SIM_LIMIT_PER_WEEK - sims)
     })
 
+@app.route('/api/auth/register', methods=['POST'])
+def auth_register():
+    b        = request.get_json()
+    email    = (b.get('email', '')).strip().lower()
+    password = (b.get('password', '')).strip()
+    name     = (b.get('name', '')).strip()
+
+    if not email or not password:
+        return jsonify({"error": "Email and password required"}), 400
+    if len(password) < 8:
+        return jsonify({"error": "Password must be at least 8 characters"}), 400
+
+    existing, _ = find_user(email)
+    if existing:
+        return jsonify({"error": "An account with this email already exists. Sign in instead."}), 409
+
+    pw_hash = hash_pw(password)
+    sheets_append_sync('Users', [
+        name, email, '', '', pw_hash,
+        now_str(), 'self-registered', '', '', str(TRIAL_DAYS), '0', '0', 'Active'
+    ])
+    # Create session immediately
+    row, row_num = find_user(email)
+    if row and row_num > 0:
+        _create_session(email, row, row_num)
+    device, browser = get_device_info()
+    sheets_append('Activity Log', [now_str(), email, name, '', 'Registered', '', '', '', '', device, browser])
+    return jsonify({"ok": True, "name": name})
+
 @app.route('/api/auth/verify_otp', methods=['POST'])
 def auth_verify_otp():
     """Step 2 of login when OTP_ENABLED=true."""
