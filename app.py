@@ -32,7 +32,7 @@ OTP_ENABLED        = os.environ.get('OTP_ENABLED', 'false').lower() == 'true'
 
 # ── Utilities ──────────────────────────────────────────────────────────────────
 
-def hash_pw(pw): return hashlib.sha256(pw.encode()).hexdigest()
+def hash_pw(pw): return pw.strip()  # plain compare — no hash complexity
 def now_str(): return datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
 def get_device_info():
     ua = request.headers.get('User-Agent', '')
@@ -306,14 +306,16 @@ def auth_register():
     if len(password) < 8: return jsonify({"error": "Password must be at least 8 characters"}), 400
     existing, _ = find_user(email)
     if existing: return jsonify({"error": "Account already exists. Sign in instead."}), 409
-    pw_hash = hash_pw(password)
-    sheets_append_sync('Users', [name, email, '', '', pw_hash, now_str(), 'self-registered', '', '', str(TRIAL_DAYS), '0', '0', 'Active', 'true', '', '', '', 'false'])
-    # Immediately create session — no email verification needed
-    row, row_num = find_user(email)
-    if row:
-        _create_session(email, row, row_num)
-        sheets_append('Activity Log', [now_str(), email, name, '', 'Registered', '', '', '', '', '', ''])
-    return jsonify({"ok": True, "redirect": "/onboarding"})
+    pw_clean = password.strip()
+    if not pw_clean: return jsonify({"error": "Password required"}), 400
+    # Store unverified — email_verified col starts as 'false'
+    sheets_append_sync('Users', [name, email, '', '', pw_clean, now_str(), 'self-registered', '', '', str(TRIAL_DAYS), '0', '0', 'Active', 'false', '', '', '', 'false'])
+    # Send verification link
+    token = generate_verify_token(email)
+    send_verify_link(email, token)
+    if not SENDGRID_KEY:
+        print(f"[DEV] http://localhost:5002/verify?token={token}")
+    return jsonify({"ok": True})
 
 @app.route('/verify')
 def verify_email_link():
@@ -342,8 +344,13 @@ def auth_verify():
     if not email or not password: return jsonify({"error": "Email and password required"}), 400
     row, row_num = find_user(email)
     if not row or len(row) < 5: return jsonify({"error": "Invalid credentials"}), 401
-    stored_hash = (row[4] or '').strip()
-    if stored_hash != hash_pw(password): return jsonify({"error": "Invalid credentials"}), 401
+    stored_pw = (row[4] or '').strip()
+    if stored_pw != password.strip():
+        return jsonify({"error": "Incorrect email or password"}), 401
+    # Check email verified
+    email_verified = row[13].strip().lower()
+    if email_verified != 'true':
+        return jsonify({"error": "email_not_verified", "email": email}), 403
     if len(row) >= 13 and row[12].strip().lower() == 'revoked': return jsonify({"error": "Access revoked. Contact HCT."}), 403
     # email_verified check removed — direct credential login
     # Check trial
@@ -600,7 +607,7 @@ def admin_reset_password():
     if not email or not new_pw: return jsonify({"error": "Email and password required"}), 400
     row, row_num = find_user(email)
     if not row: return jsonify({"error": "User not found"}), 404
-    sheets_update_cell_sync('Users', row_num, 5, hash_pw(new_pw))
+    sheets_update_cell_sync('Users', row_num, 5, new_pw.strip())
     return jsonify({"ok": True})
 
 # ── Telemetry ──────────────────────────────────────────────────────────────────
@@ -861,7 +868,7 @@ def auth_reset_password():
     del _token_store[token]
     row, row_num = find_user(email)
     if not row: return jsonify({"error": "Account not found"}), 404
-    sheets_update_cell_sync('Users', row_num, 5, hash_pw(new_pw))
+    sheets_update_cell_sync('Users', row_num, 5, new_pw.strip())
     sheets_append('Activity Log', [now_str(), email, row[0], '', 'Password Reset', '', '', '', '', '', ''])
     return jsonify({"ok": True})
 
