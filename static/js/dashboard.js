@@ -233,10 +233,24 @@ function renderConfigStep() {
     case 0:
       body.innerHTML = `<div class="cf-step"><div class="cf-step-title">Step 1 — Facility details</div>
         <div class="cf-field"><label class="cf-label">Facility name</label><input class="cf-input" id="cfName" placeholder="e.g. Ashburn DC-${facilityConfig.facilityName ? `" value="${facilityConfig.facilityName}` : ''}"></div>
-        <div class="cf-field"><label class="cf-label">City, State, Country <span class="cf-label-hint">— use full names, no abbreviations</span></label><input class="cf-input" id="cfRegion" placeholder="e.g. Ashburn, Virginia, United States" value="${facilityConfig.region || ''}"></div>ern Virginia, Ashburn VA" value="${facilityConfig.region || ''}"></div>
+        <div class="cf-field"><label class="cf-label">City, State, Country <span class="cf-label-hint">— use full names, no abbreviations</span></label><input class="cf-input" id="cfRegion" placeholder="e.g. Ashburn, Virginia, United States" value="${facilityConfig.region || ''}"></div>
         <div id="cfStandardsSummary" class="hidden"></div>
         <div class="cf-field"><label class="cf-label">Facility classification</label><div class="cf-chips" id="cfClass">
-          ${['Tier I', 'Tier II', 'Tier III', 'Tier IV', 'Standard'].map(v => `<div class="cf-chip${facilityConfig.classification === v ? ' selected' : ''}" data-val="${v}">${v}</div>`).join('')}
+          ${(function(){
+            var classMap = {
+              datacenter: ['Tier I','Tier II','Tier III','Tier IV'],
+              'solar-bess': ['Utility-Scale','C&I','Residential','Microgrid'],
+              warehouse: ['Distribution','Cold Storage','Fulfillment','General'],
+              manufacturing: ['Heavy Industrial','Light Industrial','Cleanroom','Assembly'],
+              'ev-charging': ['Level 2 Hub','DC Fast','Fleet Depot','Mixed'],
+              telecom: ['Cell Tower','Central Office','Edge Node','Macro Site'],
+              marine: ['Container Port','Cruise Terminal','Dry Dock','Offshore'],
+              aviation: ['Commercial Hangar','MRO Facility','FBO','Cargo'],
+              hospital: ['Level I Trauma','Community Hospital','Clinic','Surgical Center']
+            };
+            var opts = classMap[facilityConfig.type] || ['Standard','Critical','High-Value','General'];
+            return opts.map(function(v){return '<div class="cf-chip'+(facilityConfig.classification===v?' selected':'')+'" data-val="'+v+'">'+v+'</div>'}).join('');
+          })()}
         </div></div></div>`;
       initChipSelect('cfClass');
       // Listen for region input to trigger standards detection
@@ -1557,24 +1571,20 @@ function resetEmergency() {
 
 /* ═══ SETTINGS ═══ */
 function initSettings() {
-  // Main content tabs — scoped to #viewSettings
-  $$('#settTabs .sett-tab').forEach(btn => btn.addEventListener('click', () => {
-    $$('#settTabs .sett-tab').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const tab = btn.dataset.tab;
-    $$('#viewSettings .sett-panel').forEach(p => p.classList.remove('active'));
-    const panel = $('#sett' + tab.charAt(0).toUpperCase() + tab.slice(1));
-    if (panel) panel.classList.add('active');
-  }));
-  // Sidebar nav buttons (sync with main tabs)
-  $$('#ctxSettings .ctx-nav-btn').forEach(btn => btn.addEventListener('click', () => {
-    $$('#ctxSettings .ctx-nav-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const label = btn.textContent.trim().toLowerCase();
-    $$('#settTabs .sett-tab').forEach(t => {
-      if (t.dataset.tab === label) t.click();
-    });
-  }));
+  // Preferences tab - read from facilityConfig
+  var fc = facilityConfig || {};
+  var prefRows = document.querySelectorAll('#settPrefs .sett-val');
+  if (prefRows.length >= 3) {
+    prefRows[2].textContent = fc.region || 'Not set';  // Region
+    prefRows[3].textContent = fc.facilityName || fc.typeName || 'Not set';  // Default facility
+  }
+  // Facilities tab - read from facilityConfig
+  var facRows = document.querySelectorAll('#settFacilities .sett-val');
+  if (facRows.length >= 3) {
+    facRows[0].textContent = fc.battery || 'NMC';
+    facRows[1].textContent = fc.suppression || 'FM-200';
+    facRows[2].textContent = fc.region || 'Not set';
+  }
 }
 
 /* ═══ SECURITY ═══ */
@@ -1920,7 +1930,7 @@ function triggerSimEffects(mode, actIndex) {
   // Shake effect on critical acts
   if (actIndex === 2 || actIndex === 3) {
     const main = document.querySelector('.main');
-    if (main) { main.classList.add('shake'); setTimeout(() => main.classList.remove('shake'), 500); }
+    if (main) { /* shake removed */ }
   }
 
   // Pulse the monitor rail icon on alerts
