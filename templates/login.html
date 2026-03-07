@@ -274,6 +274,35 @@
       <div class="toggle" style="margin-top:20px"><a onclick="show('vLogin')">Back to sign in</a></div>
     </div>
 
+    <!-- ── CHECK INBOX (after register) ───────────────────────── -->
+    <div id="vInbox" style="display:none; text-align:center">
+      <div class="state-icon">
+        <svg viewBox="0 0 20 20"><path d="M2 5l8 6 8-6"/><rect x="2" y="4" width="16" height="12" rx="2"/></svg>
+      </div>
+      <h1>Check your inbox</h1>
+      <p class="note" style="margin-bottom:6px">We sent a verification link to</p>
+      <div class="pill" id="inboxEmail">—</div>
+      <p class="note">Click the link to verify your account — then come back here to sign in.</p>
+      <hr class="div" style="margin:20px 0 16px; border:none; border-top:1px solid var(--border)">
+      <p class="note">Didn't get it? <a onclick="resendLink()" style="color:var(--gold2);cursor:pointer;font-weight:500">Resend the link</a>.</p>
+      <div class="toggle" style="margin-top:14px"><a onclick="show('vLogin')">Back to sign in</a></div>
+    </div>
+
+    <!-- ── EMAIL NOT VERIFIED (on login attempt) ──────────────── -->
+    <div id="vUnverified" style="display:none; text-align:center">
+      <div class="state-icon" style="background:var(--red-bg);border-color:var(--red-border)">
+        <svg viewBox="0 0 20 20"><path d="M10 3L2 17h16L10 3z"/><line x1="10" y1="9" x2="10" y2="13"/><circle cx="10" cy="15.5" r="0.7" fill="currentColor" style="stroke:none"/></svg>
+      </div>
+      <h1>Verify your email</h1>
+      <p class="note" style="margin-bottom:6px">Check your inbox for the link sent to</p>
+      <div class="pill" id="unverEmail">—</div>
+      <button class="btn" id="resendBtn" onclick="resendLink()" style="margin-top:20px">
+        <span id="resendLbl">Resend Verification Link</span>
+        <div class="spin" id="resendSpin"></div>
+      </button>
+      <div class="toggle"><a onclick="show('vLogin')">Back to sign in</a></div>
+    </div>
+
   </div>
 </div>
 
@@ -326,7 +355,7 @@ function pwValid(pw) {
 }
 
 // ── Views ─────────────────────────────────────────────────────────────────
-var ALL = ['vLogin','vRegister','vForgot','vResetSent'];
+var ALL = ['vLogin','vRegister','vForgot','vResetSent','vInbox','vUnverified'];
 var _pendingEmail = '';
 
 function show(id) {
@@ -371,7 +400,9 @@ function doRegister() {
   .then(function(d) {
     loading('regBtn','regSpin','regLbl', false);
     if (d.ok) {
-      window.location.href = '/onboarding';
+      _pendingEmail = email;
+      document.getElementById('inboxEmail').textContent = email;
+      show('vInbox');
     } else {
       err('regMsg', d.error || 'Registration failed. Please try again.');
     }
@@ -400,6 +431,10 @@ function doLogin() {
     loading('loginBtn','loginSpin','loginLbl', false);
     if (d.ok) {
       window.location.href = d.onboarding_complete ? '/' : '/onboarding';
+    } else if (d.error === 'email_not_verified') {
+      _pendingEmail = d.email || email;
+      document.getElementById('unverEmail').textContent = _pendingEmail;
+      show('vUnverified');
     } else {
       err('loginMsg', d.error || 'Incorrect email or password.');
     }
@@ -429,6 +464,31 @@ function doForgot() {
   .catch(function() {
     loading('forgotBtn','forgotSpin','forgotLbl', false);
     err('forgotMsg', 'Connection error. Please try again.');
+  });
+}
+
+// ── Resend verification ───────────────────────────────────────────────────
+function resendLink() {
+  if (!_pendingEmail) return;
+  var btn = document.getElementById('resendBtn');
+  var spin = document.getElementById('resendSpin');
+  var lbl = document.getElementById('resendLbl');
+  if (btn) btn.disabled = true;
+  if (spin) spin.style.display = 'flex';
+  if (lbl) lbl.style.display = 'none';
+  fetch('/api/auth/resend_otp', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({email: _pendingEmail})
+  })
+  .then(function(r) { return r.json(); })
+  .then(function() {
+    if (btn) { btn.disabled = false; spin.style.display = 'none'; lbl.style.display = ''; }
+    document.getElementById('inboxEmail').textContent = _pendingEmail;
+    show('vInbox');
+  })
+  .catch(function() {
+    if (btn) { btn.disabled = false; spin.style.display = 'none'; lbl.style.display = ''; }
   });
 }
 
