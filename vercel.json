@@ -3,23 +3,20 @@
   "builds": [
     {
       "src": "app.py",
-      "use": "@vercel/python"
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "15mb"
+      }
+    },
+    {
+      "src": "static/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
     {
-      "src": "/static/css/(.*)",
-      "headers": { "Content-Type": "text/css" },
-      "dest": "app.py"
-    },
-    {
-      "src": "/static/js/(.*)",
-      "headers": { "Content-Type": "application/javascript" },
-      "dest": "app.py"
-    },
-    {
       "src": "/static/(.*)",
-      "dest": "app.py"
+      "dest": "/static/$1"
     },
     {
       "src": "/(.*)",
