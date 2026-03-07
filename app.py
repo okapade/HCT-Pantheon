@@ -98,13 +98,16 @@ def sheets_update_cell_sync(tab, row, col, value):
 def find_user(email):
     rows = sheets_read('Users')
     for i, row in enumerate(rows[1:], start=2):
-        if len(row) >= 2 and row[1].strip().lower() == email.strip().lower():
+        # Pad to 20 cols so index access never throws — Sheets drops trailing empty cells
+        row = list(row) + [''] * (20 - len(row))
+        if row[1].strip().lower() == email.strip().lower():
             return row, i
     return None, -1
 
 def get_user_profile(email):
     row, _ = find_user(email)
     if not row: return {}
+    row = list(row) + [''] * (20 - len(row))
     return {
         'name':               row[0]  if len(row) > 0  else '',
         'email':              row[1]  if len(row) > 1  else '',
@@ -322,7 +325,9 @@ def verify_email_link():
     row, row_num = find_user(email)
     if not row:
         return redirect(url_for('login_page') + '?msg=user_not_found')
-    sheets_update_cell_sync('Users', row_num, 14, 'true')
+    sheets_update_cell_sync('Users', row_num, 14, 'true')  # col N = email_verified
+    # Re-read so session gets fresh verified row
+    row, row_num = find_user(email)
     _create_session(email, row, row_num)
     device, browser = get_device_info()
     sheets_append('Activity Log', [now_str(), email, row[0], '', 'Email Verified', '', '', '', '', device, browser])
@@ -339,7 +344,9 @@ def auth_verify():
     stored_hash = (row[4] or '').strip()
     if stored_hash != hash_pw(password): return jsonify({"error": "Invalid credentials"}), 401
     if len(row) >= 13 and row[12].strip().lower() == 'revoked': return jsonify({"error": "Access revoked. Contact HCT."}), 403
-    email_verified = row[13].strip().lower() if len(row) > 13 else 'false'
+    # col 14 = email_verified (1-indexed in sheet = index 13 in 0-indexed row)
+    # After padding above, row[13] is always safe
+    email_verified = row[13].strip().lower()
     if email_verified != 'true':
         return jsonify({"error": "email_not_verified", "email": email}), 403
     # Check trial
