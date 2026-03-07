@@ -42,18 +42,27 @@ def get_device_info():
 
 # ── Google Sheets ──────────────────────────────────────────────────────────────
 
-_sheets_service = None
 def get_sheets():
-    global _sheets_service
-    if _sheets_service: return _sheets_service
-    if not SHEET_ID or not SHEETS_CREDS: return None
+    if not SHEET_ID or not SHEETS_CREDS:
+        print(f"[SHEETS] Missing config: SHEET_ID={bool(SHEET_ID)} CREDS={bool(SHEETS_CREDS)}")
+        return None
     try:
         from google.oauth2.service_account import Credentials
         from googleapiclient.discovery import build
-        creds = Credentials.from_service_account_info(json.loads(SHEETS_CREDS), scopes=['https://www.googleapis.com/auth/spreadsheets'])
-        _sheets_service = build('sheets', 'v4', credentials=creds)
-        return _sheets_service
-    except Exception as e: print(f"Sheets error: {e}"); return None
+        creds_dict = json.loads(SHEETS_CREDS)
+        creds = Credentials.from_service_account_info(creds_dict, scopes=['https://www.googleapis.com/auth/spreadsheets'])
+        svc = build('sheets', 'v4', credentials=creds)
+        print(f"[SHEETS] Connected OK")
+        return svc
+    except json.JSONDecodeError as e:
+        print(f"[SHEETS] CREDS JSON parse failed: {e}")
+        return None
+    except ImportError as e:
+        print(f"[SHEETS] Missing library: {e}")
+        return None
+    except Exception as e:
+        print(f"[SHEETS] Error: {type(e).__name__}: {e}")
+        return None
 
 def sheets_append(tab, values):
     def _do():
@@ -308,8 +317,10 @@ def auth_register():
     if existing: return jsonify({"error": "Account already exists. Sign in instead."}), 409
     pw_clean = password.strip()
     if not pw_clean: return jsonify({"error": "Password required"}), 400
+    print(f"[REGISTER] email={email} pw_len={len(pw_clean)} pw_repr={repr(pw_clean[:4])}...")
     # Store unverified — email_verified col starts as 'false'
     sheets_append_sync('Users', [name, email, '', '', pw_clean, now_str(), 'self-registered', '', '', str(TRIAL_DAYS), '0', '0', 'Active', 'false', '', '', '', 'false'])
+    print(f"[REGISTER] Written to Sheets OK")
     # Send verification link
     token = generate_verify_token(email)
     send_verify_link(email, token)
@@ -343,9 +354,13 @@ def auth_verify():
     password = b.get('password', '').strip()
     if not email or not password: return jsonify({"error": "Email and password required"}), 400
     row, row_num = find_user(email)
-    if not row or len(row) < 5: return jsonify({"error": "Invalid credentials"}), 401
+    if not row:
+        print(f"[LOGIN] No user found for email: {email}")
+        return jsonify({"error": "Incorrect email or password"}), 401
     stored_pw = (row[4] or '').strip()
-    if stored_pw != password.strip():
+    incoming_pw = password.strip()
+    print(f"[LOGIN] email={email} stored_len={len(stored_pw)} incoming_len={len(incoming_pw)} match={stored_pw == incoming_pw} verified={row[13]!r}")
+    if stored_pw != incoming_pw:
         return jsonify({"error": "Incorrect email or password"}), 401
     # Check email verified
     email_verified = row[13].strip().lower()
