@@ -306,13 +306,14 @@ def auth_register():
     if len(password) < 8: return jsonify({"error": "Password must be at least 8 characters"}), 400
     existing, _ = find_user(email)
     if existing: return jsonify({"error": "Account already exists. Sign in instead."}), 409
-    # Store unverified user
     pw_hash = hash_pw(password)
-    sheets_append_sync('Users', [name, email, '', '', pw_hash, now_str(), 'self-registered', '', '', str(TRIAL_DAYS), '0', '0', 'Active', 'false', '', '', '', 'false'])
-    # Send verification link
-    token = generate_verify_token(email)
-    sent = send_verify_link(email, token)
-    return jsonify({"ok": True, "email_sent": sent, "dev_token": token if not SENDGRID_KEY else None})
+    sheets_append_sync('Users', [name, email, '', '', pw_hash, now_str(), 'self-registered', '', '', str(TRIAL_DAYS), '0', '0', 'Active', 'true', '', '', '', 'false'])
+    # Immediately create session — no email verification needed
+    row, row_num = find_user(email)
+    if row:
+        _create_session(email, row, row_num)
+        sheets_append('Activity Log', [now_str(), email, name, '', 'Registered', '', '', '', '', '', ''])
+    return jsonify({"ok": True, "redirect": "/onboarding"})
 
 @app.route('/verify')
 def verify_email_link():
@@ -344,11 +345,7 @@ def auth_verify():
     stored_hash = (row[4] or '').strip()
     if stored_hash != hash_pw(password): return jsonify({"error": "Invalid credentials"}), 401
     if len(row) >= 13 and row[12].strip().lower() == 'revoked': return jsonify({"error": "Access revoked. Contact HCT."}), 403
-    # col 14 = email_verified (1-indexed in sheet = index 13 in 0-indexed row)
-    # After padding above, row[13] is always safe
-    email_verified = row[13].strip().lower()
-    if email_verified != 'true':
-        return jsonify({"error": "email_not_verified", "email": email}), 403
+    # email_verified check removed — direct credential login
     # Check trial
     days_left = TRIAL_DAYS
     if len(row) >= 6 and row[5]:
