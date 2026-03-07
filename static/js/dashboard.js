@@ -136,6 +136,8 @@ function icon(name, cls) { return `<span class="ico${cls ? ' ' + cls : ''}">${IC
 
 /* ═══ BOOT ═══ */
 window.addEventListener('DOMContentLoaded', async () => {
+  // Remove any old login gate — Flask handles auth now
+  document.querySelectorAll('.login-gate').forEach(el => el.remove());
   try { const r = await fetch('/api/incident'); D = await r.json() } catch { D = {} }
   populateFacilityGrid();
   checkAPI();
