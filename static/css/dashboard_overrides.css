@@ -1,0 +1,622 @@
+/* ═══════════════════════════════════════════════════════════
+   PANTHEON — dashboard_overrides.css
+   Surgical polish layer — appended after dashboard.css
+   Do NOT modify font families, layout dimensions, or tokens.
+   ═══════════════════════════════════════════════════════════ */
+
+
+/* ─── 1. RAIL — More personality on active state ─────────── */
+
+.rail-btn.active {
+  background: var(--acc);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(17, 24, 39, .18);
+}
+
+.dark .rail-btn.active {
+  background: rgba(241, 243, 248, .12);
+  color: var(--t0);
+  box-shadow: none;
+}
+
+.rail-btn:hover:not(.active) {
+  background: var(--s3);
+  color: var(--t1);
+}
+
+/* Rail logo: softer active ring on hover */
+.rail-logo:hover {
+  background: var(--s3);
+}
+
+/* Rail bottom buttons consistent sizing */
+.rail-theme,
+.rail-expand {
+  width: 40px;
+  height: 40px;
+}
+
+
+/* ─── 2. CONTEXT PANEL — Tighter, crisper hierarchy ─────── */
+
+.ctx-head {
+  padding: 14px 16px 12px;
+}
+
+.ctx-title {
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+.ctx-sh {
+  font-size: 10px;
+  letter-spacing: 2.5px;
+}
+
+/* Nav buttons — more breathing room, stronger active */
+.ctx-nav-btn.active {
+  background: var(--s3);
+  color: var(--t0);
+  font-weight: 600;
+  box-shadow: inset 2px 0 0 var(--acc);
+}
+
+.dark .ctx-nav-btn.active {
+  box-shadow: inset 2px 0 0 var(--t0);
+}
+
+/* Stat cards in context panel — more punch */
+.ctx-stat {
+  border-radius: 10px;
+  padding: 12px 8px;
+  background: var(--card);
+  border: 1px solid var(--b2);
+  box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  transition: border-color .15s;
+}
+
+.ctx-stat:hover {
+  border-color: var(--b1);
+}
+
+.ctx-stat-val {
+  font-size: 22px;
+  letter-spacing: -0.5px;
+}
+
+.ctx-stat-label {
+  font-size: 10px;
+  letter-spacing: 0.8px;
+}
+
+
+/* ─── 3. MAIN SCROLL — Comfortable but not spacious ──────── */
+
+.main-scroll {
+  padding: 32px 48px;
+}
+
+@media (max-width: 768px) {
+  .main-scroll {
+    padding: 20px 18px;
+  }
+}
+
+
+/* ─── 4. INPUT BAR — Premium feel ───────────────────────── */
+
+.main-input {
+  padding: 12px 48px 18px;
+  background: var(--s1);
+  border-top: 1px solid var(--b2);
+  gap: 10px;
+}
+
+.main-input input {
+  border-radius: 12px;
+  padding: 13px 20px;
+  font-size: 16px;
+  background: var(--card);
+  border: 1px solid var(--b2);
+  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+  transition: border-color .15s, box-shadow .15s;
+}
+
+.main-input input:focus {
+  border-color: var(--acc);
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, .07);
+  outline: none;
+}
+
+.dark .main-input input:focus {
+  box-shadow: 0 0 0 3px rgba(241, 243, 248, .08);
+}
+
+.main-send {
+  border-radius: 12px;
+  width: 46px;
+  height: 46px;
+  background: var(--acc);
+  transition: opacity .12s, transform .1s;
+}
+
+.main-send:hover {
+  opacity: .88;
+  transform: translateY(-1px);
+}
+
+.main-send:active {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+
+/* ─── 5. CARDS — Depth and hover elevation ──────────────── */
+
+/* Generic card polish (cat, reco, insp, mon, train) */
+.cat-card,
+.reco-card,
+.insp-card,
+.mon-card,
+.train-rx,
+.train-course,
+.train-cert,
+.ss-card,
+.pkg-card,
+.em-type-card,
+.em-ahj-card,
+.em-report-btn {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .04), 0 0 0 0 transparent;
+  transition: border-color .15s var(--ease),
+              box-shadow .18s var(--ease),
+              transform .15s var(--ease);
+}
+
+.cat-card:hover,
+.reco-card:hover,
+.insp-card:hover,
+.mon-card:hover,
+.train-rx:hover,
+.train-course:hover,
+.train-cert:hover,
+.em-ahj-card:hover,
+.em-report-btn:hover {
+  border-color: var(--b1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .07);
+  transform: translateY(-1px);
+}
+
+.ss-card:hover {
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .09);
+  transform: translateY(-3px);
+}
+
+/* Role + facility cards */
+.role-card:hover,
+.fs-grid > div:hover,
+.em-type-card:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .07);
+  transform: translateY(-2px);
+}
+
+.role-card.selected,
+.fs-grid > div.selected {
+  box-shadow: 0 2px 12px rgba(17, 24, 39, .1);
+}
+
+/* Dark mode shadow attenuation */
+.dark .cat-card:hover,
+.dark .reco-card:hover,
+.dark .insp-card:hover,
+.dark .mon-card:hover,
+.dark .train-rx:hover,
+.dark .train-course:hover,
+.dark .train-cert:hover {
+  box-shadow: 0 4px 18px rgba(0, 0, 0, .3);
+}
+
+
+/* ─── 6. SETTINGS — Tab polish + panel sections ─────────── */
+
+.sett-container {
+  max-width: 720px;
+  padding-top: 4px;
+}
+
+.sett-title {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -.3px;
+  margin-bottom: 16px;
+  color: var(--t0);
+}
+
+.sett-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--b2);
+  margin-bottom: 24px;
+}
+
+.sett-tab {
+  font-size: 15px;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-bottom: 2px solid transparent;
+  color: var(--t3);
+  letter-spacing: .1px;
+  margin-bottom: -1px;
+  transition: color .12s, border-color .12s;
+}
+
+.sett-tab:hover {
+  color: var(--t1);
+}
+
+.sett-tab.active {
+  color: var(--t0);
+  font-weight: 600;
+  border-bottom-color: var(--acc);
+}
+
+/* Panel sections */
+.sett-section {
+  background: var(--card);
+  border: 1px solid var(--b2);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.03);
+}
+
+.sett-sh {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  color: var(--t3);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--b0);
+}
+
+.sett-row {
+  padding: 9px 0;
+  border-bottom: 1px solid var(--b0);
+}
+
+.sett-row:last-child {
+  border-bottom: none;
+}
+
+.sett-label {
+  font-size: 15px;
+  color: var(--t1);
+}
+
+.sett-val {
+  font-size: 15px;
+  color: var(--t2);
+}
+
+/* Empty state inside settings panels */
+.sett-empty {
+  font-size: 15px;
+  color: var(--t3);
+  line-height: 1.65;
+  padding: 10px 0 4px;
+}
+
+
+/* ─── 7. HERO TYPOGRAPHY — More commanding ───────────────── */
+
+.hero-title,
+.role-hero-title,
+.em-hero-title,
+.mon-hero .hero-title,
+.train-hero .hero-title {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -.4px;
+  color: var(--t0);
+  line-height: 1.15;
+}
+
+.hero-sub,
+.role-hero-sub,
+.em-hero-sub,
+.mon-hero .hero-sub,
+.train-hero .hero-sub {
+  font-size: 17px;
+  color: var(--t2);
+  line-height: 1.65;
+  margin-top: 6px;
+}
+
+
+/* ─── 8. EMPTY STATES — Intentional, not broken ─────────── */
+
+/* Generic empty state — applies to Channels, feed placeholders, etc. */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 64px 28px;
+  color: var(--t3);
+  gap: 14px;
+}
+
+.empty-icon {
+  width: 44px;
+  height: 44px;
+  opacity: .2;
+  margin: 0;
+}
+
+.empty-text {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--t3);
+  letter-spacing: .1px;
+}
+
+/* Monitor — empty feed placeholder */
+.mon-feed:empty::before {
+  content: "No events yet — sensor data will appear here in real time.";
+  display: block;
+  padding: 32px 20px;
+  font: 400 15px/1.65 var(--sans);
+  color: var(--t3);
+  text-align: center;
+  border: 1px dashed var(--b2);
+  border-radius: 10px;
+  margin-top: 8px;
+}
+
+/* Monitor — empty grid placeholder */
+.mon-grid:empty::before {
+  content: "Configure a facility to see live sensor cards.";
+  display: block;
+  grid-column: 1 / -1;
+  padding: 40px 24px;
+  font: 400 15px/1.6 var(--sans);
+  color: var(--t3);
+  text-align: center;
+  border: 1px dashed var(--b2);
+  border-radius: 12px;
+}
+
+/* Training prescriptions — empty */
+.train-prescription-list:empty::before,
+.train-course-grid:empty::before,
+.train-cert-grid:empty::before {
+  content: "Prescription data will populate after your first simulation.";
+  display: block;
+  padding: 36px 24px;
+  font: 400 15px/1.6 var(--sans);
+  color: var(--t3);
+  text-align: center;
+  border: 1px dashed var(--b2);
+  border-radius: 12px;
+}
+
+.train-course-grid:empty::before {
+  content: "Recommended courses will appear based on your simulation findings.";
+}
+
+.train-cert-grid:empty::before {
+  content: "Certification tracking will appear based on your facility profile.";
+}
+
+/* Catalog grid — empty */
+.cat-grid:empty::before {
+  content: "Loading catalog...";
+  display: block;
+  padding: 64px 24px;
+  font: 400 16px/1 var(--sans);
+  color: var(--t3);
+  text-align: center;
+  width: 100%;
+}
+
+/* Simulate scroll — blank canvas */
+#simScroll:empty::before {
+  content: "Configure a facility and run a simulation to begin.";
+  display: block;
+  padding: 80px 24px;
+  font: 400 16px/1.6 var(--sans);
+  color: var(--t3);
+  text-align: center;
+}
+
+/* Channels scroll — coming soon */
+#chanScroll .empty-state .empty-text::after {
+  content: " — Channels are being integrated.";
+}
+
+
+/* ─── 9. SECTION HEADINGS (sh) — Stronger presence ──────── */
+
+.mon-sh,
+.train-sh,
+.reco-sh,
+.sum-sh,
+.staging-title,
+.summary-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--t3);
+}
+
+
+/* ─── 10. CATALOG — Search bar refinement ───────────────── */
+
+.cat-search {
+  background: var(--card);
+  border: 1px solid var(--b2);
+  border-radius: 10px;
+  padding: 11px 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+  transition: border-color .15s, box-shadow .15s;
+}
+
+.cat-search:focus-within {
+  border-color: var(--acc);
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, .07);
+}
+
+.dark .cat-search:focus-within {
+  box-shadow: 0 0 0 3px rgba(241, 243, 248, .08);
+}
+
+.cat-title {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -.3px;
+}
+
+
+/* ─── 11. BUTTONS (ab-btn, insp-btn, cf-btn) — Consistency */
+
+.ab-btn,
+.insp-btn,
+.cf-btn {
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all .12s var(--ease);
+}
+
+.ab-btn:hover,
+.insp-btn:hover,
+.cf-btn:hover {
+  border-color: var(--b1);
+  background: var(--s2);
+  color: var(--t0);
+}
+
+.ab-primary:hover,
+.insp-btn-primary:hover,
+.cf-btn-primary:hover {
+  background: var(--acc);
+  opacity: .88;
+}
+
+
+/* ─── 12. BOOT SCREEN — Slightly more refined ────────────── */
+
+.boot-logo {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 24px;
+}
+
+.boot-text {
+  font-size: 11px;
+  letter-spacing: 4px;
+}
+
+
+/* ─── 13. CHIP FILTER — Tighter, more tactile ───────────── */
+
+.ctx-chip {
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: all .1s;
+}
+
+.cf-chip {
+  font-size: 15px;
+  padding: 9px 18px;
+}
+
+
+/* ─── 14. MONITOR HERO section fix ──────────────────────── */
+
+.mon-hero {
+  margin-bottom: 24px;
+}
+
+.mon-hero .hero-title {
+  margin-bottom: 6px;
+}
+
+/* Mon grid card metrics — cleaner number display */
+.mon-metric-val {
+  font-size: 18px;
+  letter-spacing: -.3px;
+}
+
+.mon-card-name {
+  font-size: 14px;
+}
+
+.mon-status-badge {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  border-radius: 5px;
+}
+
+
+/* ─── 15. DARK MODE — Shadow dampening ──────────────────── */
+
+.dark .cat-card,
+.dark .reco-card,
+.dark .insp-card,
+.dark .role-card,
+.dark .fs-grid > div,
+.dark .em-type-card,
+.dark .sett-section,
+.dark .ctx-stat {
+  box-shadow: none;
+}
+
+.dark .main-input input {
+  box-shadow: none;
+}
+
+.dark .main-input input:focus {
+  border-color: var(--b1);
+  box-shadow: 0 0 0 3px rgba(241, 243, 248, .06);
+}
+
+/* ─── 16. SCROLL PADDING BOTTOM — prevent content clipping */
+
+.main-scroll {
+  padding-bottom: 48px;
+}
+
+/* ─── 17. INLINE MICRO-ANIMATIONS ───────────────────────── */
+
+@keyframes panelIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.sett-panel.active {
+  animation: panelIn .2s var(--ease);
+}
+
+/* Training prescriptions entrance */
+.train-rx {
+  animation: fadeUp .25s var(--ease) both;
+}
+
+/* Catalog card staggered entrance — up to 8 visible */
+.cat-card:nth-child(1) { animation-delay: .03s; }
+.cat-card:nth-child(2) { animation-delay: .06s; }
+.cat-card:nth-child(3) { animation-delay: .09s; }
+.cat-card:nth-child(4) { animation-delay: .12s; }
+.cat-card:nth-child(5) { animation-delay: .15s; }
+.cat-card:nth-child(6) { animation-delay: .18s; }
+.cat-card:nth-child(7) { animation-delay: .21s; }
+.cat-card:nth-child(8) { animation-delay: .24s; }
+
+.cat-card {
+  animation: fadeUp .3s var(--ease) both;
+}
