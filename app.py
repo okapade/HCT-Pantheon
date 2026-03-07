@@ -14,7 +14,11 @@ except ImportError:
     FPDF = None
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('FLASK_SECRET', secrets.token_hex(32))
+app.secret_key = os.environ.get('FLASK_SECRET', 'pantheon-dev-secret-change-in-prod')
+app.config['SESSION_COOKIE_SECURE']   = True   # HTTPS only (Vercel is always HTTPS)
+app.config['SESSION_COOKIE_HTTPONLY'] = True   # no JS access
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # allows redirects
+app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(days=30)
 
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'pantheon-hct-2025')
 ANTHROPIC_KEY  = os.environ.get('ANTHROPIC_API_KEY', '')
@@ -300,6 +304,7 @@ def auth_verify_otp():
     })
 
 def _create_session(email, row, row_num):
+    session.permanent = True
     session['user_id']   = email
     session['user_name'] = row[0] if len(row) > 0 else ''
     session['user_org']  = row[3] if len(row) > 3 else ''
