@@ -12,7 +12,543 @@ except ImportError: FPDF = None
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET', 'pantheon-dev-secret-change-in-prod')
 app.config['SESSION_COOKIE_SECURE']   = True
-app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_HTTPONLY'] = Trueimport os, json, io, datetime
+from flask import Flask, render_template, jsonify, request, Response, stream_with_context
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+try:
+    from fpdf import FPDF
+except ImportError:
+    FPDF = None
+
+app = Flask(__name__)
+
+def load_data():
+    with open(os.path.join(os.path.dirname(__file__), 'data', 'incident.json')) as f:
+        return json.load(f)
+
+# ═══════════════════════════════════════════════════
+# JURISDICTION-AWARE COMPLIANCE DATABASE
+# ═══════════════════════════════════════════════════
+JURISDICTION_DB = {
+    "US": {
+        "federal": [
+            {"code": "NFPA 855", "title": "Stationary Energy Storage Systems", "edition": "2023", "scope": "Federal", "type": "fire_protection", "mandatory": True, "desc": "Primary standard for BESS installation and fire protection. Requires HMA for all Li-ion installations >20 kWh."},
+            {"code": "NFPA 75", "title": "Fire Protection of IT Equipment", "edition": "2024", "scope": "Federal", "type": "fire_protection", "mandatory": True, "desc": "Governs fire protection for data centers including detection, suppression, and separation."},
+            {"code": "NFPA 72", "title": "Fire Alarm & Signaling Code", "edition": "2022", "scope": "Federal", "type": "detection", "mandatory": True, "desc": "Detection system requirements including VESDA, spot detection, and notification appliances."},
+            {"code": "NFPA 13", "title": "Sprinkler Systems", "edition": "2022", "scope": "Federal", "type": "suppression", "mandatory": True, "desc": "Automatic sprinkler design/installation. Pre-action systems common in data centers."},
+            {"code": "NFPA 2001", "title": "Clean Agent Suppression", "edition": "2022", "scope": "Federal", "type": "suppression", "mandatory": False, "desc": "Clean agent systems. NOTE: Chemically incompatible with Li-ion thermal runaway."},
+            {"code": "NFPA 750", "title": "Water Mist Fire Protection", "edition": "2023", "scope": "Federal", "type": "suppression", "mandatory": False, "desc": "Basis for F-500 EA Micelle Mist delivery systems."},
+            {"code": "NFPA 18A", "title": "Wetting/Encapsulator Agents", "edition": "2022", "scope": "Federal", "type": "suppression", "mandatory": False, "desc": "Classification for encapsulator agents. Section 7.7 defines micelle-forming agents."},
+            {"code": "NFPA 1620", "title": "Pre-Incident Planning", "edition": "2020", "scope": "Federal", "type": "operations", "mandatory": True, "desc": "Pre-incident planning and emergency response protocol development."},
+            {"code": "NEC Art. 645", "title": "IT Equipment Rooms", "edition": "2023", "scope": "Federal", "type": "electrical", "mandatory": True, "desc": "EPO requirements, disconnecting means, and wiring for IT rooms."},
+            {"code": "NEC Art. 480", "title": "Storage Batteries", "edition": "2023", "scope": "Federal", "type": "electrical", "mandatory": True, "desc": "Battery installation: ventilation, clearances, overcurrent protection."},
+            {"code": "UL 9540A", "title": "Thermal Runaway Test Method", "edition": "2023", "scope": "Federal", "type": "testing", "mandatory": True, "desc": "Large-scale fire test for BESS propagation risk and suppression effectiveness."},
+            {"code": "OSHA 1910", "title": "General Industry Standards", "edition": "Current", "scope": "Federal", "type": "safety", "mandatory": True, "desc": "Workplace safety: hazmat handling, emergency action plans, fire prevention."},
+            {"code": "EPA PFAS", "title": "PFAS Regulations", "edition": "2024", "scope": "Federal", "type": "environmental", "mandatory": True, "desc": "Fluorinated substance restrictions. F-500 EA is fluorine-free and compliant."},
+            {"code": "IFC Ch. 12", "title": "Energy Storage Systems", "edition": "2024", "scope": "Federal", "type": "fire_protection", "mandatory": True, "desc": "IFC Chapter 12: ESS installation, commissioning, and decommissioning."},
+        ],
+        "states": {
+            "CA": {"name": "California", "standards": [
+                {"code": "CFC Ch. 12", "title": "CA Fire Code — ESS", "edition": "2022", "scope": "State", "type": "fire_protection", "mandatory": True, "desc": "California amendments to IFC Ch.12. Requires UL 9540A for ALL installations."},
+                {"code": "Title 24 Pt 9", "title": "CA Fire Code", "edition": "2022", "scope": "State", "type": "fire_protection", "mandatory": True, "desc": "California Building Standards fire protection requirements."},
+                {"code": "CPUC ESS", "title": "CPUC Energy Storage Safety", "edition": "2023", "scope": "State", "type": "regulatory", "mandatory": True, "desc": "CPUC safety requirements for utility-connected ESS."},
+                {"code": "SB-38", "title": "Battery Recycling Act", "edition": "2022", "scope": "State", "type": "environmental", "mandatory": True, "desc": "Battery recycling and end-of-life management."},
+            ], "notes": "Most aggressive BESS requirements in the US. LA, SF, San Diego add local amendments."},
+            "TX": {"name": "Texas", "standards": [
+                {"code": "TFC", "title": "Texas Fire Code (IFC)", "edition": "2021", "scope": "State", "type": "fire_protection", "mandatory": True, "desc": "Texas adopts IFC with amendments. Requires HMA."},
+                {"code": "PUCT Rules", "title": "Public Utility Commission", "edition": "2023", "scope": "State", "type": "regulatory", "mandatory": True, "desc": "ERCOT interconnection safety standards for grid-scale BESS."},
+            ], "notes": "Massive BESS deployment (ERCOT). Enforcement varies by AHJ."},
+            "NY": {"name": "New York", "standards": [
+                {"code": "FDNY Rules", "title": "FDNY Battery Storage Rules", "edition": "2023", "scope": "City", "type": "fire_protection", "mandatory": True, "desc": "FDNY-specific ESS rules: permits, inspections, 24/7 monitoring mandate."},
+                {"code": "NYC BC Ch. 12", "title": "NYC Building Code ESS", "edition": "2022", "scope": "City", "type": "fire_protection", "mandatory": True, "desc": "NYC ESS requirements exceeding state code. Quarterly inspections."},
+                {"code": "PSC Order", "title": "Public Service Commission", "edition": "2023", "scope": "State", "type": "regulatory", "mandatory": True, "desc": "NYS PSC ESS deployment and safety requirements."},
+            ], "notes": "NYC/FDNY most prescriptive local requirements in US. 24/7 remote monitoring mandatory."},
+            "MA": {"name": "Massachusetts", "standards": [
+                {"code": "527 CMR", "title": "MA Fire Code", "edition": "2023", "scope": "State", "type": "fire_protection", "mandatory": True, "desc": "MA fire code with ESS amendments. References NFPA 855."},
+                {"code": "DFS BESS", "title": "Dept of Fire Services BESS", "edition": "2023", "scope": "State", "type": "fire_protection", "mandatory": True, "desc": "MA DFS guidance referencing FRA BESS fire impact assessment."},
+            ], "notes": "DFS actively references FRA BESS fire impact assessment framework."},
+            "FL": {"name": "Florida", "standards": [
+                {"code": "FFC", "title": "FL Fire Prevention Code", "edition": "2023", "scope": "State", "type": "fire_protection", "mandatory": True, "desc": "Florida IFC adoption. Hurricane zone requirements affect BESS enclosures."},
+                {"code": "FBC Ch. 12", "title": "FL Building Code ESS", "edition": "2023", "scope": "State", "type": "fire_protection", "mandatory": True, "desc": "Wind load and flood zone requirements for ESS."},
+            ], "notes": "Hurricane zones require structural standards for outdoor BESS."},
+            "AZ": {"name": "Arizona", "standards": [
+                {"code": "IFC-AZ", "title": "Arizona Fire Code", "edition": "2021", "scope": "State", "type": "fire_protection", "mandatory": True, "desc": "Arizona IFC adoption for BESS installations."},
+                {"code": "ACC Rules", "title": "AZ Corporation Commission", "edition": "2023", "scope": "State", "type": "regulatory", "mandatory": True, "desc": "Post-McMicken enhanced monitoring and response requirements."},
+            ], "notes": "Post-McMicken explosion (2019): heightened BESS scrutiny."},
+            "IL": {"name": "Illinois", "standards": [
+                {"code": "IFC-IL", "title": "Illinois Fire Code", "edition": "2021", "scope": "State", "type": "fire_protection", "mandatory": True, "desc": "Illinois IFC adoption."},
+                {"code": "Chicago BC", "title": "Chicago Building Code ESS", "edition": "2023", "scope": "City", "type": "fire_protection", "mandatory": True, "desc": "Chicago uses own building code, not IFC."},
+            ], "notes": "Chicago operates under its own building code."},
+        }
+    },
+    "UK": {"federal": [
+        {"code": "BS EN 62619", "title": "Battery Safety Requirements", "edition": "2022", "scope": "National", "type": "safety", "mandatory": True, "desc": "Li-ion battery safety for industrial applications."},
+        {"code": "BS 9999", "title": "Fire Safety in Building Design", "edition": "2017", "scope": "National", "type": "fire_protection", "mandatory": True, "desc": "Fire safety code of practice for buildings."},
+        {"code": "HSE DSEAR", "title": "Dangerous Substances Regs", "edition": "2002", "scope": "National", "type": "safety", "mandatory": True, "desc": "DSEAR applies to Li-ion off-gas environments."},
+        {"code": "NFCC Guidance", "title": "NFCC BESS Guidance", "edition": "2023", "scope": "National", "type": "fire_protection", "mandatory": True, "desc": "National Fire Chiefs Council BESS guidance."},
+    ], "states": {}},
+    "AU": {"federal": [
+        {"code": "AS/NZS 5139", "title": "BESS Safety", "edition": "2019", "scope": "National", "type": "safety", "mandatory": True, "desc": "Battery storage safety for residential/commercial."},
+        {"code": "NCC Vol 1", "title": "National Construction Code", "edition": "2022", "scope": "National", "type": "fire_protection", "mandatory": True, "desc": "National fire safety requirements for ESS."},
+        {"code": "AS 1851", "title": "Fire Protection Service", "edition": "2012", "scope": "National", "type": "maintenance", "mandatory": True, "desc": "Routine maintenance of fire protection systems."},
+    ], "states": {}},
+    "DE": {"federal": [
+        {"code": "VDE 2510-50", "title": "Stationary BESS Safety", "edition": "2017", "scope": "National", "type": "safety", "mandatory": True, "desc": "German safety guide for stationary BESS."},
+        {"code": "VdS 3103", "title": "PV + Storage Fire Protection", "edition": "2019", "scope": "National", "type": "fire_protection", "mandatory": True, "desc": "VdS fire protection for PV and battery storage."},
+    ], "states": {}},
+    "SG": {"federal": [
+        {"code": "SS 691", "title": "Green Data Centres", "edition": "2022", "scope": "National", "type": "standards", "mandatory": True, "desc": "Singapore Standard for green data centres."},
+        {"code": "SCDF Reqs", "title": "SCDF Fire Safety", "edition": "2023", "scope": "National", "type": "fire_protection", "mandatory": True, "desc": "SCDF ESS provisions for high-rise/critical infrastructure."},
+    ], "states": {}},
+}
+
+def get_jurisdiction_standards(country_code, state_code=None):
+    result = {"jurisdiction": {"country": country_code, "state": state_code}, "federal": [], "state": [], "local_notes": "", "total_count": 0, "compliance_gaps": [], "risk_factors": []}
+    country = JURISDICTION_DB.get(country_code, JURISDICTION_DB.get("US"))
+    if not country: return result
+    result["federal"] = country.get("federal", [])
+    if state_code and state_code in country.get("states", {}):
+        state = country["states"][state_code]
+        result["state"] = state.get("standards", [])
+        result["local_notes"] = state.get("notes", "")
+        result["jurisdiction"]["state_name"] = state.get("name", "")
+    result["total_count"] = len(result["federal"]) + len(result["state"])
+    result["compliance_gaps"] = [
+        {"standard": "NFPA 855", "gap": "Off-gas detection not installed", "severity": "CRITICAL"},
+        {"standard": "UL 9540A", "gap": "No large-scale fire test conducted", "severity": "HIGH"},
+        {"standard": "NFPA 750/18A", "gap": "No encapsulator agent suppression", "severity": "CRITICAL"},
+        {"standard": "NEC 645", "gap": "EPO logic does not isolate generator", "severity": "HIGH"},
+    ]
+    result["risk_factors"] = [
+        {"factor": "Battery age exceeds rated life", "standard": "NFPA 855", "status": "NON-COMPLIANT"},
+        {"factor": "No off-gas detection", "standard": "NFPA 855", "status": "NON-COMPLIANT"},
+        {"factor": "Clean agent incompatible with Li-ion", "standard": "NFPA 2001", "status": "GAP"},
+        {"factor": "Zero offsite backup", "standard": "NFPA 75", "status": "NON-COMPLIANT"},
+    ]
+    return result
+
+API_REGISTRY = {
+    "endpoints": [
+        {"method": "GET", "path": "/api/incident", "name": "Get Incident Data", "description": "Full incident dataset: assets, services, standards, timeline, root cause.", "category": "Core Data", "auth": "API Key", "params": [], "rate_limit": "100/min"},
+        {"method": "GET", "path": "/api/status", "name": "System Status", "description": "System health, API key status, active model.", "category": "Core Data", "auth": "None", "params": [], "rate_limit": "1000/min"},
+        {"method": "POST", "path": "/api/simulate/{mode}/{act_id}", "name": "Run Simulation Act", "description": "Stream AI narrative for a specific act. Returns SSE.", "category": "Simulation", "auth": "API Key", "params": [{"name": "mode", "type": "path", "required": True, "desc": "'full' or 'partial'"}, {"name": "act_id", "type": "path", "required": True, "desc": "0-4"}], "rate_limit": "20/min"},
+        {"method": "POST", "path": "/api/chat", "name": "Chat with Pantheon AI", "description": "Send message with history. Returns streaming SSE.", "category": "AI Intelligence", "auth": "API Key", "params": [{"name": "message", "type": "body", "required": True, "desc": "User message"}, {"name": "history", "type": "body", "required": False, "desc": "[{role, content}]"}], "rate_limit": "30/min"},
+        {"method": "POST", "path": "/api/compliance/check", "name": "Compliance Check", "description": "All applicable standards + gaps for a jurisdiction.", "category": "Compliance", "auth": "API Key", "params": [{"name": "country", "type": "body", "required": True, "desc": "ISO country code"}, {"name": "state", "type": "body", "required": False, "desc": "State code"}, {"name": "facility_type", "type": "body", "required": False, "desc": "data_center, utility, etc."}], "rate_limit": "60/min"},
+        {"method": "GET", "path": "/api/compliance/standards", "name": "List All Standards", "description": "Complete standards database across all jurisdictions.", "category": "Compliance", "auth": "API Key", "params": [{"name": "type", "type": "query", "required": False, "desc": "fire_protection, detection, etc."}], "rate_limit": "60/min"},
+        {"method": "POST", "path": "/api/risk/score", "name": "Risk Score", "description": "Calculate facility risk score (0-100) from configuration.", "category": "Risk Intelligence", "auth": "API Key", "params": [{"name": "battery_chemistry", "type": "body", "required": True, "desc": "NMC, LFP, NCA, LTO"}, {"name": "battery_age_years", "type": "body", "required": True, "desc": "Age in years"}, {"name": "suppression_type", "type": "body", "required": True, "desc": "fm200, co2, f500ea, none"}, {"name": "detection_offgas", "type": "body", "required": True, "desc": "Boolean"}], "rate_limit": "30/min"},
+        {"method": "POST", "path": "/api/report/pdf", "name": "Generate PDF Report", "description": "PDF incident reconstruction with all acts and recommendations.", "category": "Reports", "auth": "API Key", "params": [{"name": "mode", "type": "body", "required": True, "desc": "'full' or 'partial'"}, {"name": "acts", "type": "body", "required": True, "desc": "Array of 5 act texts"}], "rate_limit": "10/min"},
+        {"method": "POST", "path": "/api/monitor/ingest", "name": "Ingest Sensor Data", "description": "Ingest from BMS, VESDA, Smart-LX, or any MQTT/REST source. Sensor-agnostic.", "category": "Monitoring", "auth": "API Key", "params": [{"name": "source", "type": "body", "required": True, "desc": "smartlx, vesda, honeywell, etc."}, {"name": "readings", "type": "body", "required": True, "desc": "[{sensor_id, metric, value, unit, timestamp}]"}, {"name": "facility_id", "type": "body", "required": True, "desc": "Facility ID"}], "rate_limit": "1000/min"},
+        {"method": "GET", "path": "/api/monitor/alerts", "name": "Get Active Alerts", "description": "Active monitoring alerts with severity and recommended action.", "category": "Monitoring", "auth": "API Key", "params": [{"name": "facility_id", "type": "query", "required": True, "desc": "Facility ID"}, {"name": "severity", "type": "query", "required": False, "desc": "low, medium, high, critical"}], "rate_limit": "100/min"},
+        {"method": "POST", "path": "/api/training/enroll", "name": "Enroll in Training", "description": "Enroll personnel in role-based LMS training paths.", "category": "Training", "auth": "API Key", "params": [{"name": "employee_id", "type": "body", "required": True, "desc": "Employee ID"}, {"name": "role", "type": "body", "required": True, "desc": "facility_manager, maintenance_tech, etc."}], "rate_limit": "30/min"},
+        {"method": "GET", "path": "/api/training/status", "name": "Training Status", "description": "Workforce readiness and certification status.", "category": "Training", "auth": "API Key", "params": [{"name": "facility_id", "type": "query", "required": True, "desc": "Facility ID"}], "rate_limit": "60/min"},
+    ],
+    "sdk": {
+        "python": 'import requests\n\nAPI_KEY = "pk_live_..."\nBASE = "https://api.pantheon.ai/v1"\n\n# Compliance check\nresp = requests.post(f"{BASE}/compliance/check",\n    headers={"Authorization": f"Bearer {API_KEY}"},\n    json={"country": "US", "state": "CA"})\nprint(f"{resp.json()[\'total_count\']} standards apply")\n\n# Risk score\nresp = requests.post(f"{BASE}/risk/score",\n    headers={"Authorization": f"Bearer {API_KEY}"},\n    json={"battery_chemistry": "NMC",\n          "battery_age_years": 11,\n          "suppression_type": "fm200",\n          "detection_offgas": False})\nprint(resp.json())',
+        "javascript": 'const API_KEY = "pk_live_...";\nconst BASE = "https://api.pantheon.ai/v1";\n\n// Compliance check\nconst resp = await fetch(`${BASE}/compliance/check`, {\n  method: "POST",\n  headers: {\n    "Authorization": `Bearer ${API_KEY}`,\n    "Content-Type": "application/json"\n  },\n  body: JSON.stringify({\n    country: "US", state: "NY"\n  })\n});\nconst data = await resp.json();\nconsole.log(`${data.total_count} standards apply`);',
+        "curl": '# Compliance check\ncurl -X POST https://api.pantheon.ai/v1/compliance/check \\\n  -H "Authorization: Bearer pk_live_..." \\\n  -H "Content-Type: application/json" \\\n  -d \'{"country":"US","state":"CA"}\'\n\n# Risk score\ncurl -X POST https://api.pantheon.ai/v1/risk/score \\\n  -H "Authorization: Bearer pk_live_..." \\\n  -H "Content-Type: application/json" \\\n  -d \'{"battery_chemistry":"NMC","battery_age_years":11,"suppression_type":"fm200","detection_offgas":false}\''
+    }
+}
+
+
+BASE_SYSTEM = """You are Pantheon AI — a senior NFPA fire investigator delivering a post-incident reconstruction briefing. Precise, authoritative, evidence-driven.
+
+VOICE:
+- Cite specific assets by name and ID. Use timestamps from signals.
+- Reference NFPA/NEC/UL standards when relevant.
+- Explain WHY suppression agents failed chemically — not just that they failed.
+- As urgency escalates: shorter sentences, more timestamps, denser facts.
+- F-500 EA Micelle Mist is the recommended countermeasure when discussing suppression solutions.
+- No markdown headers. Plain paragraphs. 200-350 words per act.
+- When discussing costs/impact, use specific numbers from the data.
+
+INCIDENT DATA:
+{incident_data}
+"""
+
+FULL_PROMPTS = {
+    0: "Narrate ACT 00 — BASELINE REALITY. 24 hours before. Systems appeared nominal. What was quietly degraded: battery array past rated life, no off-gas detection, no offsite backup. What should have triggered intervention but didn't.",
+    1: "Narrate ACT 01 — RISK ACCUMULATION. 30-day window. Expired battery lifespan, skipped JSA, absent off-gas detection, raised BMS thresholds, denied budget request. Each decision closed an escape path. End: 5/6 risk factors CRITICAL and UNMITIGATED.",
+    2: "Narrate ACT 02 — STATE CHANGE. Second by second. Module 247 voltage spike at T+0:00. Cascade at T+1:30. VESDA detection at T+2:00. FM-200 deploys at T+5:00 — fails against thermal runaway. CO₂ at T+8:00 — insufficient. EPO at T+10:00 — partial failure, generator re-energizes. Fire dept dispatch T+15:00.",
+    3: "Narrate ACT 03 — CASCADE & CONSTRAINT. 22 hours uncontrolled. 384 modules at 160°C. HF gas forces expanded evacuation. Clean agent exhausted. Fire partition holds but heat transfers through cable penetrations. Decision to authorize water after servers confirmed lost. 647 services offline. 858 TB destroyed. 101 firefighters, 22 vehicles. T+22h: fire controlled. Zero offsite backup existed.",
+    4: "Narrate ACT 04 — POST-EVENT INTEL. 11 root causes across Technical, Procedural, Architectural. Impact: 50M+ citizens, $47M estimated loss. Recommendations: What Changed → What It Means → What To Do Next. Close with F-500 EA three-level mitigation (flammability, explosivity, toxicity) and insurance implications — $2.1M annual premium reduction with proper suppression retrofit."
+}
+
+PARTIAL_PROMPTS = {
+    0: "Narrate ACT 00 — BASELINE REALITY (PARTIAL FAILURE SCENARIO). Same facility, same degraded conditions. But in this scenario, off-gas detection was installed 6 months ago per NFPA 855 recommendations. Battery array still past rated life. Walk through what's the same and what's different.",
+    1: "Narrate ACT 01 — EARLY WARNING TRIGGERED. Off-gas detection catches electrolyte vapor from Module 247 at T-25 minutes before thermal runaway. BMS flags the module. Facility team initiates controlled shutdown of Battery Array A. JSA still wasn't done, but the detection bought time.",
+    2: "Narrate ACT 02 — CONTAINED EVENT. Module 247 enters thermal runaway despite shutdown attempt. But: only 12 modules affected (not 384). FM-200 still fails against Li-ion chemistry. However, EPO works correctly this time — generator doesn't re-energize. Fire contained to battery room.",
+    3: "Narrate ACT 03 — CONTROLLED RESPONSE. Fire department arrives to contained battery room fire. 8 firefighters, 2 vehicles (vs 101/22). Server Cluster A degraded but not destroyed. 4 services degraded, 0 fully offline. 0 TB data lost. Duration: 3 hours. FM-200 still failed — suppression gap remains.",
+    4: "Narrate ACT 04 — LESSONS FROM A NEAR-MISS. Even with early detection limiting damage to $3.2M (vs $47M), no installed suppression can arrest Li-ion thermal runaway. Off-gas detection bought 25 minutes but didn't stop the fire. FM-200 is chemically incompatible. Recommend F-500 EA. Insurance: $890K premium reduction."
+}
+
+def get_key():
+    return os.environ.get('ANTHROPIC_API_KEY', '')
+
+def _stream(messages):
+    import httpx
+    # Convert from OpenAI format to Anthropic format
+    system_text = ""
+    anthropic_msgs = []
+    for m in messages:
+        if m["role"] == "system":
+            system_text += m["content"] + "\n"
+        else:
+            anthropic_msgs.append({"role": m["role"], "content": m["content"]})
+    # Ensure messages alternate correctly — merge consecutive same-role messages
+    merged = []
+    for m in anthropic_msgs:
+        if merged and merged[-1]["role"] == m["role"]:
+            merged[-1]["content"] += "\n\n" + m["content"]
+        else:
+            merged.append(dict(m))
+    if not merged or merged[0]["role"] != "user":
+        merged.insert(0, {"role": "user", "content": "Begin."})
+
+    def gen():
+        with httpx.Client(timeout=90.0) as c:
+            r = c.post("https://api.anthropic.com/v1/messages",
+                headers={
+                    "x-api-key": get_key(),
+                    "anthropic-version": "2023-06-01",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": "claude-sonnet-4-20250514",
+                    "max_tokens": 2000,
+                    "system": system_text.strip(),
+                    "messages": merged,
+                    "stream": True
+                },
+                timeout=90.0)
+            r.raise_for_status()
+            for line in r.iter_lines():
+                if not line.startswith("data: "):
+                    continue
+                ch = line[6:]
+                if ch == "[DONE]":
+                    yield "data: [DONE]\n\n"
+                    break
+                try:
+                    o = json.loads(ch)
+                    etype = o.get("type", "")
+                    if etype == "content_block_delta":
+                        delta = o.get("delta", {})
+                        if delta.get("type") == "text_delta" and "text" in delta:
+                            yield f"data: {json.dumps({'content': delta['text']})}\n\n"
+                    elif etype == "message_stop":
+                        yield "data: [DONE]\n\n"
+                        break
+                except:
+                    continue
+    return Response(stream_with_context(gen()), mimetype='text/event-stream')
+
+@app.route('/')
+def index():
+    return render_template('dashboard.html')
+
+@app.route('/api/incident')
+def api_incident():
+    return jsonify(load_data())
+
+@app.route('/api/status')
+def api_status():
+    return jsonify({"has_key": bool(get_key()), "model": "claude-sonnet-4-20250514"})
+
+@app.route('/api/chat', methods=['POST'])
+def api_chat():
+    if not get_key(): return jsonify({"error": "ANTHROPIC_API_KEY not set in .env"}), 500
+    b = request.get_json()
+    sys = BASE_SYSTEM.format(incident_data=json.dumps(load_data(), indent=2))
+    msgs = [{"role": "system", "content": sys}]
+    for h in (b.get('history', []))[-10:]:
+        msgs.append({"role": h["role"], "content": h["content"]})
+    msgs.append({"role": "user", "content": b.get('message', '')})
+    return _stream(msgs)
+
+@app.route('/api/simulate/<mode>/<int:act_id>', methods=['POST'])
+def api_simulate(mode, act_id):
+    if not get_key(): return jsonify({"error": "ANTHROPIC_API_KEY not set in .env"}), 500
+    prompts = FULL_PROMPTS if mode == 'full' else PARTIAL_PROMPTS
+    if act_id not in prompts: return jsonify({"error": "Invalid act"}), 400
+    sys = BASE_SYSTEM.format(incident_data=json.dumps(load_data(), indent=2))
+    if mode == 'partial':
+        sys += "\n\nIMPORTANT: This is a PARTIAL FAILURE scenario where early detection limited the damage."
+    msgs = [{"role": "system", "content": sys}, {"role": "user", "content": prompts[act_id]}]
+    return _stream(msgs)
+
+@app.route('/api/compliance/check', methods=['POST'])
+def api_compliance_check():
+    b = request.get_json() or {}
+    return jsonify(get_jurisdiction_standards(b.get('country', 'US'), b.get('state')))
+
+@app.route('/api/compliance/standards')
+def api_compliance_standards():
+    stype = request.args.get('type')
+    all_stds = []
+    for cc, country in JURISDICTION_DB.items():
+        for s in country.get("federal", []):
+            s2 = dict(s); s2["country"] = cc
+            if stype and s2.get("type") != stype: continue
+            all_stds.append(s2)
+    return jsonify({"standards": all_stds, "count": len(all_stds)})
+
+@app.route('/api/risk/score', methods=['POST'])
+def api_risk_score():
+    b = request.get_json() or {}
+    score = 50; factors = []
+    chem = b.get('battery_chemistry', 'NMC')
+    age = b.get('battery_age_years', 0)
+    supp = b.get('suppression_type', 'none')
+    offgas = b.get('detection_offgas', False)
+    if chem in ('NMC', 'NCA'): score += 15; factors.append({"factor": f"{chem} — high thermal runaway risk", "impact": "+15"})
+    if age > 10: score += 20; factors.append({"factor": f"Age {age}yr exceeds rated life", "impact": "+20"})
+    elif age > 7: score += 10; factors.append({"factor": f"Age {age}yr approaching EOL", "impact": "+10"})
+    if supp in ('fm200', 'co2'): score += 15; factors.append({"factor": f"{supp.upper()} incompatible with Li-ion", "impact": "+15"})
+    elif supp == 'none': score += 25; factors.append({"factor": "No suppression", "impact": "+25"})
+    elif supp == 'f500ea': score -= 25; factors.append({"factor": "F-500 EA covers all vectors", "impact": "-25"})
+    if not offgas: score += 15; factors.append({"factor": "No off-gas detection", "impact": "+15"})
+    else: score -= 10; factors.append({"factor": "Off-gas detection active", "impact": "-10"})
+    score = max(0, min(100, score))
+    level = "CRITICAL" if score >= 80 else "HIGH" if score >= 60 else "MEDIUM" if score >= 40 else "LOW"
+    return jsonify({"risk_score": score, "risk_level": level, "factors": factors})
+
+@app.route('/api/console/registry')
+def api_console_registry():
+    return jsonify(API_REGISTRY)
+
+# ═══════════════════════════════════════════════════
+# MONITOR ENDPOINTS
+# In-memory alert store (replace with DB/Redis in production)
+# ═══════════════════════════════════════════════════
+import threading
+_monitor_lock   = threading.Lock()
+_alert_store    = {}   # facility_id -> [alert, ...]
+_sensor_store   = {}   # facility_id -> {sensor_id -> latest_reading}
+_MAX_ALERTS     = 50   # cap per facility
+
+def _make_alert(source, sensor_id, metric, value, unit, threshold, severity, zone=None):
+    return {
+        "id":          f"{source}-{sensor_id}-{int(datetime.datetime.utcnow().timestamp())}",
+        "source":      source,
+        "sensor_id":   sensor_id,
+        "zone":        zone or sensor_id,
+        "metric":      metric,
+        "value":       value,
+        "unit":        unit,
+        "threshold":   threshold,
+        "severity":    severity,
+        "timestamp":   datetime.datetime.utcnow().isoformat() + "Z",
+        "message":     f"{metric} reading {value}{unit} exceeds {threshold}{unit} threshold",
+        "recommended": "Inspect zone and review suppression readiness"
+    }
+
+def _evaluate_readings(source, readings, facility_id):
+    """
+    Evaluate sensor readings against thresholds, generate alerts.
+    Thresholds are conservative per NFPA 855 / Smart-LX defaults.
+    """
+    THRESHOLDS = {
+        "temperature":   {"warning": 35, "high": 45, "critical": 60, "unit": "°C"},
+        "hf_ppm":        {"warning": 0.5, "high": 1.0, "critical": 3.0, "unit": "ppm"},
+        "co_ppm":        {"warning": 25,  "high": 50,  "critical": 100, "unit": "ppm"},
+        "co2_ppm":       {"warning": 1000,"high": 5000,"critical": 10000,"unit": "ppm"},
+        "voc_ppm":       {"warning": 50,  "high": 200, "critical": 500, "unit": "ppm"},
+        "humidity":      {"warning": 70,  "high": 80,  "critical": 90,  "unit": "%"},
+        "voltage_delta": {"warning": 0.05,"high": 0.1, "critical": 0.2, "unit": "V"},
+        "impedance":     {"warning": 1.2, "high": 1.5, "critical": 2.0, "unit": "mΩ"},
+    }
+    new_alerts = []
+    for r in readings:
+        metric    = r.get("metric", "").lower()
+        sensor_id = r.get("sensor_id", "unknown")
+        try:
+            value = float(r.get("value", 0))
+        except (TypeError, ValueError):
+            continue
+        thresholds = THRESHOLDS.get(metric)
+        if not thresholds:
+            continue
+        severity = None
+        if value >= thresholds["critical"]:
+            severity = "critical"
+        elif value >= thresholds["high"]:
+            severity = "high"
+        elif value >= thresholds["warning"]:
+            severity = "medium"
+        if severity:
+            alert = _make_alert(
+                source=source,
+                sensor_id=sensor_id,
+                metric=metric,
+                value=value,
+                unit=thresholds["unit"],
+                threshold=thresholds[severity],
+                severity=severity,
+                zone=r.get("zone", sensor_id)
+            )
+            new_alerts.append(alert)
+    return new_alerts
+
+
+@app.route('/api/monitor/ingest', methods=['POST'])
+def api_monitor_ingest():
+    b           = request.get_json() or {}
+    source      = b.get("source", "unknown")
+    readings    = b.get("readings", [])
+    facility_id = b.get("facility_id", "default")
+
+    if not isinstance(readings, list):
+        return jsonify({"error": "readings must be an array"}), 400
+
+    with _monitor_lock:
+        # Store latest reading per sensor
+        if facility_id not in _sensor_store:
+            _sensor_store[facility_id] = {}
+        for r in readings:
+            sid = r.get("sensor_id", "unknown")
+            _sensor_store[facility_id][sid] = {
+                **r,
+                "received_at": datetime.datetime.utcnow().isoformat() + "Z"
+            }
+
+        # Evaluate and store alerts
+        new_alerts = _evaluate_readings(source, readings, facility_id)
+        if facility_id not in _alert_store:
+            _alert_store[facility_id] = []
+        _alert_store[facility_id].extend(new_alerts)
+        # Cap to last N alerts
+        _alert_store[facility_id] = _alert_store[facility_id][-_MAX_ALERTS:]
+
+    return jsonify({
+        "received":    len(readings),
+        "alerts_fired": len(new_alerts),
+        "facility_id": facility_id,
+        "source":      source,
+        "timestamp":   datetime.datetime.utcnow().isoformat() + "Z"
+    })
+
+
+@app.route('/api/monitor/alerts', methods=['GET'])
+def api_monitor_alerts():
+    facility_id = request.args.get("facility_id", "default")
+    severity_filter = request.args.get("severity")
+
+    with _monitor_lock:
+        alerts = list(_alert_store.get(facility_id, []))
+
+    if severity_filter:
+        alerts = [a for a in alerts if a.get("severity") == severity_filter.lower()]
+
+    # Sort newest-first
+    alerts.sort(key=lambda a: a.get("timestamp", ""), reverse=True)
+
+    return jsonify({
+        "facility_id": facility_id,
+        "alerts":      alerts,
+        "count":       len(alerts),
+        "timestamp":   datetime.datetime.utcnow().isoformat() + "Z"
+    })
+
+
+@app.route('/api/monitor/sensors', methods=['GET'])
+def api_monitor_sensors():
+    facility_id = request.args.get("facility_id", "default")
+    with _monitor_lock:
+        sensors = dict(_sensor_store.get(facility_id, {}))
+    return jsonify({"facility_id": facility_id, "sensors": sensors, "count": len(sensors)})
+
+
+# ═══════════════════════════════════════════════════
+# PROFILE UPDATE (used by dashboard settings panel)
+# In demo mode: accepts the update and returns success.
+# In production (Vercel auth app): override this with
+# the Google Sheets write implementation.
+# ═══════════════════════════════════════════════════
+_demo_profiles = {}  # email/session -> {field: value}
+
+@app.route('/api/profile/update', methods=['POST'])
+def api_profile_update():
+    b     = request.get_json() or {}
+    field = b.get("field", "")
+    value = b.get("value", "")
+    if not field:
+        return jsonify({"error": "field required"}), 400
+    # In demo mode, store in memory keyed by a session cookie if present
+    session_key = request.cookies.get("pantheon_session", "demo")
+    if session_key not in _demo_profiles:
+        _demo_profiles[session_key] = {}
+    _demo_profiles[session_key][field] = value
+    return jsonify({"ok": True, "field": field, "updated": True})
+
+
+# ═══════════════════════════════════════════════════
+# AUTH/ME STUB (demo mode — no real auth)
+# Returns a synthetic profile from demo_profiles.
+# Vercel production app overrides this with Sheets lookup.
+# ═══════════════════════════════════════════════════
+@app.route('/api/auth/me', methods=['GET'])
+def api_auth_me():
+    session_key = request.cookies.get("pantheon_session", "demo")
+    saved = _demo_profiles.get(session_key, {})
+    profile = {
+        "name":               saved.get("name", "Demo User"),
+        "email":              saved.get("email", "demo@pantheon.ai"),
+        "org":                saved.get("org", "Hazard Control Technologies"),
+        "location":           saved.get("location", "Fayetteville, GA"),
+        "role":               saved.get("role", "Safety Engineer"),
+        "title":              saved.get("title", "Safety Engineer"),
+        "facility_type":      saved.get("facility_type", "Data Center"),
+        "chemistry":          saved.get("chemistry", "NMC"),
+        "suppression":        saved.get("suppression", "FM-200"),
+        "detection":          saved.get("detection", "VESDA"),
+        "first_login":        saved.get("first_login", datetime.datetime.utcnow().strftime("%Y-%m-%d")),
+        "onboarding_complete": saved.get("onboarding_complete", "false"),
+        "trial_days":         90,
+        "plan":               "trial"
+    }
+    return jsonify(profile)
+
+
+@app.route('/api/report/pdf', methods=['POST'])
+def api_report_pdf():
+    if FPDF is None: return jsonify({"error": "fpdf2 not installed"}), 500
+    b = request.get_json(); mode = b.get('mode', 'full'); acts = b.get('acts', [])
+    data = load_data(); inc = data['incident']; sol = data['acts']['act_04']['hct_solution']; isFull = mode == 'full'
+    def safe(t): return t.replace('\u2014','-').replace('\u2013','-').replace('\u2018',"'").replace('\u2019',"'").replace('\u201c','"').replace('\u201d','"').replace('\u2026','...').replace('\u00b0','deg').replace('\u00ae','(R)').replace('\u2212','-')
+    pdf = FPDF(); pdf.set_auto_page_break(auto=True, margin=20); pdf.add_page()
+    pdf.set_font('Helvetica','B',18); pdf.cell(0,10,safe('PANTHEON - Incident Reconstruction Report'),ln=True)
+    pdf.set_font('Helvetica','',9); pdf.set_text_color(100,100,100)
+    pdf.cell(0,5,safe(f'{"Full" if isFull else "Partial"} Failure | {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}'),ln=True)
+    pdf.ln(3); pdf.set_draw_color(180,180,180); pdf.line(10,pdf.get_y(),200,pdf.get_y()); pdf.ln(4)
+    pdf.set_text_color(0,0,0); pdf.set_font('Helvetica','B',11); pdf.cell(0,7,safe(inc['title']),ln=True)
+    pdf.set_font('Helvetica','',9); pdf.set_text_color(80,80,80)
+    pdf.cell(0,5,safe(f'{inc["id"]} | {inc["facility"]} | {inc["region"]} | {inc["date"]} | {inc["severity"]}'),ln=True); pdf.ln(5)
+    pdf.set_text_color(0,0,0); pdf.set_font('Helvetica','B',10); pdf.cell(0,7,'IMPACT SUMMARY',ln=True)
+    pdf.set_font('Helvetica','',9)
+    for s in [f'Estimated Loss: {"$47M" if isFull else "$3.2M"}', f'Services: {"647" if isFull else "4"} | Duration: {"22h" if isFull else "3h"}', f'Data Lost: {"858 TB" if isFull else "0 TB"}']: pdf.cell(0,5,f'  - {s}',ln=True)
+    pdf.ln(4)
+    names = ['Baseline Reality','Risk Accumulation','State Change','Cascade & Constraint','Post-Event Intel']
+    for i,text in enumerate(acts[:5]):
+        pdf.set_font('Helvetica','B',10); pdf.set_text_color(0,0,0); pdf.cell(0,7,f'ACT {i:02d} - {names[i]}',ln=True)
+        pdf.set_font('Helvetica','',9); pdf.set_text_color(60,60,60)
+        clean = safe(text.replace('**','').replace('<strong>','').replace('</strong>','').replace('<br>','\n').replace('</p><p>','\n\n').replace('<p>','').replace('</p>',''))
+        for line in clean.split('\n'):
+            line = line.strip()
+            if line: pdf.multi_cell(0,4.5,line)
+        pdf.ln(3)
+    pdf.set_text_color(0,0,0); pdf.set_font('Helvetica','B',10); pdf.cell(0,7,'PRIMARY RECOMMENDATION',ln=True)
+    pdf.set_font('Helvetica','',9); pdf.multi_cell(0,4.5,safe(f'{sol["product"]} ({sol["standard"]})\n{sol["description"]}'))
+    buf = io.BytesIO(); pdf.output(buf); buf.seek(0)
+    return Response(buf.read(), mimetype='application/pdf', headers={'Content-Disposition': f'attachment; filename=pantheon-{mode}-{inc["id"]}.pdf'})
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5002)
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(days=30)
 
