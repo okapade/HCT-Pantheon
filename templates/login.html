@@ -35,11 +35,15 @@
     input { width: 100%; height: 44px; background: var(--bg3); border: 1px solid rgba(255,255,255,0.08); border-radius: 7px; padding: 0 14px; font-family: var(--sans); font-size: 14px; color: var(--text); outline: none; transition: border-color 0.15s; }
     input:focus { border-color: rgba(200,168,75,0.5); }
     input::placeholder { color: var(--muted); }
-    .btn { width: 100%; height: 46px; background: var(--gold); border: none; border-radius: 7px; font-family: var(--mono); font-size: 13px; font-weight: 600; letter-spacing: 0.08em; color: #0A0A0B; cursor: pointer; margin-top: 8px; transition: background 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn { width: 100%; height: 46px; background: var(--gold); border: none; border-radius: 7px; font-family: var(--mono); font-size: 13px; font-weight: 600; letter-spacing: 0.08em; color: #0A0A0B; cursor: pointer; margin-top: 4px; transition: background 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .btn:hover { background: var(--gold2); }
     .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-    .err { display: none; font-size: 13px; border-radius: 7px; padding: 10px 14px; margin-bottom: 16px; background: rgba(224,85,85,0.12); border: 1px solid rgba(224,85,85,0.3); color: #F08080; line-height: 1.45; }
-    .err.show { display: block; }
+    .msg { display: none; font-size: 13px; border-radius: 7px; padding: 10px 14px; margin-bottom: 16px; line-height: 1.45; }
+    .msg.err  { display: block; background: rgba(224,85,85,0.12); border: 1px solid rgba(224,85,85,0.3); color: #F08080; }
+    .msg.info { display: block; background: rgba(200,168,75,0.08); border: 1px solid rgba(200,168,75,0.2); color: var(--gold2); }
+    .toggle { margin-top: 20px; text-align: center; font-size: 13px; color: var(--muted); }
+    .toggle a { color: var(--gold); text-decoration: none; cursor: pointer; }
+    .toggle a:hover { color: var(--gold2); }
     .spin { width: 16px; height: 16px; border: 2px solid rgba(0,0,0,0.3); border-top-color: #0A0A0B; border-radius: 50%; animation: sp 0.7s linear infinite; display: none; }
     @keyframes sp { to { transform: rotate(360deg); } }
   </style>
@@ -54,9 +58,16 @@
         <div class="logo-sub">Life Safety OS</div>
       </div>
     </div>
-    <h1>Sign in</h1>
-    <p class="sub">Enter your credentials to access the platform.</p>
-    <div id="err" class="err"></div>
+
+    <h1 id="heading">Sign in</h1>
+    <p class="sub" id="subtext">Enter your credentials to access the platform.</p>
+
+    <div id="msg" class="msg"></div>
+
+    <div class="field" id="nameField" style="display:none">
+      <label>Full Name</label>
+      <input type="text" id="name" placeholder="Your name" autocomplete="name">
+    </div>
     <div class="field">
       <label>Email</label>
       <input type="email" id="email" placeholder="you@example.com" autocomplete="email">
@@ -65,44 +76,89 @@
       <label>Password</label>
       <input type="password" id="pw" placeholder="••••••••" autocomplete="current-password">
     </div>
-    <button class="btn" id="btn" onclick="signIn()">
+
+    <button class="btn" id="btn" onclick="submit()">
       <span id="lbl">Sign In</span>
       <div class="spin" id="spin"></div>
     </button>
+
+    <div class="toggle">
+      <span id="toggleText">Don't have an account?</span>
+      <a onclick="toggleMode()"> <span id="toggleLink">Create one</span></a>
+    </div>
   </div>
 </div>
 <script>
-  document.getElementById('email').focus();
-  document.getElementById('pw').addEventListener('keydown', function(e){ if(e.key==='Enter') signIn(); });
+  var mode = 'login'; // 'login' or 'signup'
 
-  function signIn() {
+  document.getElementById('email').focus();
+  document.getElementById('pw').addEventListener('keydown', function(e){ if(e.key==='Enter') submit(); });
+  document.getElementById('name') && document.getElementById('name').addEventListener('keydown', function(e){ if(e.key==='Enter') submit(); });
+
+  function toggleMode() {
+    mode = mode === 'login' ? 'signup' : 'login';
+    clearMsg();
+    if (mode === 'signup') {
+      document.getElementById('heading').textContent   = 'Create account';
+      document.getElementById('subtext').textContent   = 'Set up your Pantheon access.';
+      document.getElementById('lbl').textContent       = 'Create Account';
+      document.getElementById('toggleText').textContent = 'Already have an account?';
+      document.getElementById('toggleLink').textContent = 'Sign in';
+      document.getElementById('nameField').style.display = '';
+      document.getElementById('name').focus();
+    } else {
+      document.getElementById('heading').textContent   = 'Sign in';
+      document.getElementById('subtext').textContent   = 'Enter your credentials to access the platform.';
+      document.getElementById('lbl').textContent       = 'Sign In';
+      document.getElementById('toggleText').textContent = "Don't have an account?";
+      document.getElementById('toggleLink').textContent = 'Create one';
+      document.getElementById('nameField').style.display = 'none';
+      document.getElementById('email').focus();
+    }
+  }
+
+  function showMsg(text, type) {
+    var el = document.getElementById('msg');
+    el.textContent = text;
+    el.className = 'msg ' + type;
+  }
+  function clearMsg() {
+    var el = document.getElementById('msg');
+    el.className = 'msg';
+    el.textContent = '';
+  }
+
+  function setLoading(on) {
+    document.getElementById('btn').disabled = on;
+    document.getElementById('lbl').style.display = on ? 'none' : '';
+    document.getElementById('spin').style.display = on ? 'block' : 'none';
+  }
+
+  function submit() {
+    clearMsg();
     var email = document.getElementById('email').value.trim();
     var pw    = document.getElementById('pw').value;
-    var err   = document.getElementById('err');
-    err.classList.remove('show');
-    if (!email || !pw) { err.textContent = 'Email and password are required.'; err.classList.add('show'); return; }
-    document.getElementById('btn').disabled = true;
-    document.getElementById('lbl').style.display = 'none';
-    document.getElementById('spin').style.display = 'block';
-    fetch('/api/auth/verify', {
+    if (!email || !pw) { showMsg('Email and password are required.', 'err'); return; }
+    if (mode === 'signup' && pw.length < 8) { showMsg('Password must be at least 8 characters.', 'err'); return; }
+
+    setLoading(true);
+    var endpoint = mode === 'login' ? '/api/auth/verify' : '/api/auth/register';
+    var body = { email: email, password: pw };
+    if (mode === 'signup') body.name = document.getElementById('name').value.trim();
+
+    fetch(endpoint, {
       method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ email: email, password: pw })
+      body: JSON.stringify(body)
     })
     .then(function(r){ return r.json(); })
     .then(function(d){
+      setLoading(false);
       if (d.ok) { window.location.href = '/'; return; }
-      err.textContent = d.error || 'Invalid credentials.';
-      err.classList.add('show');
-      document.getElementById('btn').disabled = false;
-      document.getElementById('lbl').style.display = '';
-      document.getElementById('spin').style.display = 'none';
+      showMsg(d.error || 'Something went wrong.', 'err');
     })
     .catch(function(){
-      err.textContent = 'Connection error. Please try again.';
-      err.classList.add('show');
-      document.getElementById('btn').disabled = false;
-      document.getElementById('lbl').style.display = '';
-      document.getElementById('spin').style.display = 'none';
+      setLoading(false);
+      showMsg('Connection error. Please try again.', 'err');
     });
   }
 </script>
