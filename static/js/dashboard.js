@@ -1,100 +1,4 @@
-
-/* ═══ LOGIN GATE ═══ */
-var loginClickCount = 0;
-
-function submitAccessCode() {
-  var code = document.getElementById('loginCode').value.trim();
-  var err = document.getElementById('loginError');
-  if (!code) { err.textContent = 'Enter an access code'; return; }
-  err.textContent = '';
-  document.getElementById('loginBtn').textContent = 'VERIFYING...';
-
-  fetch('/api/auth/verify', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({code: code})
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(d) {
-    if (d.ok) {
-      sessionStorage.setItem('pantheon_auth', 'true');
-      sessionStorage.setItem('pantheon_code', code);
-      var gate = document.getElementById('loginGate');
-      gate.classList.add('dismissed');
-      setTimeout(function() { gate.style.display = 'none'; }, 600);
-    } else {
-      err.textContent = d.error || 'Invalid code';
-      document.getElementById('loginBtn').textContent = 'ENTER';
-    }
-  })
-  .catch(function() {
-    err.textContent = 'Connection error';
-    document.getElementById('loginBtn').textContent = 'ENTER';
-  });
-}
-
-function createAccessCode() {
-  var pass = document.getElementById('adminPass').value;
-  var phone = document.getElementById('adminPhone').value;
-  var code = document.getElementById('adminNewCode').value.trim().toUpperCase();
-  var result = document.getElementById('adminResult');
-
-  fetch('/api/admin/codes', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({password: pass, action: 'create', phone: phone, code: code || undefined})
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(d) {
-    if (d.ok) {
-      result.textContent = 'Code created: ' + d.code;
-      result.classList.add('show');
-      document.getElementById('adminNewCode').value = '';
-      document.getElementById('adminPhone').value = '';
-    } else {
-      result.textContent = d.error || 'Failed';
-      result.classList.add('show');
-    }
-  });
-}
-
-// Triple-click logo to open admin panel
-document.addEventListener('DOMContentLoaded', function() {
-  var logo = document.querySelector('.login-logo');
-  if (logo) {
-    logo.addEventListener('click', function() {
-      loginClickCount++;
-      if (loginClickCount >= 3) {
-        document.getElementById('adminPanel').classList.toggle('open');
-        loginClickCount = 0;
-      }
-      setTimeout(function() { loginClickCount = 0; }, 1000);
-    });
-  }
-
-  // Enter key on code input
-  var codeInput = document.getElementById('loginCode');
-  if (codeInput) {
-    codeInput.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') submitAccessCode();
-    });
-  }
-
-  // Check if already authenticated
-  if (sessionStorage.getItem('pantheon_auth') === 'true') {
-    fetch('/api/auth/check')
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-      if (d.authenticated) {
-        var gate = document.getElementById('loginGate');
-        if (gate) { gate.style.display = 'none'; }
-      }
-    })
-    .catch(function() {
-      sessionStorage.removeItem('pantheon_auth');
-    });
-  }
-});
+/* ═══ AUTH: Handled by Flask /login — old gate removed ═══ */
 
 /* ═══ PANTHEON — Platform JS ═══ */
 const $ = s => document.querySelector(s);
@@ -135,9 +39,22 @@ const ICONS = {
 function icon(name, cls) { return `<span class="ico${cls ? ' ' + cls : ''}">${ICONS[name] || ''}</span>` }
 
 /* ═══ BOOT ═══ */
+
+/* ═══ TELEMETRY ═══ */
+function _logAction(action, d1, d2, d3) {
+  try { fetch('/api/log/action', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:action,d1:d1||'',d2:d2||'',d3:d3||''}) }).catch(()=>{}) } catch(e){}
+}
+function _logSim(mode, fc) {
+  try { fetch('/api/log/sim', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({mode:mode,facility_type:fc?.typeName||fc?.type||'',chemistry:fc?.battery||'',modules:fc?.modules||'',suppression:fc?.suppression||''}) }).catch(()=>{}) } catch(e){}
+}
+function _logProduct(product, source) {
+  try { fetch('/api/log/product', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({product:product,source:source||''}) }).catch(()=>{}) } catch(e){}
+}
+function _logChat(msg) {
+  try { fetch('/api/log/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({message:msg.substring(0,200)}) }).catch(()=>{}) } catch(e){}
+}
+
 window.addEventListener('DOMContentLoaded', async () => {
-  // Remove any old login gate — Flask handles auth now
-  document.querySelectorAll('.login-gate').forEach(el => el.remove());
   try { const r = await fetch('/api/incident'); D = await r.json() } catch { D = {} }
   populateFacilityGrid();
   checkAPI();
@@ -166,6 +83,7 @@ function switchView(view) {
   const tc = $(`#ctx${cap(view)}`); if (tc) tc.classList.add('ctx-active');
   const titles = { home: 'PANTHEON', simulate: 'OBSERVATORY', catalog: 'CATALOG', channels: 'CHANNELS', emergency: 'RESPONSE', monitor: 'MONITOR', training: 'TRAINING', security: 'SECURITY', settings: 'SETTINGS' };
   $('#ctxTitle').textContent = titles[view] || 'PANTHEON';
+  _logAction('Viewed Section', view);
 }
 function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1) }
 
@@ -414,6 +332,7 @@ async function startSim(mode) {
   simMode = mode; simRunning = true;
   switchView('simulate');
   logAudit(`Simulation initiated: ${mode} failure`, 'CONFIDENTIAL');
+  _logSim(mode, facilityConfig);
   const feed = $('#simScroll'); feed.innerHTML = '';
   const isFull = mode === 'full';
   const fName = facilityConfig ? (facilityConfig.facilityName || facilityConfig.typeName) : (D.incident?.facility || 'Facility');
@@ -674,6 +593,7 @@ function closeInspModal() { const m = $('#inspModal'); if (!m) return; m.classLi
 /* === PRODUCT DETAIL MODAL === */
 function openProductDetail(id) {
   const item = getAllCatalogItems().find(i => i.id === id); if (!item || !item.details) return;
+  _logProduct(item.name, 'Catalog');
   const d = item.details;
   let ex = $('#productModal'); if (ex) ex.remove();
   const icoN = item.cat === 'suppression' ? 'suppression' : item.cat === 'detection' ? 'detection' : 'shield';
@@ -788,6 +708,7 @@ function initChat() {
 }
 async function sendChat(input, scrollId) {
   const msg = input.value.trim(); if (!msg) return; input.value = '';
+  _logChat(msg);
 
   // Smart onboarding: detect facility descriptions in chat
   if (!facilityConfig && currentView === 'home') {
