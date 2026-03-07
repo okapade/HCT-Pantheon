@@ -360,6 +360,7 @@
 
     <!-- HOME VIEW -->
     <div class="main-view main-active" id="viewHome">
+      <div class="home-topbar" id="homeTopbar"></div>
       <div class="main-scroll" id="homeScroll">
         <div class="main-scroll-center" id="homeCenter">
 
@@ -413,22 +414,28 @@
 
         </div>
       </div>
-      <div class="main-input">
-        <input type="text" id="homeChat" placeholder="Ask about fire safety, standards, or your facility..." autocomplete="off">
-        <button class="main-send" id="homeSend">
-          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 10h12M10 4l6 6-6 6"/></svg>
-        </button>
+      <div class="main-input" id="homeInputArea">
+        <div class="suggestion-row" id="homeSuggestions"></div>
+        <div class="main-input-inner">
+          <input type="text" id="homeChat" placeholder="Ask about fire safety, standards, or your facility…" autocomplete="off">
+          <button class="main-send-new" id="homeSend" aria-label="Send">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10h12M10 4l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- SIMULATE VIEW -->
     <div class="main-view" id="viewSimulate">
       <div class="main-scroll" id="simScroll"></div>
-      <div class="main-input">
-        <input type="text" id="simChat" placeholder="Ask about this simulation..." autocomplete="off">
-        <button class="main-send" id="simSend">
-          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 10h12M10 4l6 6-6 6"/></svg>
-        </button>
+      <div class="main-input" id="simInputArea">
+        <div class="suggestion-row" id="simSuggestions"></div>
+        <div class="main-input-inner">
+          <input type="text" id="simChat" placeholder="Ask about this simulation…" autocomplete="off">
+          <button class="main-send-new" id="simSend" aria-label="Send">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10h12M10 4l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -624,18 +631,177 @@
               <button class="sett-tab" data-sett-tab="integrations">Integrations</button>
             </div>
             <div class="sett-panel active" id="settProfilePanel">
-              <div class="sett-section">
-                <div class="sett-sh">ROLE</div>
-                <div class="sett-row">
-                  <span class="sett-label">Current Role</span>
-                  <span class="sett-val" id="settRole">—</span>
+              <div class="sett-card">
+                <div class="sett-card-title">Identity</div>
+                <!-- Name -->
+                <div class="sett-row-editable" id="srName">
+                  <div class="sett-row-left">
+                    <div class="sett-row-label">Name</div>
+                    <div class="sett-row-value" id="settName">—</div>
+                  </div>
+                  <button class="sett-edit-btn" onclick="settEdit('name')">
+                    <svg viewBox="0 0 16 16"><path d="M11 2l3 3-9 9H2v-3z"/></svg>Edit
+                  </button>
+                  <div class="sett-inline-edit" id="siName">
+                    <input class="sett-inline-input" id="siNameInput" placeholder="Your full name">
+                    <button class="sett-save-btn" onclick="settSave('name')">Save</button>
+                    <button class="sett-cancel-btn" onclick="settCancel('name')">✕</button>
+                  </div>
                 </div>
+                <!-- Title -->
+                <div class="sett-row-editable" id="srTitle">
+                  <div class="sett-row-left">
+                    <div class="sett-row-label">Job Title</div>
+                    <div class="sett-row-value" id="settTitle">—</div>
+                  </div>
+                  <button class="sett-edit-btn" onclick="settEdit('title')">
+                    <svg viewBox="0 0 16 16"><path d="M11 2l3 3-9 9H2v-3z"/></svg>Edit
+                  </button>
+                  <div class="sett-inline-edit" id="siTitle">
+                    <input class="sett-inline-input" id="siTitleInput" placeholder="e.g. Facility Manager">
+                    <button class="sett-save-btn" onclick="settSave('title')">Save</button>
+                    <button class="sett-cancel-btn" onclick="settCancel('title')">✕</button>
+                  </div>
+                </div>
+                <!-- Company -->
+                <div class="sett-row-editable" id="srOrg">
+                  <div class="sett-row-left">
+                    <div class="sett-row-label">Company / Organisation</div>
+                    <div class="sett-row-value" id="settOrg">—</div>
+                  </div>
+                  <button class="sett-edit-btn" onclick="settEdit('org')">
+                    <svg viewBox="0 0 16 16"><path d="M11 2l3 3-9 9H2v-3z"/></svg>Edit
+                  </button>
+                  <div class="sett-inline-edit" id="siOrg">
+                    <input class="sett-inline-input" id="siOrgInput" placeholder="Company name">
+                    <button class="sett-save-btn" onclick="settSave('org')">Save</button>
+                    <button class="sett-cancel-btn" onclick="settCancel('org')">✕</button>
+                  </div>
+                </div>
+                <!-- Location -->
+                <div class="sett-row-editable" id="srLoc">
+                  <div class="sett-row-left">
+                    <div class="sett-row-label">Location</div>
+                    <div class="sett-row-value" id="settLoc">—</div>
+                  </div>
+                  <button class="sett-edit-btn" onclick="settEdit('loc')">
+                    <svg viewBox="0 0 16 16"><path d="M11 2l3 3-9 9H2v-3z"/></svg>Edit
+                  </button>
+                  <div class="sett-inline-edit" id="siLoc">
+                    <input class="sett-inline-input" id="siLocInput" placeholder="City, Country">
+                    <button class="sett-save-btn" onclick="settSave('loc')">Save</button>
+                    <button class="sett-cancel-btn" onclick="settCancel('loc')">✕</button>
+                  </div>
+                </div>
+              </div>
+              <div class="sett-card" style="margin-top:8px">
+                <div class="sett-card-title">Role
+                  <span class="sett-save-toast" id="roleSaveToast">
+                    <svg viewBox="0 0 16 16"><polyline points="2,8 6,12 14,4"/></svg>Saved
+                  </span>
+                </div>
+                <div class="sett-chip-row" id="settRoleChips"></div>
               </div>
             </div>
             <div class="sett-panel" id="settFacilitiesPanel">
-              <div class="sett-section" id="settFacilities">
-                <div class="sett-sh">FACILITY CONFIGURATION</div>
-                <div class="sett-empty">No facility configured yet.</div>
+              <div class="sett-card">
+                <div class="sett-card-title">Facility</div>
+                <!-- Facility type -->
+                <div class="sett-row-editable" id="srFacType">
+                  <div class="sett-row-left">
+                    <div class="sett-row-label">Facility Type</div>
+                    <div class="sett-row-value" id="settFacType">—</div>
+                  </div>
+                  <button class="sett-edit-btn" onclick="settEdit('factype')">
+                    <svg viewBox="0 0 16 16"><path d="M11 2l3 3-9 9H2v-3z"/></svg>Edit
+                  </button>
+                  <div class="sett-inline-edit" id="siFacType">
+                    <select class="sett-inline-select" id="siFacTypeInput">
+                      <option value="">Select…</option>
+                      <option>Data Center</option><option>BESS</option><option>EV Charging Hub</option>
+                      <option>Electrical Substation</option><option>Manufacturing</option><option>Warehouse</option>
+                      <option>Marine / Port</option><option>Aviation / Hangar</option>
+                      <option>Healthcare / Hospital</option><option>Solar + BESS</option><option>Telecom</option>
+                    </select>
+                    <button class="sett-save-btn" onclick="settSave('factype')">Save</button>
+                    <button class="sett-cancel-btn" onclick="settCancel('factype')">✕</button>
+                  </div>
+                </div>
+                <!-- Battery chemistry -->
+                <div class="sett-row-editable" id="srChem">
+                  <div class="sett-row-left">
+                    <div class="sett-row-label">Battery Chemistry</div>
+                    <div class="sett-row-value" id="settChem">—</div>
+                  </div>
+                  <button class="sett-edit-btn" onclick="settEdit('chem')">
+                    <svg viewBox="0 0 16 16"><path d="M11 2l3 3-9 9H2v-3z"/></svg>Edit
+                  </button>
+                  <div class="sett-inline-edit" id="siChem">
+                    <select class="sett-inline-select" id="siChemInput">
+                      <option value="">Select…</option>
+                      <option>NMC (Li-ion)</option><option>LFP (Li-ion)</option>
+                      <option>NCA (Li-ion)</option><option>VRLA / Lead-Acid</option>
+                      <option>LTO</option><option>None</option>
+                    </select>
+                    <button class="sett-save-btn" onclick="settSave('chem')">Save</button>
+                    <button class="sett-cancel-btn" onclick="settCancel('chem')">✕</button>
+                  </div>
+                </div>
+                <!-- Suppression -->
+                <div class="sett-row-editable" id="srSupp">
+                  <div class="sett-row-left">
+                    <div class="sett-row-label">Suppression System</div>
+                    <div class="sett-row-value" id="settSupp">—</div>
+                  </div>
+                  <button class="sett-edit-btn" onclick="settEdit('supp')">
+                    <svg viewBox="0 0 16 16"><path d="M11 2l3 3-9 9H2v-3z"/></svg>Edit
+                  </button>
+                  <div class="sett-inline-edit" id="siSupp">
+                    <select class="sett-inline-select" id="siSuppInput">
+                      <option value="">Select…</option>
+                      <option>F-500 EA</option><option>FM-200 (HFC-227ea)</option>
+                      <option>CO₂</option><option>Novec 1230</option>
+                      <option>Water Mist</option><option>Sprinkler Only</option>
+                      <option>Dry Chemical</option><option>None</option>
+                    </select>
+                    <button class="sett-save-btn" onclick="settSave('supp')">Save</button>
+                    <button class="sett-cancel-btn" onclick="settCancel('supp')">✕</button>
+                  </div>
+                </div>
+                <!-- Detection -->
+                <div class="sett-row-editable" id="srDet">
+                  <div class="sett-row-left">
+                    <div class="sett-row-label">Detection System</div>
+                    <div class="sett-row-value" id="settDet">—</div>
+                  </div>
+                  <button class="sett-edit-btn" onclick="settEdit('det')">
+                    <svg viewBox="0 0 16 16"><path d="M11 2l3 3-9 9H2v-3z"/></svg>Edit
+                  </button>
+                  <div class="sett-inline-edit" id="siDet">
+                    <select class="sett-inline-select" id="siDetInput">
+                      <option value="">Select…</option>
+                      <option>Smart-LX Gateway</option><option>VESDA</option>
+                      <option>Standard Smoke</option><option>Heat Detection Only</option><option>None</option>
+                    </select>
+                    <button class="sett-save-btn" onclick="settSave('det')">Save</button>
+                    <button class="sett-cancel-btn" onclick="settCancel('det')">✕</button>
+                  </div>
+                </div>
+                <!-- Region -->
+                <div class="sett-row-editable" id="srRegion">
+                  <div class="sett-row-left">
+                    <div class="sett-row-label">Region / Jurisdiction</div>
+                    <div class="sett-row-value" id="settRegion">—</div>
+                  </div>
+                  <button class="sett-edit-btn" onclick="settEdit('region')">
+                    <svg viewBox="0 0 16 16"><path d="M11 2l3 3-9 9H2v-3z"/></svg>Edit
+                  </button>
+                  <div class="sett-inline-edit" id="siRegion">
+                    <input class="sett-inline-input" id="siRegionInput" placeholder="e.g. Southeast US, Northern Europe">
+                    <button class="sett-save-btn" onclick="settSave('region')">Save</button>
+                    <button class="sett-cancel-btn" onclick="settCancel('region')">✕</button>
+                  </div>
+                </div>
               </div>
             </div>
             <div class="sett-panel" id="settPrefsPanel">
