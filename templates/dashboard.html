@@ -14,28 +14,7 @@
 
 <body>
 
-  <!-- LOGIN GATE -->
-  <div class="login-gate" id="loginGate">
-    <div class="login-inner">
-      <img src="/static/assets/PantheonLogoGold.png" alt="Pantheon" class="login-logo">
-      <div class="login-title">PANTHEON</div>
-      <div class="login-subtitle">Fire Protection Intelligence</div>
-      <div class="login-form">
-        <input type="text" id="loginCode" class="login-input" placeholder="Enter access code" autocomplete="off" spellcheck="false">
-        <button class="login-btn" id="loginBtn" onclick="submitAccessCode()">ENTER</button>
-        <div class="login-error" id="loginError"></div>
-      </div>
-      <div class="login-footer">Powered by HCT &middot; Embedded Logix</div>
-    </div>
-    <!-- Admin toggle (hidden, triple-click logo to reveal) -->
-    <div class="admin-panel" id="adminPanel">
-      <input type="password" id="adminPass" class="login-input" placeholder="Admin password">
-      <input type="text" id="adminPhone" class="login-input" placeholder="Prospect phone (optional)">
-      <input type="text" id="adminNewCode" class="login-input" placeholder="Custom code (or auto-generate)">
-      <button class="login-btn admin-btn" onclick="createAccessCode()">Generate Code</button>
-      <div class="admin-result" id="adminResult"></div>
-    </div>
-  </div>
+  <!-- AUTH HANDLED BY FLASK /login — dashboard loads directly for authenticated users -->
 
   <!-- BOOT -->
   <div class="boot" id="boot">
@@ -138,6 +117,7 @@
           </svg>
         </button>
       </div>
+          <div class="ctx-location hidden" id="ctxLocationWrap"><span class="ctx-location-icon">&#x1F4CD;</span><span id="ctxLocationLabel" onclick="promptLocationChange()" title="Click to change location"></span></div>
 
       <!-- Home ctx -->
       <div class="ctx-view ctx-active" id="ctxHome">
