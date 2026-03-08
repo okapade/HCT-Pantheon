@@ -31,7 +31,7 @@ OTP_ENABLED        = os.environ.get('OTP_ENABLED', 'false').lower() == 'true'
 
 # ── Utilities ──────────────────────────────────────────────────────────────────
 
-def hash_pw(pw): return pw.strip()  # plain compare — no hash complexity
+def hash_pw(pw): return pw.strip()
 def now_str(): return datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
 def get_device_info():
     ua = request.headers.get('User-Agent', '')
@@ -54,14 +54,11 @@ def get_sheets():
         print(f"[SHEETS] Connected OK")
         return svc
     except json.JSONDecodeError as e:
-        print(f"[SHEETS] CREDS JSON parse failed: {e}")
-        return None
+        print(f"[SHEETS] CREDS JSON parse failed: {e}"); return None
     except ImportError as e:
-        print(f"[SHEETS] Missing library: {e}")
-        return None
+        print(f"[SHEETS] Missing library: {e}"); return None
     except Exception as e:
-        print(f"[SHEETS] Error: {type(e).__name__}: {e}")
-        return None
+        print(f"[SHEETS] Error: {type(e).__name__}: {e}"); return None
 
 def sheets_append(tab, values):
     def _do():
@@ -99,11 +96,6 @@ def sheets_update_cell_sync(tab, row, col, value):
     except Exception as e: print(f"Sync update error: {e}")
 
 # ── User management ────────────────────────────────────────────────────────────
-# Users sheet cols: 1=name 2=email 3=phone 4=org 5=pw_hash 6=created 7=invited_by
-# 8=first_login 9=last_login 10=trial_days 11=sims_week 12=sims_total 13=status
-# 14=email_verified 15=role 16=facility_type 17=location 18=onboarding_complete
-
-# ── Simple JSON user store — no Sheets dependency for auth ────────────────────
 import fcntl
 
 USERS_FILE = '/tmp/pantheon_users.json'
@@ -130,7 +122,6 @@ def find_user(email):
     users = _load_users()
     u = users.get(email.strip().lower())
     if u:
-        # Return as padded row for compatibility, and index=-1 (unused)
         return [
             u.get('name',''), u.get('email',''), '', u.get('org',''),
             u.get('password',''), u.get('created',''), 'self-registered',
@@ -146,7 +137,6 @@ def save_user(email, data):
     users = _load_users()
     users[email.strip().lower()] = data
     _save_users(users)
-    # Also log to Sheets async — non-blocking, auth doesn't depend on it
     sheets_append('Users', [
         data.get('name',''), email, '', data.get('org',''),
         data.get('password',''), data.get('created',''), 'self-registered',
@@ -168,16 +158,16 @@ def get_user_profile(email):
     if not row: return {}
     row = list(row) + [''] * (20 - len(row))
     return {
-        'name':               row[0]  if len(row) > 0  else '',
-        'email':              row[1]  if len(row) > 1  else '',
-        'org':                row[3]  if len(row) > 3  else '',
-        'role':               row[14] if len(row) > 14 else '',
-        'facility_type':      row[15] if len(row) > 15 else '',
-        'location':           row[16] if len(row) > 16 else '',
-        'onboarding_complete':row[17] if len(row) > 17 else 'false',
+        'name':               row[0],
+        'email':              row[1],
+        'org':                row[3],
+        'role':               row[14],
+        'facility_type':      row[15],
+        'location':           row[16],
+        'onboarding_complete':row[17],
     }
 
-# ── OTP store ──────────────────────────────────────────────────────────────────
+# ── OTP / Token store ──────────────────────────────────────────────────────────
 
 TOKENS_FILE = '/tmp/pantheon_tokens.json'
 
@@ -219,12 +209,8 @@ def consume_verify_token(token):
     print(f"[TOKEN] Consumed OK for {email}")
     return email
 
-def generate_otp(email, purpose='verify'):
-    return '000000'  # OTP disabled
-
-def verify_otp_code(email, code):
-    return False  # OTP disabled
-
+def generate_otp(email, purpose='verify'): return '000000'
+def verify_otp_code(email, code): return False
 
 # ── Email sending ──────────────────────────────────────────────────────────────
 
@@ -245,7 +231,6 @@ def send_verify_link(to_email, token):
           <a href="{verify_url}" style="display:inline-block;background:#111110;color:#ffffff;text-decoration:none;font-family:monospace;font-size:12px;font-weight:700;letter-spacing:0.08em;padding:14px 28px;border-radius:8px;text-transform:uppercase">Verify My Account</a>
           <p style="font-size:12px;color:#9A9288;margin:24px 0 0;line-height:1.6">This link expires in 24 hours. If you did not create a Pantheon account, ignore this email.</p>
           <p style="font-size:11px;color:#C0BCB5;margin:12px 0 0">Or copy: <span style="color:#9A7A28">{verify_url}</span></p>
-
           <hr style="border:none;border-top:1px solid #eee;margin:24px 0">
           <p style="color:#999;font-size:11px">Pantheon Life Safety OS · HCT + Embedded Logix</p>
         </div>
@@ -298,23 +283,20 @@ def admin_required(f):
     return decorated
 
 # ── Conversation history helpers ───────────────────────────────────────────────
-# Conversations sheet: timestamp, email, org, session_id, role(user/assistant), message, act_context
 
 def get_recent_sessions(email, n=3):
-    """Return last n session summaries for context injection."""
     rows = sheets_read('Conversations')
-    sessions = {}
+    sessions_map = {}
     for row in rows[1:]:
         if len(row) < 6: continue
         if row[1].strip().lower() != email.strip().lower(): continue
         sid = row[3] if len(row) > 3 else ''
-        if sid not in sessions: sessions[sid] = {'ts': row[0], 'messages': []}
-        sessions[sid]['messages'].append({'role': row[4], 'content': row[5][:300]})
-    sorted_sessions = sorted(sessions.values(), key=lambda x: x['ts'], reverse=True)[:n]
+        if sid not in sessions_map: sessions_map[sid] = {'ts': row[0], 'messages': []}
+        sessions_map[sid]['messages'].append({'role': row[4], 'content': row[5][:300]})
+    sorted_sessions = sorted(sessions_map.values(), key=lambda x: x['ts'], reverse=True)[:n]
     return sorted_sessions
 
 def get_open_actions(email):
-    """Return open recommended actions for this user."""
     rows = sheets_read('Actions')
     open_actions = []
     for row in rows[1:]:
@@ -324,10 +306,9 @@ def get_open_actions(email):
     return open_actions[:5]
 
 def build_user_context(email):
-    """Build the USER_CONTEXT block injected into every AI system prompt."""
-    profile  = get_user_profile(email)
-    sessions = get_recent_sessions(email, n=2)
-    actions  = get_open_actions(email)
+    profile       = get_user_profile(email)
+    sessions_data = get_recent_sessions(email, n=2)
+    actions       = get_open_actions(email)
     ctx = f"""
 USER PROFILE:
 - Name: {profile.get('name', 'Unknown')}
@@ -339,12 +320,12 @@ USER PROFILE:
     if actions:
         ctx += "\nOPEN RECOMMENDED ACTIONS (from previous sessions):\n"
         for a in actions: ctx += f"- [{a['urgency']}] {a['action']} (status: {a['status']})\n"
-    if sessions:
+    if sessions_data:
         ctx += "\nRECENT SESSION CONTEXT:\n"
-        for i, s in enumerate(sessions):
+        for i, s in enumerate(sessions_data):
             msgs = s.get('messages', [])
             if msgs: ctx += f"Session -{i+1}: {msgs[0]['content'][:200]}...\n"
-    ctx += "\nTailor ALL responses to this user's role, facility type, jurisdiction, and open gaps. Reference their specific context — not generic examples."
+    ctx += "\nTailor ALL responses to this user's role, facility type, jurisdiction, and open gaps."
     return ctx
 
 # ── Pages ──────────────────────────────────────────────────────────────────────
@@ -353,6 +334,11 @@ USER PROFILE:
 def login_page():
     if 'user_id' in session: return redirect(url_for('index'))
     return render_template('login.html')
+
+@app.route('/register')
+def register_page():
+    if 'user_id' in session: return redirect(url_for('index'))
+    return render_template('register.html')
 
 @app.route('/onboarding')
 @login_required
@@ -370,6 +356,13 @@ def index():
         return redirect(url_for('onboarding_page'))
     return render_template('dashboard.html')
 
+@app.route('/dashboard')
+@login_required
+def dashboard_page():
+    if not session.get('onboarding_complete'):
+        return redirect(url_for('onboarding_page'))
+    return render_template('dashboard.html')
+
 # ── Auth API ───────────────────────────────────────────────────────────────────
 
 @app.route('/api/auth/register', methods=['POST'])
@@ -378,21 +371,17 @@ def auth_register():
     email    = (b.get('email', '')).strip().lower()
     password = b.get('password', '').strip()
     name     = b.get('name', '').strip()
+    org      = b.get('org', '').strip()
     if not email or not password: return jsonify({"error": "Email and password required"}), 400
     if len(password) < 8: return jsonify({"error": "Password must be at least 8 characters"}), 400
     existing, _ = find_user(email)
     if existing: return jsonify({"error": "Account already exists. Sign in instead."}), 409
-    pw_clean = password.strip()
-    if not pw_clean: return jsonify({"error": "Password required"}), 400
-    # Save to local JSON store — instant, no network
     save_user(email, {
-        'name': name, 'email': email, 'password': pw_clean,
-        'created': now_str(), 'email_verified': 'false',
-        'onboarding_complete': 'false', 'role': '', 'facility_type': '',
-        'location': '', 'org': ''
+        'name': name, 'email': email, 'password': password,
+        'org': org, 'created': now_str(), 'email_verified': 'false',
+        'onboarding_complete': 'false', 'role': '', 'facility_type': '', 'location': ''
     })
     print(f"[REGISTER] Saved user {email}")
-    # Send verification link
     token = generate_verify_token(email)
     send_verify_link(email, token)
     if not SENDGRID_KEY:
@@ -402,14 +391,11 @@ def auth_register():
 @app.route('/verify')
 def verify_email_link():
     token = request.args.get('token', '').strip()
-    if not token:
-        return redirect(url_for('login_page') + '?msg=missing_token')
+    if not token: return redirect(url_for('login_page') + '?msg=missing_token')
     email = consume_verify_token(token)
-    if not email:
-        return redirect(url_for('login_page') + '?msg=invalid_token')
+    if not email: return redirect(url_for('login_page') + '?msg=invalid_token')
     row, row_num = find_user(email)
-    if not row:
-        return redirect(url_for('login_page') + '?msg=user_not_found')
+    if not row: return redirect(url_for('login_page') + '?msg=user_not_found')
     update_user(email, 'email_verified', 'true')
     row, row_num = find_user(email)
     _create_session(email, row, row_num)
@@ -427,18 +413,13 @@ def auth_verify():
     if not row:
         print(f"[LOGIN] No user found for email: {email}")
         return jsonify({"error": "Incorrect email or password"}), 401
-    stored_pw = (row[4] or '').strip()
+    stored_pw   = (row[4] or '').strip()
     incoming_pw = password.strip()
     print(f"[LOGIN] email={email} stored_len={len(stored_pw)} incoming_len={len(incoming_pw)} match={stored_pw == incoming_pw} verified={row[13]!r}")
-    if stored_pw != incoming_pw:
-        return jsonify({"error": "Incorrect email or password"}), 401
-    # Check email verified
+    if stored_pw != incoming_pw: return jsonify({"error": "Incorrect email or password"}), 401
     email_verified = row[13].strip().lower()
-    if email_verified != 'true':
-        return jsonify({"error": "email_not_verified", "email": email}), 403
+    if email_verified != 'true': return jsonify({"error": "email_not_verified", "email": email}), 403
     if len(row) >= 13 and row[12].strip().lower() == 'revoked': return jsonify({"error": "Access revoked. Contact HCT."}), 403
-    # email_verified check removed — direct credential login
-    # Check trial
     days_left = TRIAL_DAYS
     if len(row) >= 6 and row[5]:
         try:
@@ -446,12 +427,10 @@ def auth_verify():
             days_left = max(0, TRIAL_DAYS - (datetime.datetime.utcnow() - created).days)
         except: pass
     if days_left <= 0: return jsonify({"error": "Trial expired. Contact HCT to renew."}), 403
-    # OTP MFA if enabled
     if OTP_ENABLED:
         phone = row[2].strip() if len(row) > 2 else ''
         code = generate_otp(email, purpose='login')
         if phone: send_sms_otp(phone, code)
-        else: send_email_otp(email, code, purpose='login')
         session['otp_pending'] = email
         return jsonify({"otp_required": True})
     _create_session(email, row, row_num)
@@ -478,7 +457,6 @@ def auth_verify_otp():
 @app.route('/api/auth/logout', methods=['POST'])
 def auth_logout():
     if 'user_id' in session:
-        # Summarise session before logout
         _summarise_session(session['user_id'], session.get('session_id', ''))
         sheets_append('Activity Log', [now_str(), session.get('user_id',''), session.get('user_name',''), session.get('user_org',''), 'Logged Out', '', '', '', '', '', ''])
     session.clear()
@@ -497,21 +475,15 @@ def auth_me():
 @app.route('/api/onboarding/save', methods=['POST'])
 @login_required
 def onboarding_save():
-    b    = request.get_json()
+    b     = request.get_json()
     email = session['user_id']
     row, row_num = find_user(email)
     if not row: return jsonify({"error": "User not found"}), 404
-
-    # Save profile fields to Users sheet
-    # Col 4=org, 15=role, 16=facility_type, 17=location, 18=onboarding_complete
-    # Plus new profile tab for full detail
     sheets_update_cell_sync('Users', row_num, 4,  b.get('org', ''))
     sheets_update_cell_sync('Users', row_num, 15, b.get('role', ''))
     sheets_update_cell_sync('Users', row_num, 16, b.get('facility_type', ''))
     sheets_update_cell_sync('Users', row_num, 17, b.get('location', ''))
     sheets_update_cell_sync('Users', row_num, 18, 'true')
-
-    # Save full profile to Profiles tab
     sheets_append_sync('Profiles', [
         now_str(), email, session.get('user_name',''),
         b.get('org',''), b.get('role',''), b.get('facility_type',''),
@@ -519,11 +491,9 @@ def onboarding_save():
         b.get('detection',''), b.get('modules',''), b.get('jurisdiction',''),
         json.dumps(b.get('extra', {}))
     ])
-
     session['onboarding_complete'] = True
     session['user_org']  = b.get('org', session.get('user_org',''))
     session['user_role'] = b.get('role', '')
-
     device, browser = get_device_info()
     sheets_append('Activity Log', [now_str(), email, session.get('user_name',''), b.get('org',''), 'Completed Onboarding', b.get('role',''), b.get('facility_type',''), b.get('location',''), '', device, browser])
     return jsonify({"ok": True})
@@ -531,8 +501,6 @@ def onboarding_save():
 @app.route('/api/onboarding/profile')
 @login_required
 def onboarding_profile():
-    """Return the user's full profile for the dashboard context."""
-    # Get from Profiles tab (most recent row for this user)
     rows = sheets_read('Profiles')
     user_rows = [r for r in rows[1:] if len(r) > 1 and r[1].strip().lower() == session['user_id']]
     if not user_rows: return jsonify({})
@@ -545,7 +513,6 @@ def onboarding_profile():
     return jsonify(profile)
 
 # ── Actions API ────────────────────────────────────────────────────────────────
-# Actions sheet: timestamp, email, action, urgency, status, session_id, source, resolved_at
 
 @app.route('/api/actions/log', methods=['POST'])
 @login_required
@@ -562,14 +529,13 @@ def actions_log():
 def actions_update():
     b      = request.get_json()
     action = b.get('action', '')
-    status = b.get('status', '')  # accepted / deferred / dismissed
+    status = b.get('status', '')
     if not action or not status: return jsonify({"error": "action and status required"}), 400
     rows = sheets_read('Actions')
     for i, row in enumerate(rows[1:], start=2):
         if len(row) >= 3 and row[1].strip().lower() == session['user_id'] and row[2].strip() == action and row[4].strip() in ('open','deferred'):
             sheets_update_cell('Actions', i, 5, status)
             if status == 'accepted': sheets_update_cell('Actions', i, 8, now_str())
-            # Silent gap log for HCT — dismissed actions are product intelligence
             if status == 'dismissed':
                 sheets_append('Activity Log', [now_str(), session['user_id'], session.get('user_name',''), session.get('user_org',''), 'Action Dismissed', action, '', '', '', '', ''])
             break
@@ -585,13 +551,9 @@ def actions_open():
 @app.route('/api/analytics/footprint')
 @login_required
 def analytics_footprint():
-    """Weekly suppression + detection footprint for the current user."""
     email = session['user_id']
-    # Get profile
     profile_resp = onboarding_profile()
     profile = profile_resp.get_json() if hasattr(profile_resp, 'get_json') else {}
-
-    # Simulations this week
     rows = sheets_read('Simulations')
     week_ago = datetime.datetime.utcnow() - datetime.timedelta(days=7)
     sims_week, sims_total = 0, 0
@@ -603,31 +565,16 @@ def analytics_footprint():
             ts = datetime.datetime.strptime(row[0].strip(), '%Y-%m-%d %H:%M:%S')
             if ts > week_ago: sims_week += 1
         except: pass
-
-    # Actions this week
     action_rows = sheets_read('Actions')
     actions_open_count, actions_completed, actions_deferred, actions_dismissed = 0, 0, 0, 0
     for row in action_rows[1:]:
         if len(row) < 5: continue
         if row[1].strip().lower() != email: continue
         s = row[4].strip().lower()
-        if s == 'open':      actions_open_count += 1
+        if s == 'open': actions_open_count += 1
         elif s == 'accepted': actions_completed += 1
         elif s == 'deferred': actions_deferred += 1
-        elif s == 'dismissed':actions_dismissed += 1
-
-    # Conversations this week
-    conv_rows = sheets_read('Conversations')
-    convs_week = 0
-    for row in conv_rows[1:]:
-        if len(row) < 2: continue
-        if row[1].strip().lower() != email: continue
-        try:
-            ts = datetime.datetime.strptime(row[0].strip(), '%Y-%m-%d %H:%M:%S')
-            if ts > week_ago: convs_week += 1
-        except: pass
-
-    # Derive gap status from profile
+        elif s == 'dismissed': actions_dismissed += 1
     chemistry   = profile.get('chemistry', '')
     suppression = profile.get('suppression', '')
     detection   = profile.get('detection', '')
@@ -636,17 +583,9 @@ def analytics_footprint():
         gaps.append({'gap': f'{suppression} incompatible with {chemistry} thermal runaway', 'severity': 'CRITICAL', 'fix': 'F-500 EA Micelle Mist'})
     if detection in ('None','No',''):
         gaps.append({'gap': 'No off-gas detection installed', 'severity': 'HIGH', 'fix': 'Smart-LX Gateway + VESDA'})
-
     return jsonify({
         'profile': profile,
-        'week': {
-            'simulations':        sims_week,
-            'ai_conversations':   convs_week,
-            'actions_open':       actions_open_count,
-            'actions_completed':  actions_completed,
-            'actions_deferred':   actions_deferred,
-            'actions_dismissed':  actions_dismissed,
-        },
+        'week': {'simulations': sims_week, 'actions_open': actions_open_count, 'actions_completed': actions_completed, 'actions_deferred': actions_deferred, 'actions_dismissed': actions_dismissed},
         'totals': {'simulations': sims_total},
         'gaps': gaps,
         'suppression_score': 0 if any(g['severity'] == 'CRITICAL' for g in gaps) else (50 if gaps else 100),
@@ -744,7 +683,7 @@ def api_status():
 
 # ── AI streaming ───────────────────────────────────────────────────────────────
 
-BASE_SYSTEM = """You are Pantheon AI — a senior NFPA fire investigator and life safety intelligence engine. Precise, authoritative, evidence-driven. You know this user's facility, role, and history — use it in every response.
+BASE_SYSTEM = """You are Pantheon AI — a senior NFPA fire investigator and life safety intelligence engine. Precise, authoritative, evidence-driven.
 
 VOICE: Cite specific assets by name and ID. Use timestamps. Reference NFPA/NEC/UL standards relevant to their jurisdiction. Explain WHY suppression failed chemically. F-500 EA Micelle Mist is the primary recommended countermeasure for Li-ion. No markdown headers. Plain paragraphs. Use specific numbers. Tailor everything to their facility type and role.
 
@@ -801,7 +740,6 @@ def _stream_openai(messages):
 def _stream(messages): return _stream_anthropic(messages) if ANTHROPIC_KEY else _stream_openai(messages)
 
 def _summarise_session(email, session_id):
-    """Generate a 2-sentence session summary and store it."""
     if not session_id or not get_key(): return
     try:
         rows = sheets_read('Conversations')
@@ -812,7 +750,7 @@ def _summarise_session(email, session_id):
         resp = httpx.post("https://api.anthropic.com/v1/messages",
             headers={"x-api-key": ANTHROPIC_KEY, "anthropic-version": "2023-06-01", "Content-Type": "application/json"},
             json={"model": "claude-haiku-4-5-20251001", "max_tokens": 150,
-                  "messages": [{"role": "user", "content": f"Summarise this Pantheon session in 2 sentences, noting any key gaps found or actions recommended: {content}"}]},
+                  "messages": [{"role": "user", "content": f"Summarise this Pantheon session in 2 sentences: {content}"}]},
             timeout=20.0)
         summary = resp.json().get('content', [{}])[0].get('text', '')
         if summary:
@@ -831,7 +769,6 @@ def api_chat():
     for h in (b.get('history', []))[-10:]:
         msgs.append({"role": h["role"], "content": h["content"]})
     msgs.append({"role": "user", "content": msg})
-    # Log conversation
     sheets_append('Conversations', [now_str(), session['user_id'], session.get('user_org',''), sid, 'user', msg[:500], ''])
     return _stream(msgs)
 
@@ -888,41 +825,25 @@ def api_report_pdf():
     buf = io.BytesIO(); pdf.output(buf); buf.seek(0)
     return Response(buf.read(), mimetype='application/pdf', headers={'Content-Disposition': f'attachment; filename=pantheon-{mode}-{inc.get("id","report")}.pdf'})
 
-
 @app.route('/api/auth/forgot_password', methods=['POST'])
 def auth_forgot_password():
     b = request.get_json()
     email = b.get('email', '').strip().lower()
     if not email: return jsonify({"error": "Email required"}), 400
     row, row_num = find_user(email)
-    # Always return ok to prevent email enumeration
     if row:
-        token = generate_verify_token(email + ':reset')  # namespace reset tokens
+        token = generate_verify_token(email + ':reset')
         t = _load_tokens(); t[token] = {'email': email, 'expires': time.time() + 3600, 'purpose': 'reset'}; _save_tokens(t)
         reset_url = f"https://hct-pantheon.vercel.app/reset-password?token={token}"
         if SENDGRID_KEY:
             try:
                 import httpx
-                body = f"""
-                <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:480px;margin:0 auto;padding:40px 32px;background:#ffffff">
-                  <div style="margin-bottom:28px">
-                    <img src="https://hct-pantheon.vercel.app/static/assets/PantheonLogoGold.png" width="32" style="vertical-align:middle;margin-right:10px">
-                    <span style="font-family:monospace;font-size:13px;font-weight:700;letter-spacing:0.1em;color:#9A7A28;text-transform:uppercase;vertical-align:middle">PANTHEON</span>
-                  </div>
-                  <h2 style="font-size:22px;font-weight:700;color:#111110;margin:0 0 10px">Reset your password</h2>
-                  <p style="font-size:14px;color:#5A5750;margin:0 0 28px;line-height:1.6">Click the button below to set a new password. This link expires in 1 hour.</p>
-                  <a href="{reset_url}" style="display:inline-block;background:#111110;color:#ffffff;text-decoration:none;font-family:monospace;font-size:12px;font-weight:700;letter-spacing:0.08em;padding:14px 28px;border-radius:8px;text-transform:uppercase">Reset Password</a>
-                  <p style="font-size:12px;color:#9A9288;margin:24px 0 0;line-height:1.6">If you didn't request this, you can safely ignore this email.</p>
-                  <hr style="border:none;border-top:1px solid #EDEAE3;margin:28px 0">
-                  <p style="font-size:11px;color:#C0BCB5;margin:0">Pantheon Life Safety OS &middot; HCT + Embedded Logix</p>
-                </div>
-                """
+                body = f'<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:40px"><h2>Reset your Pantheon password</h2><p>Click below to set a new password. Expires in 1 hour.</p><a href="{reset_url}" style="display:inline-block;background:#111110;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-family:monospace;font-size:12px;text-transform:uppercase">Reset Password</a></div>'
                 httpx.post('https://api.sendgrid.com/v3/mail/send',
                     headers={'Authorization': f'Bearer {SENDGRID_KEY}', 'Content-Type': 'application/json'},
                     json={'personalizations': [{'to': [{'email': email}]}], 'from': {'email': FROM_EMAIL, 'name': 'Pantheon'}, 'subject': 'Reset your Pantheon password', 'content': [{'type': 'text/html', 'value': body}]},
                     timeout=15.0)
-            except Exception as e:
-                print(f"SendGrid reset error: {e}")
+            except Exception as e: print(f"SendGrid reset error: {e}")
         else:
             print(f"[DEV] Reset link for {email}: {reset_url}")
     return jsonify({"ok": True})
@@ -930,12 +851,9 @@ def auth_forgot_password():
 @app.route('/reset-password')
 def reset_password_page():
     token = request.args.get('token', '').strip()
-    # Validate token exists before showing form
-    if not token or token not in _load_tokens():
-        return redirect(url_for('login_page') + '?msg=invalid_token')
+    if not token or token not in _load_tokens(): return redirect(url_for('login_page') + '?msg=invalid_token')
     entry = _load_tokens().get(token, {})
-    if time.time() > entry.get('expires', 0):
-        return redirect(url_for('login_page') + '?msg=invalid_token')
+    if time.time() > entry.get('expires', 0): return redirect(url_for('login_page') + '?msg=invalid_token')
     return render_template('reset_password.html', token=token)
 
 @app.route('/api/auth/reset_password', methods=['POST'])
@@ -970,6 +888,3 @@ def auth_resend_otp():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
-
-# ── Resend OTP ─────────────────────────────────────────────────────────────────
-# (appended — keep at bottom before if __name__)
