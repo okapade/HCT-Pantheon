@@ -198,6 +198,17 @@ function selectFacilityType(typeId) {
   configStep = 0;
   showFacilityInfo(type);
   showConfigFlow();
+  // Re-render training with facility-aware gaps and badge
+  setTimeout(function() {
+    renderTrainingPrescriptions();
+    renderTrainingCtx();
+    var gaps = getTrainingGaps();
+    if (gaps.length > 0 && typeof addRailBadge === 'function') addRailBadge('training', gaps.length);
+    var critical = gaps.filter(function(g) { return g.priority === 'CRITICAL'; }).length;
+    if (critical > 0 && typeof showToast === 'function') {
+      showToast(critical + ' critical training gap' + (critical > 1 ? 's' : '') + ' detected — ' + type.name, 'warning', 4500);
+    }
+  }, 300);
 }
 
 /* ═══ CONFIG FLOW ═══ */
@@ -1696,6 +1707,13 @@ function initMonitor() {
   renderMonitorGrid();
   renderMonitorFeed();
   renderMonitorCtx();
+  // Fire initial watch-zone badge and notification on page load
+  setTimeout(function() {
+    if (typeof addRailBadge === 'function') addRailBadge('monitor', 1);
+    if (typeof showToast === 'function') {
+      showToast('Monitor: Electrical Room temperature trending — 34.6°C', 'warning', 5000);
+    }
+  }, 1800);
   // Simulate live updates
   setInterval(updateMonitorPulse, 5000);
 }
@@ -1794,49 +1812,91 @@ function updateMonitorPulse() {
 }
 
 /* === TRAINING & READINESS === */
+/* === TRAINING & READINESS === */
 function initTraining() {
-  // Show empty state until simulation or emergency runs
-  var trainView = document.getElementById('viewTraining');
-  if (trainView) {
-    var emptyEls = trainView.querySelectorAll('.train-courses, .train-certs');
-    emptyEls.forEach(function(el) {
-      if (el && el.children.length === 0) {
-        el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--t4);font:400 13px/1.5 var(--sans)">Run a simulation or file an emergency response to generate training prescriptions for your facility.</div>';
-      }
-    });
-  }
   renderTrainingPrescriptions();
   renderTrainingCourses();
   renderTrainingCerts();
   renderTrainingCtx();
+  // Fire badge for initial gap count
+  setTimeout(function() {
+    var gaps = getTrainingGaps();
+    if (gaps.length > 0) {
+      if (typeof addRailBadge === 'function') addRailBadge('training', gaps.length);
+      if (typeof showToast === 'function') {
+        var critical = gaps.filter(function(g) { return g.priority === 'CRITICAL'; }).length;
+        if (critical > 0) {
+          showToast(critical + ' critical training gap' + (critical > 1 ? 's' : '') + ' detected for your facility', 'warning', 5000);
+        }
+      }
+    }
+  }, 2200);
 }
 
 function getTrainingGaps() {
-  // Derive training needs from simulation data and facility config
+  // Derive training needs from simulation data, facility config, and compliance
   const gaps = [];
-  if (D.acts) {
-    gaps.push({ source: 'Simulation', title: 'Li-Ion Thermal Runaway Response', desc: 'FM-200/CO\u2082 incompatibility with Li-ion fires. Crew must understand suppression chemistry gap.', standard: 'NFPA 855', course: 'HCT-TR-100' });
-    gaps.push({ source: 'Simulation', title: 'F-500 EA Deployment Procedures', desc: 'Micelle mist delivery, nozzle configuration, concentration ratios for battery room applications.', standard: 'NFPA 18A', course: 'HCT-FA-200' });
-    gaps.push({ source: 'Simulation', title: 'Emergency Power-Off (EPO) Protocols', desc: 'EPO activation including generator isolation. Simulation showed partial EPO failure.', standard: 'NEC 645', course: 'HCT-EP-150' });
-    gaps.push({ source: 'Simulation', title: 'HF Gas Evacuation & Hazmat', desc: 'Hydrogen fluoride exposure limits, PPE requirements, evacuation zone calculations.', standard: 'OSHA 1910', course: 'HCT-HZ-300' });
-    gaps.push({ source: 'Incident Data', title: 'Job Safety Analysis (JSA)', desc: 'Skipped JSA identified as root cause. Mandatory pre-work hazard assessment for battery maintenance.', standard: 'OSHA 1910', course: 'HCT-JS-100' });
+  const fc = (typeof facilityConfig !== 'undefined' && facilityConfig) ? facilityConfig : {};
+  const hasSimData = !!(typeof D !== 'undefined' && D && D.acts);
+  const facType = (fc.type || fc.typeName || '').toLowerCase();
+  const battery = (fc.battery || '').toLowerCase();
+  const suppression = (fc.suppression || '').toLowerCase();
+  const isBESS = facType.includes('bess') || facType.includes('ess') || facType.includes('battery');
+  const isDataCenter = facType.includes('data') || facType.includes('server');
+  const isLiIon = battery.includes('nmc') || battery.includes('lfp') || battery.includes('li') || battery.includes('lithium');
+  const hasLegacyAgent = suppression.includes('fm-200') || suppression.includes('co2') || suppression.includes('halon');
+
+  // Simulation-derived gaps (only if sim has run)
+  if (hasSimData) {
+    gaps.push({ source: 'Simulation', priority: 'CRITICAL', title: 'Li-Ion Thermal Runaway Response', desc: 'FM-200/CO₂ incompatibility with Li-ion fires identified. Crew must understand suppression chemistry gap.', standard: 'NFPA 855', course: 'HCT-TR-100' });
+    gaps.push({ source: 'Simulation', priority: 'CRITICAL', title: 'F-500 EA Deployment Procedures', desc: 'Micelle mist delivery, nozzle configuration, and concentration ratios for battery room applications.', standard: 'NFPA 18A', course: 'HCT-FA-200' });
+    gaps.push({ source: 'Simulation', priority: 'HIGH', title: 'Emergency Power-Off (EPO) Protocols', desc: 'EPO activation including generator isolation. Simulation revealed partial EPO failure risk.', standard: 'NEC 645', course: 'HCT-EP-150' });
+    gaps.push({ source: 'Simulation', priority: 'HIGH', title: 'HF Gas Evacuation & Hazmat', desc: 'Hydrogen fluoride exposure limits, PPE requirements, and evacuation zone calculations.', standard: 'OSHA 1910', course: 'HCT-HZ-300' });
+    gaps.push({ source: 'Incident Data', priority: 'HIGH', title: 'Job Safety Analysis (JSA)', desc: 'Skipped JSA identified as contributing factor. Mandatory pre-work hazard assessment for battery maintenance.', standard: 'OSHA 1910', course: 'HCT-JS-100' });
   }
-  gaps.push({ source: 'Compliance', title: 'BMS Alarm Management', desc: 'Proper alarm threshold configuration. Raised thresholds contributed to delayed detection.', standard: 'NFPA 855', course: 'HCT-BM-200' });
-  gaps.push({ source: 'Compliance', title: 'Pre-Incident Planning', desc: 'Facility-specific pre-incident plans per NFPA 1620 for fire department coordination.', standard: 'NFPA 1620', course: 'HCT-PI-100' });
-  gaps.push({ source: 'Best Practice', title: 'Smart-LX Platform Operation', desc: 'Thermal imaging interpretation, alert triage, custom rule configuration.', standard: 'NFPA 72', course: 'EL-SLX-100' });
-  return gaps;
+
+  // Facility-config derived gaps
+  if (isBESS || isLiIon) {
+    gaps.push({ source: 'Compliance', priority: 'HIGH', title: 'BESS BMS Alarm Management', desc: 'Proper alarm threshold configuration for BESS. Raised thresholds contribute to delayed detection.', standard: 'NFPA 855', course: 'HCT-BM-200' });
+    gaps.push({ source: 'Compliance', priority: 'MEDIUM', title: 'Pre-Incident Planning (BESS)', desc: 'Facility-specific pre-incident plans per NFPA 1620 for fire department coordination at BESS sites.', standard: 'NFPA 1620', course: 'HCT-PI-100' });
+  }
+  if (isDataCenter) {
+    gaps.push({ source: 'Compliance', priority: 'HIGH', title: 'Data Center EPO & Suppression', desc: 'Total flooding agent suitability for IT rooms. F-500 EA vs legacy clean agents for NMC cells.', standard: 'NFPA 75', course: 'HCT-DC-100' });
+  }
+  if (hasLegacyAgent) {
+    gaps.push({ source: 'Compliance', priority: 'CRITICAL', title: 'Legacy Agent Incompatibility', desc: 'FM-200 and CO₂ do not address thermal runaway re-ignition. Crew training on suppression chemistry gap is mandatory.', standard: 'NFPA 18A', course: 'HCT-FA-200' });
+  }
+
+  // Always-present best practices
+  gaps.push({ source: 'Best Practice', priority: 'MEDIUM', title: 'Smart-LX Platform Operation', desc: 'Thermal imaging interpretation, alert triage, and custom rule configuration for early detection.', standard: 'NFPA 72', course: 'EL-SLX-100' });
+
+  // Deduplicate by title
+  const seen = new Set();
+  return gaps.filter(function(g) {
+    if (seen.has(g.title)) return false;
+    seen.add(g.title);
+    return true;
+  });
 }
 
 function renderTrainingPrescriptions() {
   const el = $('#trainPrescriptions');
   if (!el) return;
   const gaps = getTrainingGaps();
+  if (!gaps.length) {
+    el.innerHTML = '<div class="train-sh">AI-PRESCRIBED TRAINING GAPS</div><div style="padding:20px 0;color:var(--t3);font:400 13px/1.6 var(--sans)">Configure your facility to generate personalised training prescriptions. Run a simulation to surface additional gaps.</div>';
+    return;
+  }
+  const priorityAiClass = { 'CRITICAL': 'ai-imm', 'HIGH': 'ai-30', 'MEDIUM': 'ai-90', 'LOW': 'ai-90' };
   el.innerHTML = `
     <div class="train-sh">AI-PRESCRIBED TRAINING GAPS</div>
-    <div class="train-prescription-list">${gaps.map(g => `
-      <div class="train-rx train-rx-${g.priority.toLowerCase()}">
+    <div class="train-prescription-list">${gaps.map(g => {
+      const p = (g.priority || 'MEDIUM').toUpperCase();
+      const aiCls = priorityAiClass[p] || 'ai-90';
+      return `
+      <div class="train-rx train-rx-${p.toLowerCase()}">
         <div class="train-rx-head">
-          <span class="train-rx-priority ai-p ai-${g.priority === 'CRITICAL' ? 'imm' : g.priority === 'HIGH' ? '30' : '90'}">${g.priority}</span>
+          <span class="train-rx-priority ai-p ${aiCls}">${p}</span>
           <span class="train-rx-title">${g.title}</span>
           <span class="train-rx-source">${g.source}</span>
         </div>
@@ -1846,26 +1906,27 @@ function renderTrainingPrescriptions() {
           <span class="cat-card-tag">${g.course}</span>
           <button class="insp-btn insp-btn-sm" onclick="switchView('catalog')">Find Course</button>
         </div>
-      </div>
-    `).join('')}</div>`;
+      </div>`;
+    }).join('')}</div>`;
 }
 
 function renderTrainingCourses() {
   const el = $('#trainCourseGrid');
   if (!el) return;
   const courses = [
-    { name: 'Li-Ion Fire Chemistry', provider: 'HCT', duration: '4 hours', mode: 'On-site + Virtual', tags: ['NFPA 855','NFPA 18A'] },
-    { name: 'F-500 EA Hands-On Lab', provider: 'HCT', duration: '8 hours', mode: 'On-site only', tags: ['NFPA 18A','NFPA 750'] },
-    { name: 'EPO & Electrical Safety', provider: 'HCT', duration: '4 hours', mode: 'On-site + Virtual', tags: ['NEC 645','NFPA 70E'] },
-    { name: 'HF Gas & Hazmat Response', provider: 'HCT', duration: '6 hours', mode: 'On-site only', tags: ['OSHA 1910','NFPA 472'] },
-    { name: 'Smart-LX Platform Certification', provider: 'Embedded Logix', duration: '2 days', mode: 'Virtual', tags: ['NFPA 72','NFPA 855'] },
-    { name: 'BESS Pre-Incident Planning', provider: 'HCT', duration: '3 hours', mode: 'Virtual', tags: ['NFPA 1620'] },
+    { name: 'Li-Ion Fire Chemistry', provider: 'HCT', duration: '4 hours', mode: 'On-site + Virtual', tags: ['NFPA 855','NFPA 18A'], priority: 'CRITICAL' },
+    { name: 'F-500 EA Hands-On Lab', provider: 'HCT', duration: '8 hours', mode: 'On-site only', tags: ['NFPA 18A','NFPA 750'], priority: 'CRITICAL' },
+    { name: 'EPO & Electrical Safety', provider: 'HCT', duration: '4 hours', mode: 'On-site + Virtual', tags: ['NEC 645','NFPA 70E'], priority: 'HIGH' },
+    { name: 'HF Gas & Hazmat Response', provider: 'HCT', duration: '6 hours', mode: 'On-site only', tags: ['OSHA 1910','NFPA 472'], priority: 'HIGH' },
+    { name: 'Smart-LX Platform Certification', provider: 'Embedded Logix', duration: '2 days', mode: 'Virtual', tags: ['NFPA 72','NFPA 855'], priority: 'MEDIUM' },
+    { name: 'BESS Pre-Incident Planning', provider: 'HCT', duration: '3 hours', mode: 'Virtual', tags: ['NFPA 1620'], priority: 'MEDIUM' },
   ];
+  const badgeCls = { 'CRITICAL': 'ss-badge-full', 'HIGH': 'ss-badge-partial', 'MEDIUM': '', 'LOW': '' };
   el.innerHTML = courses.map(c => `
     <div class="train-course">
       <div class="train-course-head">
         ${icon('package')} <span class="train-course-name">${c.name}</span>
-        <span class="cat-card-badge ${c.priority === 'CRITICAL' ? 'ss-badge-full' : c.priority === 'HIGH' ? 'ss-badge-partial' : ''}">${c.priority}</span>
+        <span class="cat-card-badge ${badgeCls[c.priority] || ''}">${c.priority}</span>
       </div>
       <div class="train-course-provider">${c.provider} &middot; ${c.duration} &middot; ${c.mode}</div>
       <div class="train-course-tags">${c.tags.map(t => `<span class="cat-card-tag">${t}</span>`).join('')}</div>
