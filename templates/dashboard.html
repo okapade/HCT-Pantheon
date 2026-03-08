@@ -353,11 +353,54 @@
     <!-- Settings ctx -->
     <div class="ctx-view" id="ctxSettings">
       <div class="ctx-section">
-        <div class="ctx-sh">Configuration</div>
+        <div class="ctx-sh">Account</div>
+        <div class="ctx-account-card">
+          <div class="ctx-account-name" id="ctxAccName">—</div>
+          <div class="ctx-account-org"  id="ctxAccOrg">—</div>
+          <div class="ctx-account-role" id="ctxAccRole">—</div>
+        </div>
+      </div>
+      <div class="ctx-sep"></div>
+      <div class="ctx-section">
+        <div class="ctx-sh">Navigate</div>
         <div class="ctx-nav-list">
-          <button class="ctx-nav-btn active">Preferences</button>
-          <button class="ctx-nav-btn">Facilities</button>
-          <button class="ctx-nav-btn">Team</button>
+          <button class="ctx-nav-btn" data-sett-tab="preferences" onclick="switchView('settings')">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
+              <path d="M6.5 1h3l.4 1.8a5 5 0 011.2.7l1.7-.7 1.5 2.5-1.3 1.2a5 5 0 010 1.4l1.3 1.2-1.5 2.5-1.7-.7a5 5 0 01-1.2.7L9.5 15h-3l-.4-1.8A5 5 0 015 12.5l-1.7.7L1.8 10.7 3 9.5a5 5 0 010-1.4L1.8 6.8 3.3 4.3 5 5a5 5 0 011.2-.7z"/>
+              <circle cx="8" cy="8" r="2"/>
+            </svg>
+            Preferences
+          </button>
+          <button class="ctx-nav-btn" data-sett-tab="facilities" onclick="switchView('settings')">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
+              <rect x="1" y="5" width="14" height="10" rx="1"/>
+              <path d="M5 5V3a3 3 0 016 0v2"/>
+            </svg>
+            Facilities
+          </button>
+          <button class="ctx-nav-btn" data-sett-tab="team" onclick="switchView('settings')">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
+              <circle cx="6" cy="5" r="2.5"/>
+              <path d="M1 14v-.5a5 5 0 0110 0v.5"/>
+              <circle cx="12" cy="5" r="2"/>
+              <path d="M14.5 14v-.3a4 4 0 00-2.8-3.8"/>
+            </svg>
+            Team
+          </button>
+        </div>
+      </div>
+      <div class="ctx-sep"></div>
+      <div class="ctx-section">
+        <div class="ctx-sh">Security</div>
+        <div class="ctx-nav-list">
+          <button class="ctx-nav-btn ctx-nav-danger" onclick="handleLogout()">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
+              <path d="M6 2H2a1 1 0 00-1 1v10a1 1 0 001 1h4"/>
+              <path d="M11 11l4-4-4-4"/>
+              <line x1="15" y1="7.5" x2="6" y2="7.5"/>
+            </svg>
+            Sign out
+          </button>
         </div>
       </div>
     </div>
@@ -607,17 +650,62 @@
             <button class="sett-tab" data-tab="team">Team</button>
           </div>
 
-          <div class="sett-panel active" id="settPreferences">
+          <div class="sett-panel active" id="settPreferencesPanel">
+            <div class="sett-section">
+              <div class="sett-sh">Account</div>
+              <div class="sett-row" id="srName">
+                <span class="sett-row-left"><span class="sett-label">Name</span><span class="sett-val" id="settName">—</span></span>
+                <button class="sett-edit-btn" onclick="settEdit('name')">Edit</button>
+                <div class="sett-inline-edit" id="siName">
+                  <input class="cf-input" id="siNameInput" placeholder="Your name">
+                  <div class="sett-inline-actions">
+                    <button class="cf-btn cf-btn-primary" onclick="settSave('name')">Save</button>
+                    <button class="cf-btn" onclick="settCancel('name')">Cancel</button>
+                  </div>
+                </div>
+              </div>
+              <div class="sett-row" id="srTitle">
+                <span class="sett-row-left"><span class="sett-label">Title</span><span class="sett-val" id="settTitle">—</span></span>
+                <button class="sett-edit-btn" onclick="settEdit('title')">Edit</button>
+                <div class="sett-inline-edit" id="siTitle">
+                  <input class="cf-input" id="siTitleInput" placeholder="Your title">
+                  <div class="sett-inline-actions">
+                    <button class="cf-btn cf-btn-primary" onclick="settSave('title')">Save</button>
+                    <button class="cf-btn" onclick="settCancel('title')">Cancel</button>
+                  </div>
+                </div>
+              </div>
+              <div class="sett-row" id="srOrg">
+                <span class="sett-row-left"><span class="sett-label">Organization</span><span class="sett-val" id="settOrg">—</span></span>
+                <button class="sett-edit-btn" onclick="settEdit('org')">Edit</button>
+                <div class="sett-inline-edit" id="siOrg">
+                  <input class="cf-input" id="siOrgInput" placeholder="Organization name">
+                  <div class="sett-inline-actions">
+                    <button class="cf-btn cf-btn-primary" onclick="settSave('org')">Save</button>
+                    <button class="cf-btn" onclick="settCancel('org')">Cancel</button>
+                  </div>
+                </div>
+              </div>
+              <div class="sett-row" id="srLoc">
+                <span class="sett-row-left"><span class="sett-label">Location</span><span class="sett-val" id="settLoc">—</span></span>
+                <button class="sett-edit-btn" onclick="settEdit('loc')">Edit</button>
+                <div class="sett-inline-edit" id="siLoc">
+                  <input class="cf-input" id="siLocInput" placeholder="City, State, Country">
+                  <div class="sett-inline-actions">
+                    <button class="cf-btn cf-btn-primary" onclick="settSave('loc')">Save</button>
+                    <button class="cf-btn" onclick="settCancel('loc')">Cancel</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="sett-section">
+              <div class="sett-sh">Role</div>
+              <div class="sett-role-chips" id="settRoleChips"></div>
+            </div>
             <div class="sett-section">
               <div class="sett-sh">System</div>
               <div class="sett-row"><span class="sett-label">Platform</span><span class="sett-val">Pantheon v1.0</span></div>
               <div class="sett-row"><span class="sett-label">Status</span><span class="sett-val"><span class="sett-dot dot-ok">●</span> Online</span></div>
-            </div>
-            <div class="sett-section">
-              <div class="sett-sh">User preferences</div>
-              <div class="sett-row"><span class="sett-label">Role</span><span class="sett-val" id="settRole">Not set</span></div>
-              <div class="sett-row"><span class="sett-label">Region</span><span class="sett-val" id="settRegion">Not set</span></div>
-              <div class="sett-row"><span class="sett-label">Default facility</span><span class="sett-val" id="settDefaultFacility">Not set</span></div>
             </div>
             <div class="sett-section">
               <div class="sett-sh">Notifications</div>
@@ -625,21 +713,80 @@
               <div class="sett-row"><span class="sett-label">Inspection reminders</span><span class="sett-val">Enabled</span></div>
               <div class="sett-row"><span class="sett-label">Emergency alerts</span><span class="sett-val">Enabled</span></div>
             </div>
+            <div class="sett-section sett-danger-zone">
+              <div class="sett-sh">Session</div>
+              <button class="sett-logout-btn" onclick="handleLogout()">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3">
+                  <path d="M6 2H2a1 1 0 00-1 1v10a1 1 0 001 1h4"/>
+                  <path d="M11 11l4-4-4-4"/>
+                  <line x1="15" y1="7.5" x2="6" y2="7.5"/>
+                </svg>
+                Sign out of Pantheon
+              </button>
+            </div>
           </div>
 
-          <div class="sett-panel" id="settFacilities">
+          <div class="sett-panel" id="settFacilitiesPanel">
             <div class="sett-section">
-              <div class="sett-sh">Saved facilities</div>
-              <div class="sett-empty">No facilities saved yet. Configure a facility from the home screen to save it here.</div>
+              <div class="sett-sh">Facility profile</div>
+              <div class="sett-row" id="srFactype">
+                <span class="sett-row-left"><span class="sett-label">Facility type</span><span class="sett-val" id="settFacType">—</span></span>
+                <button class="sett-edit-btn" onclick="settEdit('factype')">Edit</button>
+                <div class="sett-inline-edit" id="siFacType">
+                  <input class="cf-input" id="siFacTypeInput" placeholder="e.g. Data Center, BESS">
+                  <div class="sett-inline-actions">
+                    <button class="cf-btn cf-btn-primary" onclick="settSave('factype')">Save</button>
+                    <button class="cf-btn" onclick="settCancel('factype')">Cancel</button>
+                  </div>
+                </div>
+              </div>
+              <div class="sett-row" id="srChem">
+                <span class="sett-row-left"><span class="sett-label">Battery chemistry</span><span class="sett-val" id="settChem">—</span></span>
+                <button class="sett-edit-btn" onclick="settEdit('chem')">Edit</button>
+                <div class="sett-inline-edit" id="siChem">
+                  <input class="cf-input" id="siChemInput" placeholder="e.g. NMC, LFP">
+                  <div class="sett-inline-actions">
+                    <button class="cf-btn cf-btn-primary" onclick="settSave('chem')">Save</button>
+                    <button class="cf-btn" onclick="settCancel('chem')">Cancel</button>
+                  </div>
+                </div>
+              </div>
+              <div class="sett-row" id="srSupp">
+                <span class="sett-row-left"><span class="sett-label">Suppression system</span><span class="sett-val" id="settSupp">—</span></span>
+                <button class="sett-edit-btn" onclick="settEdit('supp')">Edit</button>
+                <div class="sett-inline-edit" id="siSupp">
+                  <input class="cf-input" id="siSuppInput" placeholder="e.g. F-500 EA, FM-200">
+                  <div class="sett-inline-actions">
+                    <button class="cf-btn cf-btn-primary" onclick="settSave('supp')">Save</button>
+                    <button class="cf-btn" onclick="settCancel('supp')">Cancel</button>
+                  </div>
+                </div>
+              </div>
+              <div class="sett-row" id="srDet">
+                <span class="sett-row-left"><span class="sett-label">Detection system</span><span class="sett-val" id="settDet">—</span></span>
+                <button class="sett-edit-btn" onclick="settEdit('det')">Edit</button>
+                <div class="sett-inline-edit" id="siDet">
+                  <input class="cf-input" id="siDetInput" placeholder="e.g. Smart-LX, VESDA">
+                  <div class="sett-inline-actions">
+                    <button class="cf-btn cf-btn-primary" onclick="settSave('det')">Save</button>
+                    <button class="cf-btn" onclick="settCancel('det')">Cancel</button>
+                  </div>
+                </div>
+              </div>
+              <div class="sett-row" id="srRegion">
+                <span class="sett-row-left"><span class="sett-label">Region / AHJ</span><span class="sett-val" id="settRegion">—</span></span>
+                <button class="sett-edit-btn" onclick="settEdit('region')">Edit</button>
+                <div class="sett-inline-edit" id="siRegion">
+                  <input class="cf-input" id="siRegionInput" placeholder="e.g. Georgia, US">
+                  <div class="sett-inline-actions">
+                    <button class="cf-btn cf-btn-primary" onclick="settSave('region')">Save</button>
+                    <button class="cf-btn" onclick="settCancel('region')">Cancel</button>
+                  </div>
+                </div>
+              </div>
             </div>
             <div class="sett-section">
-              <div class="sett-sh">Facility defaults</div>
-              <div class="sett-row"><span class="sett-label">Default battery chemistry</span><span class="sett-val">NMC</span></div>
-              <div class="sett-row"><span class="sett-label">Default suppression</span><span class="sett-val">FM-200</span></div>
-              <div class="sett-row"><span class="sett-label">Default region</span><span class="sett-val" id="settFacRegion">Not set</span></div>
-            </div>
-            <div class="sett-section">
-              <div class="sett-sh">Compliance standards</div>
+              <div class="sett-sh">Compliance standards active</div>
               <div class="sett-row"><span class="sett-label">NFPA 855 (BESS)</span><span class="sett-val">Active</span></div>
               <div class="sett-row"><span class="sett-label">NFPA 75 (IT Equipment)</span><span class="sett-val">Active</span></div>
               <div class="sett-row"><span class="sett-label">NFPA 13 (Sprinkler)</span><span class="sett-val">Active</span></div>
@@ -647,7 +794,7 @@
             </div>
           </div>
 
-          <div class="sett-panel" id="settTeam">
+          <div class="sett-panel" id="settTeamPanel">
             <div class="sett-section">
               <div class="sett-sh">Team members</div>
               <div class="sett-empty">No team members added. Invite colleagues to collaborate on facility assessments and simulations.</div>
