@@ -378,7 +378,7 @@
               <h1 class="role-hero-title">Life Safety OS</h1>
               <p class="role-hero-sub">Run a training simulation or file a live emergency. Both modes use the same AI intelligence engine — the difference is whether you're preparing or responding.</p>
             </div>
-            <div class="role-label">Select your role</div>
+            <div class="role-label">I am a...</div>
             <div class="role-grid" id="roleGrid"></div>
           </div>
 
@@ -390,6 +390,25 @@
           <div class="facility-selector hidden" id="facilitySelector">
             <div class="fs-label">Select facility type</div>
             <div class="fs-grid" id="fsGrid"></div>
+          </div>
+        </div>
+
+        <!-- Post-onboarding: location standards + product recommendations (shown after onboarding completes) -->
+        <div id="obStandardsBanner" class="ob-standards-banner hidden">
+          <div class="ob-banner-head">
+            <div>
+              <div class="ob-banner-title">Your jurisdiction is loaded.</div>
+            </div>
+            <span class="ob-banner-loc" id="obBannerLoc">—</span>
+            <button class="ob-banner-dismiss" onclick="document.getElementById('obStandardsBanner').classList.add('hidden')" aria-label="Dismiss">×</button>
+          </div>
+          <div class="ob-standards-list" id="obStandardsList"></div>
+          <div class="ob-products-title">Recommended for your facility</div>
+          <div class="ob-products-grid" id="obProductsGrid"></div>
+          <div class="ob-banner-actions">
+            <button class="cf-btn cf-btn-primary" onclick="switchView('simulate')">Run simulation</button>
+            <button class="cf-btn" onclick="switchView('catalog')">View full catalog</button>
+            <button class="cf-btn" onclick="switchView('training')">Training plan</button>
           </div>
         </div>
 
