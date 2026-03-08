@@ -4295,3 +4295,240 @@ function handleLogout() {
   }
 
 })();
+
+/* ══════════════════════════════════════════════════════════════════════════
+   STANDARDS MODULE — only surfaces after onboarding sets a region/facility
+   ══════════════════════════════════════════════════════════════════════════ */
+(function standardsModule() {
+
+  var STANDARDS_MAP = {
+    // BESS / ESS
+    'bess':        ['NFPA 855 (BESS)', 'NFPA 72 (Fire Alarm)', 'UL 9540A (ESS Testing)', 'IFC §1206'],
+    'ess':         ['NFPA 855 (BESS)', 'NFPA 72 (Fire Alarm)', 'UL 9540A (ESS Testing)'],
+    // Data center / IT
+    'data center': ['NFPA 75 (IT Equipment)', 'NFPA 76 (Telecom)', 'NFPA 13 (Sprinkler)', 'NFPA 72 (Fire Alarm)'],
+    'data':        ['NFPA 75 (IT Equipment)', 'NFPA 76 (Telecom)', 'NFPA 13 (Sprinkler)'],
+    // Industrial / warehouse
+    'warehouse':   ['NFPA 13 (Sprinkler)', 'NFPA 72 (Fire Alarm)', 'NFPA 30 (Flammable Liquids)'],
+    'industrial':  ['NFPA 13 (Sprinkler)', 'NFPA 72 (Fire Alarm)', 'NFPA 652 (Combustible Dust)'],
+    // EV / fleet
+    'ev':          ['NFPA 855 (BESS)', 'NFPA 13 (Sprinkler)', 'UL 9540A (ESS Testing)', 'IFC §1206.10'],
+    'fleet':       ['NFPA 855 (BESS)', 'NFPA 13 (Sprinkler)', 'UL 9540A (ESS Testing)'],
+    // Default
+    'default':     ['NFPA 72 (Fire Alarm)', 'NFPA 13 (Sprinkler)'],
+  };
+
+  // State overrides
+  var STATE_OVERRIDES = {
+    'california': ['CA Fire Code §3.09 (Enhanced Li-ion Provisions)'],
+    'new york':   ['NYC FC §608 (Stationary Storage)'],
+    'texas':      ['TFC Chapter 56 (ESS Requirements)'],
+    'florida':    ['FBC Fire §903 (Sprinkler Requirements)'],
+  };
+
+  function getStandardsForProfile(facilityType, region) {
+    var ft = (facilityType || '').toLowerCase();
+    var standards = [];
+
+    // Match facility type
+    var matched = false;
+    Object.keys(STANDARDS_MAP).forEach(function(key) {
+      if (!matched && key !== 'default' && ft.includes(key)) {
+        standards = STANDARDS_MAP[key].slice();
+        matched = true;
+      }
+    });
+    if (!matched) standards = STANDARDS_MAP['default'].slice();
+
+    // Add state overrides
+    var reg = (region || '').toLowerCase();
+    Object.keys(STATE_OVERRIDES).forEach(function(state) {
+      if (reg.includes(state)) {
+        STATE_OVERRIDES[state].forEach(function(s) {
+          if (standards.indexOf(s) === -1) standards.push(s);
+        });
+      }
+    });
+
+    return standards;
+  }
+
+  // Surface standards in the obStandardsBanner (home view, post-onboarding)
+  window.surfaceOnboardingStandards = function(facilityType, region) {
+    var standards = getStandardsForProfile(facilityType, region);
+    var banner = document.getElementById('obStandardsBanner');
+    var list   = document.getElementById('obStandardsList');
+    if (!banner || !list) return;
+
+    list.innerHTML = standards.map(function(s) {
+      return '<div class="ob-std-item"><span class="ob-std-dot">●</span>' + s + '</div>';
+    }).join('');
+
+    banner.classList.remove('hidden');
+  };
+
+  // Surface standards in Settings > Facilities panel
+  window.surfaceSettingsStandards = function(facilityType, region) {
+    var standards = getStandardsForProfile(facilityType, region);
+    var section = document.getElementById('settStandardsSection');
+    var list    = document.getElementById('settStandardsList');
+    if (!section || !list) return;
+
+    if (standards.length === 0) return;
+
+    list.innerHTML = standards.map(function(s) {
+      return '<div class="sett-row"><span class="sett-label">' + s + '</span><span class="sett-val">Active</span></div>';
+    }).join('');
+
+    section.classList.remove('hidden');
+  };
+
+  // Hook: called when profile is applied (onboarding or return)
+  var _origApplied = window.applyProfileToUI;
+  window.applyProfileToUI = function() {
+    if (typeof _origApplied === 'function') _origApplied.apply(this, arguments);
+    var u = (typeof USER_PROFILE !== 'undefined') ? USER_PROFILE : {};
+    var fc = (typeof facilityConfig !== 'undefined') ? facilityConfig : null;
+    var facType = (fc && fc.type) || u.facility_type || '';
+    var region  = (fc && fc.region) || u.location || u.region || '';
+
+    if (facType || region) {
+      // Only surface standards if we have actual facility context from onboarding
+      if (u.onboarding_complete === 'true' || sessionStorage.getItem('pantheon_onboarding_done')) {
+        window.surfaceOnboardingStandards(facType, region);
+        window.surfaceSettingsStandards(facType, region);
+      }
+    }
+  };
+
+})();
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SHEETS LOGGER — logs all key interactions to HCT-Pantheon Google Sheet
+   Sheet ID: 1gpVD1AyRe6UR4o_tU9nFMArczV7YX26ZLQrSWtwU8n0
+   Tabs: Users, Activity Log, Simulations, AI Conversations, Product Interest
+   ══════════════════════════════════════════════════════════════════════════ */
+(function sheetsLogger() {
+
+  var SHEETS_ENDPOINT = '/api/log-event'; // Backend endpoint that writes to Sheets
+
+  function logEvent(tab, payload) {
+    try {
+      fetch(SHEETS_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ tab: tab, data: payload, ts: new Date().toISOString() })
+      }).catch(function() {}); // fire-and-forget, never block UI
+    } catch (e) {}
+  }
+
+  // Activity log helper
+  function logActivity(action, detail) {
+    var u = (typeof USER_PROFILE !== 'undefined') ? USER_PROFILE : {};
+    logEvent('Activity Log', {
+      timestamp: new Date().toISOString(),
+      user:      u.email || u.name || 'unknown',
+      action:    action,
+      detail:    detail || '',
+    });
+  }
+
+  // ── Patch handleLogout to log before redirecting ──
+  var _origLogout = window.handleLogout;
+  window.handleLogout = function() {
+    logActivity('logout', 'User signed out');
+    if (typeof _origLogout === 'function') _origLogout.apply(this, arguments);
+    else {
+      sessionStorage.clear();
+      fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+        .catch(function() {}).finally(function() { window.location.href = '/login'; });
+    }
+  };
+
+  // ── Log simulation start ──
+  window.logSimulationStart = function(scenarioName, facilityType, battery, suppression) {
+    var u = (typeof USER_PROFILE !== 'undefined') ? USER_PROFILE : {};
+    logEvent('Simulations', {
+      timestamp:   new Date().toISOString(),
+      user:        u.email || u.name || 'unknown',
+      org:         u.org || '',
+      scenario:    scenarioName || '',
+      facility:    facilityType || '',
+      battery:     battery || '',
+      suppression: suppression || '',
+      status:      'started',
+    });
+    logActivity('simulation_start', scenarioName);
+  };
+
+  // ── Log simulation complete ──
+  window.logSimulationComplete = function(scenarioName, result) {
+    var u = (typeof USER_PROFILE !== 'undefined') ? USER_PROFILE : {};
+    logEvent('Simulations', {
+      timestamp:   new Date().toISOString(),
+      user:        u.email || u.name || 'unknown',
+      org:         u.org || '',
+      scenario:    scenarioName || '',
+      result:      result || 'completed',
+      status:      'complete',
+    });
+    logActivity('simulation_complete', scenarioName);
+  };
+
+  // ── Log AI conversation ──
+  window.logAIConversation = function(view, userMessage, aiResponse) {
+    var u = (typeof USER_PROFILE !== 'undefined') ? USER_PROFILE : {};
+    logEvent('AI Conversations', {
+      timestamp: new Date().toISOString(),
+      user:      u.email || u.name || 'unknown',
+      view:      view || '',
+      message:   (userMessage || '').substring(0, 500),
+      response:  (aiResponse || '').substring(0, 500),
+    });
+  };
+
+  // ── Log product interest (catalog card click / inspection request) ──
+  window.logProductInterest = function(productName, action) {
+    var u = (typeof USER_PROFILE !== 'undefined') ? USER_PROFILE : {};
+    logEvent('Product Interest', {
+      timestamp: new Date().toISOString(),
+      user:      u.email || u.name || 'unknown',
+      org:       u.org || '',
+      product:   productName || '',
+      action:    action || 'view',
+    });
+  };
+
+  // ── Log page activity on boot (login event) ──
+  document.addEventListener('DOMContentLoaded', function() {
+    // Give USER_PROFILE time to load from /api/auth/me
+    setTimeout(function() {
+      var u = (typeof USER_PROFILE !== 'undefined') ? USER_PROFILE : {};
+      if (u.email || u.name) {
+        logActivity('session_start', 'Dashboard loaded');
+        // Update last login in Users sheet
+        logEvent('Users', {
+          action:     'last_login_update',
+          email:      u.email || '',
+          name:       u.name || '',
+          last_login: new Date().toISOString(),
+        });
+      }
+    }, 2500);
+  });
+
+  // ── Expose for manual use ──
+  window.sheetsLog = logEvent;
+  window.logActivity = logActivity;
+
+})();
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   INVITE TEAM STUB
+   ══════════════════════════════════════════════════════════════════════════ */
+window.handleInviteTeam = function() {
+  showConfirm('Team invites coming soon. We\'ll notify you when this feature is live.');
+};
