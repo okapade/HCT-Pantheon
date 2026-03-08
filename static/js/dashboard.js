@@ -4005,7 +4005,7 @@ function renderStarterPrompts(userName) {
   var existing = document.getElementById('starterGrid');
   if (existing) return; // only once
 
-  var greeting = userName ? ('Welcome back, ' + userName.split(' ')[0] + '.') : 'Life Safety OS.';
+  var greeting = userName ? ('Hello, ' + userName.split(' ')[0] + '.') : 'Life Safety OS.';
   var grid = document.createElement('div');
   grid.id = 'starterGrid';
   grid.style.cssText = 'max-width:680px;width:100%;margin-top:20px;display:none'; // hidden, revealed after role selected
@@ -4277,7 +4277,7 @@ function handleLogout() {
     var heroTitle = document.getElementById('heroTitle');
     if (heroTitle && data.name) {
       var first = data.name.split(' ')[0];
-      heroTitle.textContent = 'Welcome back, ' + first + '.';
+      heroTitle.textContent = 'Pantheon';
     }
 
     /* 7. Apply full profile UI (settings panel, ctx panel, chips) */
