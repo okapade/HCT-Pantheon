@@ -827,6 +827,31 @@ function populateCatalog() {
 }
 function getAllCatalogItems() {
   const items = [];
+  /* === MICELLE MIST — F-500 EA DELIVERY TECHNOLOGY === */
+  items.push({
+    id: 'micelle-mist', name: 'Micelle Mist™ Delivery System', cat: 'suppression', category: 'HCT · Li-Ion Suppression', desc: 'Encapsulator agent delivery engineered for lithium-ion battery rooms. Spherical micelle technology surrounds each droplet, acting on all four fire tetrahedron legs simultaneously — flammability, explosivity, toxicity, and heat.', cost_range: 'Contact HCT', standards: ['NFPA 18A', 'NFPA 855', 'UL 9540A'],
+    details: {
+      how: 'Micelle Mist™ leverages the molecular behavior of F-500 EA® Encapsulator Agent. Each water droplet is surrounded by F-500 EA® molecules forming a spherical micelle, driving heat transfer internally for rapid cooling that far exceeds plain water. Unlike foam (which acts mechanically) or FM-200 (which acts on chain reactions only), Micelle Mist simultaneously encapsulates fuel to prevent re-ignition, interrupts free radical chain reactions, and reduces HF gas concentration — the three killing vectors of Li-ion thermal runaway.',
+      highlights: [
+        'Acts on all 4 fire tetrahedron legs simultaneously — the only suppression approach to do so',
+        'Micelle encapsulation prevents polar and non-polar fuel re-ignition',
+        'Reduces hydrogen fluoride (HF) gas — the primary Li-ion fatality risk',
+        'Rapid heat absorption well beyond plain water cooling capacity',
+        'Fluorine-free, biodegradable, non-corrosive — no environmental remediation required',
+        'Validated for Class A, B (2D & 3D), C, D, and Li-ion fires'
+      ],
+      applications: [
+        'Lithium-ion BESS / ESS battery rooms',
+        'Data center UPS battery arrays',
+        'EV charging stations and battery storage',
+        'Aircraft MRO hangars (FAA AC 150/5210-6E)',
+        'Marine battery compartments',
+        'Manufacturing battery lines'
+      ],
+      testing: 'Validated across 15+ years of third-party testing. GM, Tesla, ConEdison, Port Authority NY/NJ, NIOSH, and Jaguar Land Rover have all independently tested the encapsulator agent at the core of Micelle Mist technology. Recognized in NFPA 18A Annex 4.3.',
+      url: 'https://hct-world.com/f-500-encapsulator-agent-f-500-ea/'
+    }
+  });
   /* === HCT AGENTS === */
   items.push({
     id: 'f500ea', name: 'F-500 EA® Encapsulator Agent', cat: 'suppression', category: 'HCT · Suppression Agent', desc: 'Multi-class fire suppression agent with micelle technology. Addresses flammability, explosivity, and toxicity on Li-ion, Class A/B/C/D fires. Fluorine-free, biodegradable, noncorrosive.', cost_range: 'Contact HCT', standards: ['NFPA 18A', 'cULus', 'NEN NTA 8133', 'FAA AC 150/5210-6E'],
@@ -3882,10 +3907,10 @@ var SUGGESTION_SETS = {
 };
 
 var CHIP_ICONS = {
-  shield: '<svg fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 16 16"><path d="M8 1l5 2.5v4c0 3.5-2.5 6-5 7C5.5 13.5 3 11 3 7.5v-4z" stroke-width="1.3"/></svg>',
-  fire:   '<svg fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 16 16"><path d="M8 2c0 3-4 5-4 8a4 4 0 008 0c0-3-4-5-4-8z" stroke-width="1.3"/></svg>',
-  check:  '<svg fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 16 16"><polyline points="2,8 6,12 14,4" stroke-width="1.8"/></svg>',
-  star:   '<svg fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 16 16"><path d="M8 1l2 4 5 .5-3.5 3.5 1 5L8 12l-4.5 2 1-5L1 5.5 6 5z" stroke-width="1.3"/></svg>'
+  shield: '<svg viewBox="0 0 16 16"><path d="M8 1l5 2.5v4c0 3.5-2.5 6-5 7C5.5 13.5 3 11 3 7.5v-4z" stroke-width="1.3"/></svg>',
+  fire:   '<svg viewBox="0 0 16 16"><path d="M8 2c0 3-4 5-4 8a4 4 0 008 0c0-3-4-5-4-8z" stroke-width="1.3"/></svg>',
+  check:  '<svg viewBox="0 0 16 16"><polyline points="2,8 6,12 14,4" stroke-width="1.8"/></svg>',
+  star:   '<svg viewBox="0 0 16 16"><path d="M8 1l2 4 5 .5-3.5 3.5 1 5L8 12l-4.5 2 1-5L1 5.5 6 5z" stroke-width="1.3"/></svg>'
 };
 
 function renderSuggestions(containerEl, chips) {
@@ -4028,4 +4053,71 @@ document.addEventListener('DOMContentLoaded', function() {
       if (sg) sg.style.display = 'grid';
     }
   }, 800);
+})();
+
+/* ── LOGOUT ─────────────────────────────────────────────────────────────── */
+function handleLogout() {
+  if (!confirm('Sign out of Pantheon?')) return;
+  // Clear session storage
+  sessionStorage.clear();
+  try { localStorage.removeItem('pantheon_session'); } catch(e) {}
+  // Call server logout endpoint
+  fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+    .catch(function() {})
+    .finally(function() {
+      window.location.href = '/login';
+    });
+}
+
+/* ── POPULATE ctxSettings ACCOUNT CARD ─────────────────────────────────── */
+(function patchApplyProfileForCtx() {
+  var _origApply = window.applyProfileToUI;
+  if (typeof _origApply !== 'function') {
+    // Hook later when defined
+    document.addEventListener('DOMContentLoaded', function() {
+      var _a = window.applyProfileToUI;
+      if (_a) window.applyProfileToUI = wrapWithCtxUpdate(_a);
+    });
+    return;
+  }
+  window.applyProfileToUI = wrapWithCtxUpdate(_origApply);
+
+  function wrapWithCtxUpdate(fn) {
+    return function() {
+      fn.apply(this, arguments);
+      var u = (typeof USER_PROFILE !== 'undefined') ? USER_PROFILE : {};
+      var nameEl = document.getElementById('ctxAccName');
+      var orgEl  = document.getElementById('ctxAccOrg');
+      var roleEl = document.getElementById('ctxAccRole');
+      if (nameEl) nameEl.textContent = u.name || '—';
+      if (orgEl)  orgEl.textContent  = u.org  || u.organization || '—';
+      if (roleEl) roleEl.textContent = u.role  || u.title || '—';
+    };
+  }
+})();
+
+/* ── SETTINGS TABS — use new panel IDs (settPreferencesPanel etc.) ────── */
+(function wireSettingsTabs2() {
+  document.addEventListener('DOMContentLoaded', function() {
+    // Map tab data-tab values to panel IDs
+    var panelMap = {
+      preferences: 'settPreferencesPanel',
+      facilities:  'settFacilitiesPanel',
+      team:        'settTeamPanel'
+    };
+    var tabs = document.querySelectorAll('.sett-tabs .sett-tab');
+    tabs.forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        var target = tab.dataset.tab;
+        Object.values(panelMap).forEach(function(pid) {
+          var p = document.getElementById(pid);
+          if (p) p.classList.remove('active');
+        });
+        var activePanel = document.getElementById(panelMap[target]);
+        if (activePanel) activePanel.classList.add('active');
+      });
+    });
+  });
 })();
