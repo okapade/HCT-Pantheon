@@ -3882,10 +3882,10 @@ var SUGGESTION_SETS = {
 };
 
 var CHIP_ICONS = {
-  shield: '<svg viewBox="0 0 16 16"><path d="M8 1l5 2.5v4c0 3.5-2.5 6-5 7C5.5 13.5 3 11 3 7.5v-4z" stroke-width="1.3"/></svg>',
-  fire:   '<svg viewBox="0 0 16 16"><path d="M8 2c0 3-4 5-4 8a4 4 0 008 0c0-3-4-5-4-8z" stroke-width="1.3"/></svg>',
-  check:  '<svg viewBox="0 0 16 16"><polyline points="2,8 6,12 14,4" stroke-width="1.8"/></svg>',
-  star:   '<svg viewBox="0 0 16 16"><path d="M8 1l2 4 5 .5-3.5 3.5 1 5L8 12l-4.5 2 1-5L1 5.5 6 5z" stroke-width="1.3"/></svg>'
+  shield: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8 1l5 2.5v4c0 3.5-2.5 6-5 7C5.5 13.5 3 11 3 7.5v-4z"/></svg>',
+  fire:   '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8 2c0 3-4 5-4 8a4 4 0 008 0c0-3-4-5-4-8z"/></svg>',
+  check:  '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="2,8 6,12 14,4"/></svg>',
+  star:   '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8 1l2 4 5 .5-3.5 3.5 1 5L8 12l-4.5 2 1-5L1 5.5 6 5z"/></svg>'
 };
 
 function renderSuggestions(containerEl, chips) {
