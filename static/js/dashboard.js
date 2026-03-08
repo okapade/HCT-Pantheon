@@ -4121,3 +4121,177 @@ function handleLogout() {
     });
   });
 })();
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ONBOARDING BRIDGE
+   When a user arrives from onboarding (or returns as a logged-in user
+   with a saved profile), skip the "I am a..." role selector entirely
+   and drop them straight into their configured dashboard state.
+
+   Three entry paths handled:
+   1. Fresh from onboarding.html  → sessionStorage flag 'pantheon_ob_data'
+   2. Returning user              → USER_PROFILE from /api/auth/me
+   3. Manual test                 → window.simulateOnboardingReturn()
+   ══════════════════════════════════════════════════════════════════════════ */
+(function onboardingBridge() {
+
+  /* ── Map onboarding role labels → dashboard role IDs ── */
+  var ROLE_MAP = {
+    'facility manager':   'facility-mgr',
+    'facility-manager':   'facility-mgr',
+    'facility-mgr':       'facility-mgr',
+    'first responder':    'first-responder',
+    'first-responder':    'first-responder',
+    'firefighter':        'first-responder',
+    'fire chief':         'first-responder',
+    'insurance':          'insurance',
+    'insurance / risk':   'insurance',
+    'ahj':                'ahj',
+    'ahj inspector':      'ahj',
+    'fire marshal':       'ahj',
+    'engineer':           'engineer',
+    'engineer / ehs':     'engineer',
+    'ehs':                'engineer',
+    'executive':          'executive',
+    'c-suite':            'executive',
+  };
+
+  function normaliseRole(raw) {
+    if (!raw) return 'facility-mgr';
+    var key = raw.toLowerCase().trim();
+    return ROLE_MAP[key] || (key.startsWith('other:') ? key : 'facility-mgr');
+  }
+
+  /* ── The core: apply profile and skip the selector screens ── */
+  function applyOnboardingData(data) {
+    if (!data) return;
+
+    /* 1. Merge into USER_PROFILE */
+    USER_PROFILE = Object.assign({}, USER_PROFILE, data);
+
+    /* 2. Set global userRole so every other function sees it */
+    var roleId = normaliseRole(data.role);
+    userRole   = roleId;
+
+    /* 3. Set facilityConfig from profile if not already set */
+    if (!facilityConfig && (data.facility_type || data.battery || data.suppression)) {
+      facilityConfig = {
+        type:        data.facility_type || '',
+        typeName:    data.facility_type || '',
+        battery:     data.chemistry     || data.battery     || '',
+        suppression: data.suppression   || '',
+        detection:   data.detection     || '',
+        region:      data.location      || data.region      || '',
+        modules:     data.modules       || '',
+      };
+    }
+
+    /* 4. Hide the role selector, show hero + facility selector */
+    var rs = document.getElementById('roleSelector');
+    var heroSection      = document.getElementById('heroSection');
+    var facilitySelector = document.getElementById('facilitySelector');
+    var heroSub          = document.getElementById('heroSub');
+    var configFlow       = document.getElementById('configFlow');
+
+    var subs = {
+      'facility-mgr':    'Configure your facility. Assess suppression readiness. Get compliance documentation.',
+      'first-responder': 'Assess suppression systems and hazmat exposure. Access tactical response data.',
+      'insurance':       'Evaluate facility risk profile. Model loss scenarios. Generate underwriting documentation.',
+      'ahj':             'Verify suppression compliance against NFPA. Generate deficiency reports.',
+      'engineer':        'Specify detection and suppression systems. Validate chemistry compatibility.',
+      'executive':       'Review risk exposure and financial impact. Evaluate countermeasure ROI.',
+    };
+
+    if (rs)              rs.classList.add('hidden');
+    if (heroSection)     heroSection.classList.remove('hidden');
+    if (facilitySelector) facilitySelector.classList.remove('hidden');
+    if (heroSub)         heroSub.textContent = subs[roleId] || subs['facility-mgr'];
+
+    /* 5. If config flow is available and facility not yet set, skip straight to chat */
+    if (configFlow && facilityConfig && facilityConfig.type) {
+      configFlow.classList.add('hidden');
+    }
+
+    /* 6. Update hero title with name if present */
+    var heroTitle = document.getElementById('heroTitle');
+    if (heroTitle && data.name) {
+      var first = data.name.split(' ')[0];
+      heroTitle.textContent = 'Welcome back, ' + first + '.';
+    }
+
+    /* 7. Apply full profile UI (settings panel, ctx panel, chips) */
+    applyProfileToUI();
+
+    /* 8. Pre-select the matching role card visually */
+    var cards = document.querySelectorAll('.role-card');
+    cards.forEach(function(card) {
+      card.classList.toggle('selected', card.dataset.role === roleId);
+    });
+
+    /* 9. Pre-select facility card if we know the type */
+    if (facilityConfig && facilityConfig.type) {
+      var fCards = document.querySelectorAll('#fsGrid .fs-card, #fsGrid [data-type]');
+      fCards.forEach(function(card) {
+        var t = (card.dataset.type || '').toLowerCase();
+        var ft = (facilityConfig.type || '').toLowerCase();
+        card.classList.toggle('selected', t && ft && (t.includes(ft) || ft.includes(t)));
+      });
+    }
+
+    console.log('[Pantheon] Onboarding bridge applied — role:', roleId, '| facility:', facilityConfig?.type || '—');
+  }
+
+  /* ── Entry path 1: sessionStorage data from onboarding.html ── */
+  function checkSessionOnboarding() {
+    try {
+      var raw = sessionStorage.getItem('pantheon_ob_data');
+      if (!raw) return false;
+      var data = JSON.parse(raw);
+      sessionStorage.removeItem('pantheon_ob_data'); // consume once
+      applyOnboardingData(data);
+      return true;
+    } catch (e) { return false; }
+  }
+
+  /* ── Entry path 2: returning user — patch applyProfileToUI ── */
+  var _origApply = window.applyProfileToUI;
+  window.applyProfileToUI = function() {
+    if (typeof _origApply === 'function') _origApply.apply(this, arguments);
+    var u = USER_PROFILE;
+    if (u && u.role && u.name) {
+      /* User has a saved profile — skip role selector */
+      applyOnboardingData(u);
+    }
+  };
+
+  /* ── Entry path 3: manual test helper ── */
+  window.simulateOnboardingReturn = function(overrides) {
+    var demo = Object.assign({
+      name:          'Alex Rivera',
+      org:           'GridCore Energy',
+      role:          'facility-mgr',
+      location:      'California, US',
+      facility_type: 'BESS',
+      battery:       'NMC',
+      suppression:   'FM-200',
+      detection:     'Standard smoke',
+    }, overrides || {});
+    sessionStorage.setItem('pantheon_ob_data', JSON.stringify(demo));
+    location.reload();
+  };
+
+  /* ── Boot: run on DOMContentLoaded ── */
+  function boot() {
+    /* Check sessionStorage first (fresh from onboarding) */
+    if (checkSessionOnboarding()) return;
+    /* Otherwise wait for loadUserProfile() to fire applyProfileToUI */
+    /* The patched applyProfileToUI above handles the returning-user case */
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+
+})();
