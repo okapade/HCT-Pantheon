@@ -644,6 +644,184 @@
     }, 350);
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════
+     POST-ONBOARDING: Surface location standards + product recommendations
+     Called after walkthrough completes or on every load when profile exists.
+     ═══════════════════════════════════════════════════════════════════════ */
+
+  /* Product recommendation engine — maps jurisdiction + facility type to HCT products */
+  var PRODUCT_CATALOG = {
+    'micelle-mist': {
+      name: 'Micelle Mist™ — F-500 EA Delivery',
+      why: 'Encapsulator agent delivery optimised for Li-ion battery rooms. Micelle technology surrounds each water droplet, acting on all four fire tetrahedron legs simultaneously.',
+      std: 'NFPA 18A · UL 9540A',
+      action: function() { if (typeof switchView === 'function') switchView('catalog'); }
+    },
+    'f500ea': {
+      name: 'F-500 EA® Encapsulator Agent',
+      why: 'Fluorine-free, biodegradable encapsulator. Validated for Li-ion thermal runaway — addresses flammability, explosivity, and HF gas toxicity.',
+      std: 'NFPA 18A · cULus · NFPA 855',
+      action: function() { if (typeof switchView === 'function') switchView('catalog'); }
+    },
+    'smartlx': {
+      name: 'Smart-LX® Detection System',
+      why: 'AI-powered thermal + off-gas monitoring. Detects thermal runaway onset before ignition — required for NFPA 855 compliance in ESS installations.',
+      std: 'NFPA 72 · NFPA 855',
+      action: function() { if (typeof switchView === 'function') switchView('catalog'); }
+    },
+    'veep': {
+      name: 'VEEP System',
+      why: 'Fully integrated detect-prevent-suppress loop. Smart-LX® triggers Diamond Doser® for autonomous F-500 EA delivery — no manual intervention.',
+      std: 'NFPA 18A · NFPA 69',
+      action: function() { if (typeof switchView === 'function') switchView('catalog'); }
+    },
+    'diamond-doser': {
+      name: 'Diamond Doser® Proportioner',
+      why: 'Precision F-500 EA injection into existing sprinkler or deluge systems. Water-driven — no power required. Retrofit-compatible.',
+      std: 'NFPA 18A · NFPA 750',
+      action: function() { if (typeof switchView === 'function') switchView('catalog'); }
+    }
+  };
+
+  /* Derive which products to surface based on facility config */
+  function deriveRecommendedProducts() {
+    var fc   = (typeof facilityConfig !== 'undefined') ? facilityConfig  : {};
+    var u    = (typeof USER_PROFILE    !== 'undefined') ? USER_PROFILE    : {};
+    var supp = (fc.suppression || u.suppression || '').toLowerCase();
+    var det  = (fc.detection   || u.detection   || '').toLowerCase();
+    var chem = (fc.battery     || u.chemistry   || '').toLowerCase();
+
+    var picks = [];
+
+    // Always surface Micelle Mist for Li-ion facilities
+    var isLiIon = !chem || chem.includes('nmc') || chem.includes('nca') || chem.includes('lfp') || chem.includes('li');
+    if (isLiIon) picks.push('micelle-mist');
+
+    // F-500 EA if no encapsulator present
+    var hasF500 = supp.includes('f-500') || supp.includes('f500') || supp.includes('encapsul');
+    if (!hasF500) picks.push('f500ea');
+
+    // Smart-LX if no advanced detection
+    var hasSmartLX = det.includes('smart') || det.includes('slx') || det.includes('thermal') || det.includes('camera');
+    if (!hasSmartLX) picks.push('smartlx');
+
+    // VEEP if both suppression and detection are gaps
+    if (!hasF500 && !hasSmartLX) picks.push('veep');
+    else picks.push('diamond-doser');
+
+    // Return max 4 unique
+    var seen = {};
+    return picks.filter(function(id) {
+      if (seen[id]) return false;
+      seen[id] = true;
+      return true;
+    }).slice(0, 4);
+  }
+
+  /* Build jurisdiction standards list based on location */
+  function buildJurisdictionStandards(loc) {
+    var j = parseJurisdictionFallback(loc);
+    var fc = (typeof facilityConfig !== 'undefined') ? facilityConfig : {};
+    var supp = (fc.suppression || '').toLowerCase();
+    var det  = (fc.detection   || '').toLowerCase();
+
+    var base = [
+      { code: 'NFPA 855', label: 'ESS Installation Standard', gap: !supp || supp === 'none' },
+      { code: 'NFPA 18A', label: 'Encapsulator Agent', gap: !supp.includes('f-500') && !supp.includes('f500') },
+      { code: 'NFPA 72',  label: 'Fire Alarm & Detection', gap: !det || det === 'none' },
+      { code: 'NFPA 13',  label: 'Sprinkler Systems', gap: false },
+      { code: 'UL 9540A', label: 'ESS Fire Testing', gap: false },
+    ];
+
+    // State-specific additions
+    if (j.state === 'CA') {
+      base.push({ code: 'CFC §1206', label: 'California Fire Code — ESS', gap: false });
+      base.push({ code: 'NFPA 68',   label: 'Explosion Protection (CA)', gap: false });
+    }
+    if (j.state === 'TX') base.push({ code: 'TFC Chapter 12', label: 'Texas Fire Code', gap: false });
+    if (j.state === 'NY') base.push({ code: 'NYC FC §608',    label: 'NYC Fire Code — Batteries', gap: false });
+    if (j.state === 'FL') base.push({ code: 'FFC §1206',      label: 'Florida Fire Code — ESS', gap: false });
+    if (j.country === 'UK') {
+      base = [
+        { code: 'BS EN 62619', label: 'Battery Safety — UK', gap: false },
+        { code: 'BS 9999',     label: 'Fire Safety in Buildings', gap: false },
+        { code: 'IEC 62933',   label: 'ESS Performance', gap: false },
+        { code: 'NFPA 855',    label: 'ESS Standard (adopted)', gap: false },
+      ];
+    }
+    if (j.country === 'AU') {
+      base = [
+        { code: 'AS 1851',   label: 'Fire Protection Maintenance', gap: false },
+        { code: 'AS/NZS 3000', label: 'Wiring Rules', gap: false },
+        { code: 'NFPA 855',  label: 'ESS Standard (adopted)', gap: false },
+      ];
+    }
+    return base;
+  }
+
+  /* Render the post-onboarding standards + product banner */
+  function renderOnboardingBanner(loc) {
+    var banner = document.getElementById('obStandardsBanner');
+    var locLabel = document.getElementById('obBannerLoc');
+    var stdsList = document.getElementById('obStandardsList');
+    var productsGrid = document.getElementById('obProductsGrid');
+    if (!banner || !stdsList || !productsGrid) return;
+
+    if (locLabel) locLabel.textContent = loc;
+
+    // Standards
+    var stds = buildJurisdictionStandards(loc);
+    stdsList.innerHTML = stds.map(function(s) {
+      var cls = s.gap ? ' ob-std-gap' : ' ob-std-ok';
+      return '<span class="ob-std-tag' + cls + '" title="' + esc(s.label) + '">' + esc(s.code) + (s.gap ? ' ⚠' : ' ✓') + '</span>';
+    }).join('');
+
+    // Products
+    var picks = deriveRecommendedProducts();
+    productsGrid.innerHTML = picks.map(function(id) {
+      var p = PRODUCT_CATALOG[id]; if (!p) return '';
+      return '<div class="ob-product-card" onclick="(' + p.action.toString() + ')()">' +
+        '<div class="ob-product-name">' + esc(p.name) + '</div>' +
+        '<div class="ob-product-why">' + esc(p.why) + '</div>' +
+        '<div class="ob-product-std">' + esc(p.std) + '</div>' +
+      '</div>';
+    }).join('');
+
+    banner.classList.remove('hidden');
+  }
+
+  /* Hook into the onboarding walkthrough to show banner after step 1 */
+  var _origRunWalkthrough = null;
+  function hookWalkthroughForBanner() {
+    var _orig = window.runWalkthrough;
+    if (!_orig) return;
+    window.runWalkthrough = function(u) {
+      _orig(u);
+      // After a short delay, also render the banner if location is known
+      var loc = u.location || (typeof facilityConfig !== 'undefined' && facilityConfig ? facilityConfig.region : '');
+      if (loc) {
+        setTimeout(function() { renderOnboardingBanner(loc); }, 1800);
+      }
+    };
+  }
+
+  /* Also trigger banner when profile is loaded with a location */
+  function maybeTriggerBannerFromProfile() {
+    var u   = (typeof USER_PROFILE   !== 'undefined') ? USER_PROFILE   : {};
+    var fc  = (typeof facilityConfig !== 'undefined') ? facilityConfig : {};
+    var loc = fc.region || u.location || '';
+    if (loc) renderOnboardingBanner(loc);
+  }
+
+  /* Expose for external trigger (e.g. after config step 1 region entry) */
+  window.onRegionEntered = window.onRegionEntered || function(locStr) {
+    if (locStr) {
+      renderOnboardingBanner(locStr);
+      triggerStandardsFromLocation(locStr);
+    }
+  };
+
+
   /* Also expose a manual trigger for testing */
   window.startWalkthrough = function() {
     WALKTHROUGH_SHOWN = false;
@@ -661,11 +839,14 @@
     patchTrainingGaps();
     patchTrainingCourses();
     patchMonitor();
+    // Wire banner hook after a short delay to let dashboard.js set up
+    setTimeout(hookWalkthroughForBanner, 500);
 
     // If USER_PROFILE is already populated (page cached), apply now
     if (typeof USER_PROFILE !== 'undefined' && USER_PROFILE && USER_PROFILE.location) {
       triggerStandardsFromLocation(USER_PROFILE.location);
       checkFirstLoginWalkthrough(USER_PROFILE);
+      maybeTriggerBannerFromProfile();
     }
 
     // Re-render training if we're already on that view
