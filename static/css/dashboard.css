@@ -589,6 +589,26 @@ input, textarea { font-family:var(--sans) }
 .sett-logout-btn:hover { background:var(--red-bg); transform:none }
 .sett-logout-btn svg   { flex-shrink:0 }
 
+/* ── SETTINGS NOTE / INVITE BTN / STANDARDS LIST ────────── */
+.sett-note {
+  font:400 12px/1.6 var(--sans); color:var(--t3); margin-top:10px;
+  padding:8px 10px; background:var(--s1); border-radius:var(--r-sm);
+  border:1px solid var(--b0);
+}
+.sett-standards-list { display:flex; flex-direction:column; gap:5px; margin-top:4px }
+.sett-standards-list .sett-row { margin:0 }
+.sett-invite-btn {
+  display:inline-flex; align-items:center; gap:7px; margin-top:14px;
+  padding:10px 18px; background:var(--s1); border:1px solid var(--b1);
+  border-radius:var(--r-sm); color:var(--t1); cursor:pointer;
+  font:500 13px/1 var(--sans); transition:all .14s;
+}
+.sett-invite-btn:hover { border-color:var(--acc); color:var(--acc); background:var(--s2) }
+.sett-invite-btn svg { flex-shrink:0; color:var(--t3) }
+/* Settings section spacing tightened */
+.sett-section + .sett-section { margin-top:28px }
+.sett-section:first-child     { margin-top:0 }
+
 /* ── CHANNELS ────────────────────────────────────────────── */
 .chan-head { padding:12px 48px; border-bottom:1px solid var(--b0); display:flex; align-items:baseline; gap:7px; flex-shrink:0; background:var(--s0) }
 .chan-hash { font:700 18px/1 var(--mono); color:var(--t3) }
