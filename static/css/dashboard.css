@@ -541,26 +541,53 @@ input, textarea { font-family:var(--sans) }
 .cat-search svg { width:14px; height:14px; color:var(--t3); flex-shrink:0 }
 .cat-search input { border:0; background:0; font:400 13.5px/1 var(--sans); color:var(--t1); outline:0; flex:1 }
 .cat-search input::placeholder { color:var(--t3) }
-.cat-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px,1fr)); gap:10px }
+.cat-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(256px,1fr)); gap:14px }
 .cat-card {
-  background:var(--s0); border:1px solid var(--b0); border-radius:var(--r-md); padding:18px; box-shadow:var(--sh1);
+  background:var(--s0); border:1px solid var(--b0); border-radius:var(--r-lg); padding:22px 22px 18px; box-shadow:var(--sh1);
   display:flex; flex-direction:column; animation:cardIn .3s var(--ease) both;
   transition:transform .18s var(--spring), box-shadow .18s, border-color .15s;
 }
-.cat-card:hover { transform:translateY(-2px); box-shadow:var(--sh3); border-color:var(--b1) }
-.cat-card-head  { display:flex; align-items:flex-start; gap:9px; margin-bottom:9px }
-.cat-card-head .ico svg { width:17px; height:17px; color:var(--t2) }
-.cat-card-badge { font:700 8px/1 var(--mono); padding:3px 7px; border-radius:4px; margin-left:auto; white-space:nowrap }
-.cat-card-title    { font:600 14px/1.2 var(--sans); color:var(--t0); margin-bottom:2px }
-.cat-card-category { font:400 10.5px/1 var(--sans); color:var(--t3); margin-bottom:7px }
-.cat-card-desc { font:400 12.5px/1.6 var(--sans); color:var(--t2); margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; flex:1 }
-.cat-card-meta { display:flex; gap:14px; font-size:11.5px; margin-bottom:9px }
+.cat-card:hover { transform:translateY(-3px); box-shadow:var(--sh3); border-color:var(--b1) }
+.cat-card-head  { display:flex; align-items:flex-start; gap:9px; margin-bottom:12px }
+.cat-card-head .ico svg { width:18px; height:18px; color:var(--t2) }
+.cat-card-badge { font:700 8.5px/1 var(--mono); padding:4px 8px; border-radius:4px; margin-left:auto; white-space:nowrap }
+.cat-card-title    { font:600 15px/1.25 var(--sans); color:var(--t0); margin-bottom:3px }
+.cat-card-category { font:400 11px/1 var(--sans); color:var(--t3); margin-bottom:10px }
+.cat-card-desc { font:400 13px/1.65 var(--sans); color:var(--t2); margin-bottom:12px; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; flex:1 }
+.cat-card-meta { display:flex; gap:14px; font-size:12px; margin-bottom:11px }
 .cat-card-meta-label { color:var(--t3); margin-right:2px }
 .cat-card-meta-val   { color:var(--t1); font-weight:500 }
-.cat-card-tags { display:flex; flex-wrap:wrap; gap:3px; margin-bottom:10px }
-.cat-card-tag  { font:500 9.5px/1 var(--mono); padding:3px 7px; background:var(--s1); border:1px solid var(--b0); border-radius:4px; color:var(--t2); transition:all .1s }
+.cat-card-tags { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:14px }
+.cat-card-tag  { font:500 10px/1 var(--mono); padding:4px 8px; background:var(--s1); border:1px solid var(--b0); border-radius:4px; color:var(--t2); transition:all .1s }
 .cat-card-tag:hover  { background:var(--acc); color:#fff; border-color:var(--acc) }
-.cat-card-actions { display:flex; gap:5px; margin-top:auto; padding-top:10px; border-top:1px solid var(--b0) }
+/* spacer + "Learn More" row — clear visual break before action */
+.cat-card-actions {
+  display:flex; gap:6px; margin-top:auto;
+  padding-top:14px; border-top:1px solid var(--b0);
+}
+
+/* ── CTX ACCOUNT CARD (settings sidebar) ────────────────── */
+.ctx-account-card   { padding:13px 14px; background:var(--s1); border:1px solid var(--b0); border-radius:var(--r-md); margin-top:4px }
+.ctx-account-name   { font:600 15px/1.3 var(--sans); color:var(--t0); margin-bottom:2px }
+.ctx-account-org    { font:400 12px/1.3 var(--sans); color:var(--t2); margin-bottom:3px }
+.ctx-account-role   { font:500 10px/1 var(--mono); color:var(--t3); padding:3px 8px; background:var(--s0); border:1px solid var(--b0); border-radius:var(--r-full); display:inline-block; margin-top:4px }
+
+/* ── DANGER NAV BTN (sign out) ───────────────────────────── */
+.ctx-nav-danger { color:var(--red) !important }
+.ctx-nav-danger:hover { background:var(--red-bg) !important; color:var(--red) !important }
+.ctx-nav-danger svg  { color:var(--red) !important }
+
+/* ── SETTINGS LOGOUT BUTTON ─────────────────────────────── */
+.sett-danger-zone { margin-top:8px }
+.sett-logout-btn {
+  display:inline-flex; align-items:center; gap:8px;
+  padding:11px 20px; background:0; border:1px solid var(--red);
+  border-radius:var(--r-sm); color:var(--red);
+  font:500 13.5px/1 var(--sans); cursor:pointer;
+  transition:background .15s, transform .15s var(--spring);
+}
+.sett-logout-btn:hover { background:var(--red-bg); transform:none }
+.sett-logout-btn svg   { flex-shrink:0 }
 
 /* ── CHANNELS ────────────────────────────────────────────── */
 .chan-head { padding:12px 48px; border-bottom:1px solid var(--b0); display:flex; align-items:baseline; gap:7px; flex-shrink:0; background:var(--s0) }
