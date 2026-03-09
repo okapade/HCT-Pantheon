@@ -277,16 +277,24 @@ document.getElementById('pwToggle').addEventListener('click', function() {
   inp.type = inp.type === 'password' ? 'text' : 'password';
 });
 
-// ── Restore remembered email ─────────────────────────────────────────────────
+// ── Restore remembered credentials ──────────────────────────────────────────
 (function restoreRemembered() {
   try {
-    var saved = localStorage.getItem('pantheon_remember');
-    if (saved) {
-      var data = JSON.parse(saved);
-      if (data.email) {
-        document.getElementById('emailInput').value = data.email;
-        document.getElementById('rememberMe').checked = true;
-      }
+    var savedEmail = localStorage.getItem('pantheon_saved_email');
+    var savedPw    = localStorage.getItem('pantheon_saved_pw');
+    var remember   = localStorage.getItem('pantheon_remember');
+    if (savedEmail && remember === 'true') {
+      document.getElementById('emailInput').value    = savedEmail;
+      document.getElementById('passwordInput').value = savedPw || '';
+      document.getElementById('rememberMe').checked  = true;
+    } else {
+      try {
+        var saved = localStorage.getItem('pantheon_remember');
+        if (saved && saved !== 'true') {
+          var data = JSON.parse(saved);
+          if (data.email) { document.getElementById('emailInput').value = data.email; document.getElementById('rememberMe').checked = true; }
+        }
+      } catch(e) {}
     }
   } catch(e) {}
 })();
@@ -316,7 +324,7 @@ function handleSignIn() {
   btn.disabled = true;
   btn.textContent = 'Signing in…';
 
-  fetch('/api/auth/login', {
+  fetch('/api/auth/verify', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -335,6 +343,13 @@ function handleSignIn() {
       logLoginEvent(email, data.name || '');
       // Redirect
       window.location.href = data.redirect || '/dashboard';
+    } else if (data.error === 'email_not_verified') {
+      btn.disabled = false;
+      btn.textContent = 'Sign In';
+      // Show inline resend option
+      var banner = document.getElementById('errorBanner');
+      banner.innerHTML = 'Email not verified. <a href="#" onclick="resendVerify(\''+email+'\');return false;" style="color:var(--red);font-weight:600;text-decoration:underline">Resend link</a>';
+      banner.classList.add('visible');
     } else {
       btn.disabled = false;
       btn.textContent = 'Sign In';
@@ -346,6 +361,22 @@ function handleSignIn() {
     btn.textContent = 'Sign In';
     showError('Unable to connect. Please try again.');
   });
+}
+
+
+function resendVerify(email) {
+  fetch('/api/auth/resend_otp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ email: email })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.ok) showError('Verification email sent — check your inbox.');
+    else showError('Failed to send. Try again shortly.');
+  })
+  .catch(function() { showError('Network error. Try again.'); });
 }
 
 function showError(msg) {
