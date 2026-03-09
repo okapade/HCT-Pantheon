@@ -481,7 +481,20 @@ def auth_verify():
     # Set persistent remember-me token if requested
     if remember:
         token = secrets.token_hex(32)
-        sheets_update_cell('Users', row_num, 19, token)  # col S — remember_token
+        # Write token via Apps Script (reliable) + service account fallback
+        def _write_token():
+            try:
+                import urllib.request
+                if APPS_SCRIPT_URL:
+                    pl = json.dumps({"action":"update_user","email":email,"field":"remember_token","value":token}).encode()
+                    req = urllib.request.Request(APPS_SCRIPT_URL, data=pl, headers={"Content-Type":"application/json"}, method="POST")
+                    urllib.request.urlopen(req, timeout=8)
+                else:
+                    sheets_update_cell('Users', row_num, 19, token)
+            except Exception as e:
+                print(f"[token write] {e}")
+                sheets_update_cell('Users', row_num, 19, token)
+        threading.Thread(target=_write_token, daemon=True).start()
         resp.set_cookie('pantheon_remember_token', token,
                        max_age=30*24*3600, httponly=True, secure=True, samesite='Lax')
     return resp
