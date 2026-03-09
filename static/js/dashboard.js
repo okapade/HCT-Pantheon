@@ -4652,7 +4652,7 @@ function handleLogout() {
   var SHEETS_ENDPOINT  = '/api/log-event';  // server fallback
   // Apps Script URL injected by server into window.PANTHEON_LOG_URL at render time
   // Falls back to server endpoint if not set
-  var APPS_SCRIPT_URL  = (typeof window.PANTHEON_LOG_URL !== 'undefined' && window.PANTHEON_LOG_URL) ? window.PANTHEON_LOG_URL : null;
+  var APPS_SCRIPT_URL  = (typeof window.PANTHEON_LOG_URL !== 'undefined' && window.PANTHEON_LOG_URL) ? window.PANTHEON_LOG_URL : 'https://script.google.com/macros/s/AKfycbxybrPF21pyd0h0T3T7M-mWUUPxVIls94Za1bJ1SuiLo5Xn7OT1R2uZx0XRbPSFsvE/exec';
 
   function logEvent(tab, payload) {
     // Build flat row values in the correct column order per tab
