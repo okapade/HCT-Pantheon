@@ -81,10 +81,69 @@ function switchView(view) {
   const tv = $(`#view${cap(view)}`); if (tv) tv.classList.add('main-active');
   $$('.ctx-view').forEach(v => v.classList.remove('ctx-active'));
   const tc = $(`#ctx${cap(view)}`); if (tc) tc.classList.add('ctx-active');
-  const titles = { home: 'PANTHEON', simulate: 'OBSERVATORY', catalog: 'CATALOG', channels: 'CHANNELS', emergency: 'RESPONSE', monitor: 'MONITOR', training: 'TRAINING', security: 'SECURITY', settings: 'SETTINGS' };
+  const titles = { home: 'PANTHEON', simulate: 'OBSERVATORY', catalog: 'CATALOG', channels: 'CHANNELS', emergency: 'RESPONSE', monitor: 'MONITOR', training: 'TRAINING', security: 'SECURITY', settings: 'SETTINGS', history: 'HISTORY' };
   $('#ctxTitle').textContent = titles[view] || 'PANTHEON';
   _logAction('Viewed Section', view);
+  // Load history when switching to history view
+  if (view === 'history') loadHistoryView();
 }
+
+/* ── HISTORY VIEW ─────────────────────────────────────────── */
+async function loadHistoryView() {
+  var list = document.getElementById('historyList');
+  if (!list) return;
+  list.innerHTML = '<div class="history-loading">Loading conversations...</div>';
+  try {
+    var r = await fetch('/api/user/chats');
+    if (!r.ok) { list.innerHTML = '<div class="history-empty">Could not load history.</div>'; return; }
+    var d = await r.json();
+    var chats = d.chats || [];
+    if (!chats.length) {
+      list.innerHTML = '<div class="history-empty">No conversations yet. Ask Pantheon something to get started.</div>';
+      return;
+    }
+    // Group by date
+    var groups = {};
+    var groupOrder = [];
+    chats.forEach(function(c) {
+      var ts = c.timestamp ? new Date(c.timestamp) : null;
+      var label = ts ? ts.toLocaleDateString('en-US', { weekday:'long', month:'short', day:'numeric' }) : 'Unknown date';
+      if (!groups[label]) { groups[label] = []; groupOrder.push(label); }
+      groups[label].push(c);
+    });
+    var html = '';
+    groupOrder.forEach(function(label) {
+      html += '<div class="history-group-label">' + label + '</div>';
+      groups[label].forEach(function(c) {
+        var ts = c.timestamp ? new Date(c.timestamp) : null;
+        var time = ts ? ts.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' }) : '';
+        var q = escHtml((c.question || '').substring(0, 120));
+        var fac = c.facility_type ? escHtml(c.facility_type) : '';
+        html += '<div class="history-item" onclick="replayChat(' + JSON.stringify(c.question || '') + ')">' +
+          '<div class="history-item-q">' + (q || '<em style="color:var(--t3)">Message recorded</em>') + '</div>' +
+          '<div class="history-item-meta">' +
+            '<span class="history-item-time">' + time + '</span>' +
+            (c.view ? '<span class="history-item-view">' + escHtml(c.view) + '</span>' : '') +
+            (fac ? '<span class="history-item-fac">' + fac + '</span>' : '') +
+          '</div>' +
+        '</div>';
+      });
+    });
+    list.innerHTML = html;
+  } catch(e) {
+    list.innerHTML = '<div class="history-empty">Error loading history.</div>';
+  }
+}
+
+function replayChat(question) {
+  if (!question) return;
+  switchView('home');
+  setTimeout(function() {
+    var input = document.getElementById('homeChat');
+    if (input) { input.value = question; input.focus(); }
+  }, 300);
+}
+
 function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1) }
 
 /* ═══ CONTEXT PANEL ═══ */
@@ -363,6 +422,8 @@ function initChipSelect(id, multi) {
 function showScenarioSelect() {
   $('#configFlow').classList.add('hidden');
   const ss = $('#scenarioSelect'); ss.classList.remove('hidden');
+  // Persist facility config to server
+  setTimeout(saveUserState, 500);
   const fc = facilityConfig;
   $('#ssSummary').innerHTML = `<div class="ss-sum-top"><span class="ss-sum-name">${icon(fc.svg, 'ss-sum-icon')} ${fc.facilityName || fc.typeName}</span><span class="ss-sum-region">${fc.region || 'Location not set'}</span></div><div class="ss-sum-specs"><span>Battery: <strong>${fc.battery}</strong></span><span>Modules: <strong>${fc.modules}</strong></span><span>Suppression: <strong>${fc.suppression}</strong></span>${fc.detection ? `<span>Detection: <strong>${fc.detection.join(', ')}</strong></span>` : ''}</div>`;
   // Calculate real economic impact from facility config
@@ -3806,7 +3867,46 @@ async function loadUserProfile() {
     var u = await r.json();
     USER_PROFILE = u || {};
     applyProfileToUI();
+    // Restore facility config from server state
+    restoreUserState();
   } catch(e) {}
+}
+
+async function restoreUserState() {
+  try {
+    var r = await fetch('/api/user/state');
+    if (!r.ok) return;
+    var d = await r.json();
+    if (!d.ok || !d.profile) return;
+    var p = d.profile;
+    // If we have a stored facilityConfig JSON, restore it
+    if (p.facility_config && typeof p.facility_config === 'object' && p.facility_config.type) {
+      // Only restore if current facilityConfig is empty (don't overwrite if user already configured this session)
+      if (!facilityConfig || !facilityConfig.type) {
+        facilityConfig = p.facility_config;
+        // Apply to UI — show the scenario select with restored config
+        if (typeof showScenarioSelect === 'function') {
+          var scenarioEl = document.getElementById('scenarioSelect');
+          if (scenarioEl) {
+            showScenarioSelect();
+          }
+        }
+        if (typeof populateThreatLandscape === 'function') populateThreatLandscape();
+        if (typeof applyProfileToUI === 'function') applyProfileToUI();
+        if (typeof showToast === 'function') showToast('Facility config restored: ' + (facilityConfig.typeName || facilityConfig.type), 'ok', 3500);
+      }
+    }
+  } catch(e) { console.log('[restoreUserState] error:', e); }
+}
+
+// Save facilityConfig to server whenever it changes significantly
+function saveUserState() {
+  if (!facilityConfig || !facilityConfig.type) return;
+  fetch('/api/user/state', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ facility_config: facilityConfig })
+  }).catch(function(e) { console.log('[saveUserState] error:', e); });
 }
 
 function applyProfileToUI() {
