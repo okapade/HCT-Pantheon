@@ -324,7 +324,7 @@ input, textarea { font-family:var(--sans) }
 .ico svg          { width:18px; height:18px }
 
 /* ── CONFIG FLOW ─────────────────────────────────────────── */
-.config-flow   { max-width:100%; width:100%; margin:0 auto 24px; animation:fadeUp .3s var(--ease) }
+.config-flow   { max-width:760px; width:100%; margin:0 auto 24px; animation:fadeUp .3s var(--ease) }
 .cf-progress   { display:flex; gap:3px; margin-bottom:20px }
 .cf-progress-step { flex:1; height:1.5px; background:var(--s3); border-radius:2px; transition:background .2s }
 .cf-progress-step.done   { background:var(--green) }
@@ -366,7 +366,7 @@ input, textarea { font-family:var(--sans) }
 .cf-standards-notes { font:400 10.5px/1.4 var(--sans); color:var(--t3); margin-top:7px; font-style:italic }
 
 /* ── SCENARIO SELECT ─────────────────────────────────────── */
-.scenario-select { max-width:100%; width:100%; margin:0 auto; animation:fadeUp .3s var(--ease) }
+.scenario-select { max-width:760px; width:100%; margin:0 auto; animation:fadeUp .3s var(--ease) }
 .ss-summary { background:var(--s0); border:1px solid var(--b0); border-radius:var(--r-md); padding:14px 18px; margin-bottom:14px; box-shadow:var(--sh1) }
 .ss-sum-top  { display:flex; align-items:center; justify-content:space-between; margin-bottom:7px }
 .ss-sum-name { font:600 16px/1 var(--sans); color:var(--t0); display:flex; align-items:center; gap:7px }
