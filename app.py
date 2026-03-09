@@ -1,4 +1,5 @@
-import os, json, io, datetime, secrets, time, threading, hashlib
+import os, json, io, datetime, secrets, time, threading, hashlib, warnings
+warnings.filterwarnings('ignore', message='file_cache is only supported')
 from flask import Flask, render_template, jsonify, request, Response, stream_with_context, session, redirect, url_for
 from functools import wraps
 
@@ -51,7 +52,7 @@ def get_sheets():
         from googleapiclient.discovery import build
         creds_dict = json.loads(SHEETS_CREDS)
         creds = Credentials.from_service_account_info(creds_dict, scopes=['https://www.googleapis.com/auth/spreadsheets'])
-        svc = build('sheets', 'v4', credentials=creds)
+        svc = build('sheets', 'v4', credentials=creds, cache_discovery=False)
         print(f"[SHEETS] Connected OK")
         return svc
     except json.JSONDecodeError as e:
@@ -394,6 +395,21 @@ USER PROFILE:
     return ctx
 
 # ── Pages ──────────────────────────────────────────────────────────────────────
+
+
+@app.route('/api/debug/sheet')
+def debug_sheet():
+    """Temporary: inspect Users sheet contents."""
+    try:
+        svc = get_sheets()
+        if not svc:
+            return jsonify({"error": "No sheets service", "creds_set": bool(SHEETS_CREDS), "sheet_id": SHEET_ID})
+        res = svc.spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range='Users!A:E').execute()
+        rows = res.get('values', [])
+        return jsonify({"rows": rows[:10], "total": len(rows)})
+    except Exception as e:
+        return jsonify({"error": str(e), "type": type(e).__name__})
 
 @app.route('/login')
 def login_page():
