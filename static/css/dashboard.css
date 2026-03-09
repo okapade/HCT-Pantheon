@@ -409,6 +409,8 @@ input, textarea { font-family:var(--sans) }
 .act-block.collapsed .act-collapse { transform:rotate(-90deg) }
 .act-block.collapsed .act-body     { display:none }
 .act-body   { font:400 14.5px/1.85 var(--sans); color:var(--t1) }
+.act-body .ai-response-row { align-items:flex-start; gap:12px; margin-top:4px }
+.act-body .ai-avatar { margin-top:3px }
 .act-body p { margin-bottom:9px }
 .act-body strong { color:var(--t0); font-weight:600 }
 .act-typing { color:var(--t3); font-style:italic; font-size:13px }
@@ -489,12 +491,13 @@ input, textarea { font-family:var(--sans) }
 
 /* ── POST-ONBOARDING STANDARDS BANNER ────────────────────── */
 .ob-standards-banner {
-  background:var(--s0); border:1px solid var(--b0); border-top:3px solid var(--acc);
+  background:var(--s0); border:1px solid var(--b0);
   border-radius:var(--r-lg); padding:22px 24px; margin-bottom:24px;
   animation:cardIn .4s var(--ease); box-shadow:var(--sh2);
   width:100%; max-width:760px; margin-left:auto; margin-right:auto;
 }
 .ob-banner-head     { display:flex; align-items:center; gap:10px; margin-bottom:14px }
+.ob-banner-head .ai-avatar { margin-top:0 }
 .ob-banner-title    { font:700 17px/1.2 var(--sans); color:var(--t0); flex:1; letter-spacing:-.2px }
 .ob-banner-dismiss  { background:0; border:0; color:var(--t3); font-size:18px; padding:2px 6px; border-radius:var(--r-sm); transition:background .1s, color .1s }
 .ob-banner-dismiss:hover { background:var(--s2); color:var(--t1) }
@@ -530,10 +533,45 @@ input, textarea { font-family:var(--sans) }
 .chat-msg-user .chat-bubble { background:var(--acc); border-radius:18px 18px 4px 18px; padding:9px 15px; font:400 14px/1.6 var(--sans); color:#fff; max-width:520px }
 .dark .chat-msg-user .chat-bubble { color:var(--bg) }
 .chat-msg-assistant { display:flex; gap:9px; align-items:flex-start }
-.chat-avatar { width:24px; height:24px; background:var(--s2); border-radius:var(--r-sm); display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--t3); flex-shrink:0; margin-top:2px }
+.chat-avatar { width:26px; height:26px; background:var(--s1); border:1px solid var(--b1); border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--acc); flex-shrink:0; margin-top:2px; box-shadow:0 1px 3px rgba(0,0,0,.06) }
 .chat-msg-assistant .chat-bubble { font:400 14px/1.8 var(--sans); color:var(--t1); max-width:620px }
-.chat-typing { color:var(--t3); font-style:italic; font-size:12.5px }
+.chat-typing { color:var(--t3); font-size:12.5px }
 
+
+/* ── AI SPARKLE LOADER ──────────────────────────────────────────────────── */
+@keyframes sparkle-pulse {
+  0%   { transform:scale(1);    opacity:.9 }
+  50%  { transform:scale(1.5);  opacity:.35 }
+  100% { transform:scale(1);    opacity:.9 }
+}
+.ai-sparkle {
+  display:inline-flex; align-items:center; justify-content:center;
+  font-size:13px; color:var(--acc);
+  animation:sparkle-pulse 1.4s ease-in-out infinite;
+  line-height:1;
+}
+.ai-thinking {
+  display:flex; align-items:center; gap:8px;
+  color:var(--t3); font:400 12.5px/1 var(--sans); font-style:normal;
+}
+
+/* ── AI AVATAR — universal diamond badge ───────────────────────────────── */
+.ai-avatar {
+  width:26px; height:26px; flex-shrink:0;
+  background:var(--s1); border:1px solid var(--b1);
+  border-radius:7px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; color:var(--acc);
+  box-shadow:0 1px 3px rgba(0,0,0,.06);
+}
+.dark .ai-avatar { background:var(--s2); border-color:var(--b1) }
+
+/* ── AI RESPONSE WRAPPER — used everywhere ─────────────────────────────── */
+.ai-response-row {
+  display:flex; align-items:flex-start; gap:10px;
+  width:100%;
+}
+.ai-response-body { flex:1; min-width:0 }
 /* ── CATALOG ─────────────────────────────────────────────── */
 .cat-header  { display:flex; flex-direction:column; align-items:center; margin-bottom:20px }
 .cat-title   { font:700 22px/1 var(--sans); color:var(--t0); margin-bottom:12px; letter-spacing:-.3px }
@@ -903,18 +941,26 @@ input, textarea { font-family:var(--sans) }
 .ob-change-loc-link:hover { opacity:.75 }
 
 /* ── STARTER PROMPT GRID ──────────────────────────────────── */
-.starter-grid {
-  display:grid; grid-template-columns:repeat(2,1fr); gap:8px;
-  max-width:680px; width:100%; margin:0 auto;
+/* ── SUGGESTION CHIPS (below chat input) ────────────────────────────────── */
+.suggestion-chips-wrap {
+  display:flex; flex-wrap:wrap; gap:7px;
+  max-width:760px; margin:10px auto 0; padding:0 2px;
+  animation:fadeUp .25s var(--ease);
 }
-.starter-card {
-  background:var(--s0); border:1px solid var(--b0); border-radius:var(--r-md);
-  padding:14px 16px; cursor:pointer; text-align:left;
-  transition:all .15s var(--spring);
+.suggestion-chip {
+  padding:8px 15px; border-radius:99px;
+  border:1px solid var(--b1); background:var(--s0);
+  font:500 12.5px/1 var(--sans); color:var(--t1);
+  cursor:pointer; white-space:nowrap;
+  transition:all .15s var(--spring); box-shadow:var(--sh1);
 }
-.starter-card:hover { background:var(--s1); border-color:var(--b1); transform:translateY(-1px); box-shadow:var(--sh2) }
-.starter-card-label { font:600 13.5px/1.3 var(--sans); color:var(--t0); margin-bottom:4px }
-.starter-card-sub   { font:400 11.5px/1.4 var(--sans); color:var(--t2) }
+.suggestion-chip:hover {
+  border-color:var(--acc); color:var(--acc);
+  background:var(--s1); transform:translateY(-1px); box-shadow:var(--sh2);
+}
+.dark .suggestion-chip { background:var(--s1) }
+/* legacy starter-grid hidden — chips replace it */
+.starter-grid { display:none !important }
 
 /* ── HISTORY VIEW ──────────────────────────────────────────── */
 .history-wrap   { max-width:760px; width:100%; margin:0 auto; padding:8px 0 40px }
