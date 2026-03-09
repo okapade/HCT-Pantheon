@@ -807,9 +807,9 @@ input, textarea { font-family:var(--sans) }
 .train-section { margin-bottom:26px }
 .train-rx { background:var(--s0); border:1px solid var(--b0); border-radius:var(--r-md); padding:14px 16px; box-shadow:var(--sh1); animation:cardIn .4s var(--ease) backwards; transition:border-color .15s, box-shadow .15s }
 .train-rx:hover { border-color:var(--b1); box-shadow:var(--sh2) }
-.train-rx-critical { border-left:3px solid var(--red)   }
-.train-rx-high     { border-left:3px solid var(--amber) }
-.train-rx-standard { border-left:3px solid var(--green) }
+.train-rx-critical { border-left:none }
+.train-rx-high     { border-left:none }
+.train-rx-standard { border-left:none }
 .train-rx-head  { display:flex; align-items:center; gap:9px; margin-bottom:6px; flex-wrap:wrap }
 .train-rx-title { font:600 13px/1.2 var(--sans); color:var(--t0); flex:1 }
 .train-rx-source { font:500 8.5px/1 var(--mono); color:var(--t3); padding:3px 6px; background:var(--s1); border-radius:3px }
