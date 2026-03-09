@@ -929,6 +929,35 @@ async function sendChat(input, scrollId) {
     }
   } catch { bubble.textContent = 'Connection error'; bubble.classList.remove('chat-typing') }
 }
+
+// ── Notification toggles ─────────────────────────────────────────────────────
+var notifState = [true, true, true]; // sim complete, inspection, emergency
+function toggleNotif(idx) {
+  notifState[idx] = !notifState[idx];
+  var on  = notifState[idx];
+  var tog = document.getElementById('notifToggle' + idx);
+  var lbl = document.getElementById('notifLbl' + idx);
+  if (tog) { tog.classList.toggle('on', on); }
+  if (lbl) {
+    lbl.textContent = on ? 'Enabled' : 'Disabled';
+    lbl.className = 'notif-toggle-label ' + (on ? 'on' : 'off');
+  }
+  // Persist to localStorage
+  try { localStorage.setItem('pantheon_notif', JSON.stringify(notifState)); } catch(e) {}
+}
+
+// Restore notif state on load
+(function restoreNotifState() {
+  try {
+    var saved = JSON.parse(localStorage.getItem('pantheon_notif') || '[]');
+    if (saved.length) {
+      saved.forEach(function(val, i) {
+        if (!val) toggleNotif(i); // toggleNotif starts as true, so toggling sets to false
+      });
+    }
+  } catch(e) {}
+})();
+
 function escHtml(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') }
 
 /* === CATALOG === */
