@@ -4655,26 +4655,8 @@ function handleLogout() {
   var APPS_SCRIPT_URL  = (typeof window.PANTHEON_LOG_URL !== 'undefined' && window.PANTHEON_LOG_URL) ? window.PANTHEON_LOG_URL : 'https://script.google.com/macros/s/AKfycbxybrPF21pyd0h0T3T7M-mWUUPxVIls94Za1bJ1SuiLo5Xn7OT1R2uZx0XRbPSFsvE/exec';
 
   function logEvent(tab, payload) {
-    // Build flat row values in the correct column order per tab
-    var values = buildRow(tab, payload);
-    var body   = JSON.stringify({ action: 'append', tab: tab, values: values });
-    // Fire to Apps Script directly (no auth, fastest path)
-    if (APPS_SCRIPT_URL) {
-      try {
-        fetch(APPS_SCRIPT_URL, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body
-        }).catch(function() {
-          // Apps Script failed — fall back to server
-          serverLog(tab, payload);
-        });
-        return;
-      } catch(e) {}
-    }
-    // Fall back to server endpoint
-    serverLog(tab, payload);
-  }
-
-  function serverLog(tab, payload) {
+    // All logging routes through the server (Apps Script blocks direct browser POST via CORS)
+    // Server-side log_via_apps_script() handles the Apps Script relay
     try {
       fetch(SHEETS_ENDPOINT, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -4683,6 +4665,8 @@ function handleLogout() {
       }).catch(function() {});
     } catch(e) {}
   }
+
+  function serverLog(tab, payload) { logEvent(tab, payload); }
 
   // Convert payload object to ordered array matching sheet columns
   function buildRow(tab, p) {
