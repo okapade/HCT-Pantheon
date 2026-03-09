@@ -789,6 +789,49 @@ def api_log_product():
     return jsonify({"ok": True})
 
 
+# ── Universal log-event endpoint (called by dashboard.js for all sheet logging) ──
+@app.route('/api/log-event', methods=['POST'])
+def log_event_endpoint():
+    """Receives all client-side log events and relays to Apps Script / gspread."""
+    b   = request.get_json(silent=True) or {}
+    tab = b.get('tab', '')
+    payload = b.get('data', {})
+    ts  = b.get('ts', now_str())
+
+    if not tab or not payload:
+        return jsonify({"ok": False, "error": "Missing tab or data"}), 400
+
+    # Build ordered row from payload dict
+    def v(key, default=''):
+        val = payload.get(key, default)
+        return val if val is not None else default
+
+    if tab == 'Activity Log':
+        email = v('email') or v('user') or session.get('user_id', '')
+        row = [ts, email, v('name'), v('org'), v('action'),
+               v('detail1') or v('detail'), v('detail2'), v('detail3'),
+               v('time_spent'), v('device'), v('browser')]
+    elif tab == 'Simulations':
+        email = v('email') or v('user') or session.get('user_id', '')
+        row = [ts, email, v('name'), v('org'), v('facility_type') or v('facility'),
+               v('chemistry') or v('battery'), v('modules'), v('suppression'),
+               v('mode') or v('simulation_mode'), v('acts', 0),
+               v('pdf_exported', 'No'), v('ai_questions', 0), v('top_question'),
+               v('recos_viewed', 'No'), v('impact_shown', 'No')]
+    elif tab == 'AI Conversations':
+        email = v('email') or session.get('user_id', '')
+        row = [ts, email, v('org'), v('question'), v('view', 'home'),
+               v('facility_type'), v('chemistry'), v('modules'), v('response_len', 0)]
+    elif tab == 'Product Interest':
+        email = v('email') or session.get('user_id', '')
+        row = [ts, email, v('org'), v('product'), v('source'),
+               v('time_on', 0), v('clicked_learn_more', 'No')]
+    else:
+        row = [ts] + list(payload.values())
+
+    sheets_append(tab, row)
+    return jsonify({"ok": True, "tab": tab})
+
 # ── Telemetry aliases (legacy /api/log/* → /api/telemetry/*) ─────────────────
 @app.route('/api/log/action', methods=['POST'])
 @login_required
