@@ -512,6 +512,84 @@ def onboarding_profile():
         except: pass
     return jsonify(profile)
 
+
+# ── User State Persistence ──────────────────────────────────────────────────────
+
+@app.route('/api/user/state', methods=['GET'])
+@login_required
+def user_state_get():
+    """Return the user's latest facility config from Profiles + chat summary from AI Conversations."""
+    rows = sheets_read('Profiles')
+    email = session['user_id']
+    user_rows = [r for r in rows[1:] if len(r) > 1 and r[1].strip().lower() == email.lower()]
+    profile = {}
+    if user_rows:
+        latest = user_rows[-1]
+        keys = ['timestamp','email','name','org','role','facility_type','location',
+                'chemistry','suppression','detection','modules','jurisdiction','extra','facility_config_json']
+        profile = {keys[i]: latest[i] for i in range(min(len(keys), len(latest)))}
+        # Parse stored facilityConfig JSON if present
+        if profile.get('facility_config_json'):
+            try: profile['facility_config'] = json.loads(profile['facility_config_json'])
+            except: pass
+        if profile.get('extra'):
+            try: profile['extra'] = json.loads(profile['extra'])
+            except: pass
+    return jsonify({"ok": True, "profile": profile})
+
+@app.route('/api/user/state', methods=['POST'])
+@login_required
+def user_state_save():
+    """Save current facilityConfig JSON to the user's latest Profiles row."""
+    b     = request.get_json()
+    email = session['user_id']
+    fc    = b.get('facility_config', {})
+    rows  = sheets_read('Profiles')
+    # Find last row index for this user (1-indexed for Sheets API)
+    user_row_idx = None
+    for i, r in enumerate(rows):
+        if len(r) > 1 and r[1].strip().lower() == email.lower():
+            user_row_idx = i + 1  # 1-indexed
+    if user_row_idx:
+        # Update column N (14) with facility_config JSON
+        sheets_update_cell('Profiles', user_row_idx, 14, json.dumps(fc))
+    else:
+        # No profile row yet — append one
+        sheets_append('Profiles', [
+            now_str(), email, session.get('user_name',''),
+            session.get('user_org',''), session.get('user_role',''),
+            fc.get('facility_type',''), fc.get('region',''),
+            fc.get('battery',''), fc.get('suppression',''),
+            fc.get('detection',''), str(fc.get('modules','')), '', '', json.dumps(fc)
+        ])
+    return jsonify({"ok": True})
+
+@app.route('/api/user/chats')
+@login_required
+def user_chats():
+    """Return recent AI conversations for this user from AI Conversations tab."""
+    rows = sheets_read('AI Conversations')
+    email = session['user_id']
+    # Filter to this user, skip header row
+    user_rows = [r for r in rows[1:] if len(r) > 1 and r[1].strip().lower() == email.lower()]
+    # Return most recent 50, newest first
+    recent = user_rows[-50:][::-1]
+    keys = ['timestamp','email','org','question','view','facility_type','chemistry','modules','response_len']
+    chats = [{keys[i]: r[i] if i < len(r) else '' for i in range(len(keys))} for r in recent]
+    return jsonify({"ok": True, "chats": chats})
+
+@app.route('/api/sheets/ping')
+@login_required
+def sheets_ping():
+    """Health-check: confirm Sheets connection is live."""
+    try:
+        svc = get_sheets()
+        if not svc: return jsonify({"ok": False, "error": "No credentials"})
+        result = svc.spreadsheets().get(spreadsheetId=SHEET_ID, fields='spreadsheetId,properties/title').execute()
+        return jsonify({"ok": True, "sheet": result.get('properties',{}).get('title',''), "id": result.get('spreadsheetId','')})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)})
+
 # ── Actions API ────────────────────────────────────────────────────────────────
 
 @app.route('/api/actions/log', methods=['POST'])
