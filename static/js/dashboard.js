@@ -806,6 +806,10 @@ async function sendChat(input, scrollId) {
       feed.scrollTop = feed.scrollHeight;
     }
     chatHistory.push({ role: 'assistant', content: full });
+    // Log to AI Conversations sheet
+    if (typeof window.logAIConversation === 'function') {
+      window.logAIConversation('home', msg, full);
+    }
   } catch { bubble.textContent = 'Connection error'; bubble.classList.remove('chat-typing') }
 }
 function escHtml(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') }
@@ -2311,6 +2315,32 @@ function initToasts() {
   toastContainer.className = 'toast-container';
   toastContainer.id = 'toastContainer';
   document.body.appendChild(toastContainer);
+}
+
+// ── Jurisdiction banner helpers ──────────────────────────────────────────────
+function dismissJurisdictionBanner() {
+  var banner = document.getElementById('obStandardsBanner');
+  if (banner) banner.classList.add('hidden');
+  // Store dismiss preference — location is NOT cleared
+  try { sessionStorage.setItem('pantheon_juris_dismissed', '1'); } catch(e) {}
+}
+
+function openSettingsLocation() {
+  // Navigate to settings > preferences and focus the location field
+  dismissJurisdictionBanner();
+  if (typeof switchCtx === 'function') switchCtx('settings');
+  if (typeof wireSettingsTabs2 === 'function') wireSettingsTabs2();
+  // Switch to Preferences tab in settings
+  setTimeout(function() {
+    var prefTab = document.querySelector('[data-sett-tab="preferences"]');
+    if (prefTab) prefTab.click();
+    // Scroll to / focus the location input
+    var locField = document.getElementById('settLocationInput') || document.getElementById('siRegionInput');
+    if (locField) {
+      locField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      locField.focus();
+    }
+  }, 250);
 }
 
 function showToast(message, type, duration) {
@@ -4538,15 +4568,20 @@ function handleLogout() {
     logActivity('simulation_complete', scenarioName);
   };
 
-  // ── Log AI conversation ──
+  // ── Log AI conversation — columns: Timestamp|Email|Organization|Question|View|Facility Type|Chemistry|Modules|Response Length ──
   window.logAIConversation = function(view, userMessage, aiResponse) {
-    var u = (typeof USER_PROFILE !== 'undefined') ? USER_PROFILE : {};
+    var u  = (typeof USER_PROFILE !== 'undefined') ? USER_PROFILE : {};
+    var fc = (typeof facilityConfig !== 'undefined') ? facilityConfig : {};
     logEvent('AI Conversations', {
-      timestamp: new Date().toISOString(),
-      user:      u.email || u.name || 'unknown',
-      view:      view || '',
-      message:   (userMessage || '').substring(0, 500),
-      response:  (aiResponse || '').substring(0, 500),
+      timestamp:     new Date().toISOString(),
+      email:         u.email || '',
+      org:           u.org   || '',
+      question:      (userMessage  || '').substring(0, 500),
+      view:          view || 'home',
+      facility_type: fc.type     || u.facility_type || '',
+      chemistry:     fc.battery  || '',
+      modules:       fc.modules  || '',
+      response_len:  (aiResponse || '').length,
     });
   };
 
