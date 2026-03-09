@@ -769,7 +769,7 @@ def api_chat():
     for h in (b.get('history', []))[-10:]:
         msgs.append({"role": h["role"], "content": h["content"]})
     msgs.append({"role": "user", "content": msg})
-    sheets_append('Conversations', [now_str(), session['user_id'], session.get('user_org',''), sid, 'user', msg[:500], ''])
+    sheets_append('AI Conversations', [now_str(), session.get('user_id',''), session.get('user_org',''), msg[:500], 'home', '', '', '', ''])
     return _stream(msgs)
 
 @app.route('/api/simulate/<mode>/<int:act_id>', methods=['POST'])
