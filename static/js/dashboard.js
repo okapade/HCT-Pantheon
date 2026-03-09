@@ -253,7 +253,14 @@ function selectFacilityType(typeId) {
   const type = getFacilityTypes().find(t => t.id === typeId); if (!type) return;
   $$('.fs-card').forEach(c => c.classList.remove('selected'));
   const sel = $(`.fs-card[data-type="${typeId}"]`); if (sel) sel.classList.add('selected');
-  facilityConfig = { type: typeId, typeName: type.name, svg: type.svg, battery: type.battery, modules: type.modules, suppression: type.suppression, services: type.services, loss: type.loss, partialLoss: type.partialLoss, employees: type.employees || 150, revenue: type.revenue || 50000000, sector: type.sector || 'Information', facilityName: '', region: '', customNotes: '' }
+  // Preserve existing config values if same type, reset if different type
+  const prevType = facilityConfig && facilityConfig.type;
+  if (prevType !== typeId) {
+    facilityConfig = { type: typeId, typeName: type.name, svg: type.svg, battery: type.battery, modules: type.modules, suppression: type.suppression, services: type.services, loss: type.loss, partialLoss: type.partialLoss, employees: type.employees || 150, revenue: type.revenue || 50000000, sector: type.sector || 'Information', facilityName: '', region: '', customNotes: '' };
+  } else {
+    // Same type re-clicked — just reopen config with existing values
+    facilityConfig.type = typeId; facilityConfig.typeName = type.name;
+  }
   configStep = 0;
   showFacilityInfo(type);
   showConfigFlow();
@@ -2434,15 +2441,27 @@ function dismissJurisdictionBanner() {
 }
 
 function openSettingsLocation() {
-  // Navigate to settings > preferences and focus the location field
+  // Dismiss banner and reopen facility config flow so user can update location
   dismissJurisdictionBanner();
+  // If facility is already configured, reopen config at step 0 (facility name/region)
+  if (facilityConfig && facilityConfig.type) {
+    configStep = 0;
+    showConfigFlow();
+    // Scroll config into view
+    setTimeout(function() {
+      var cf = document.getElementById('configFlow') || document.querySelector('.config-flow');
+      if (cf) cf.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      var regionField = document.getElementById('cfRegion');
+      if (regionField) { regionField.focus(); regionField.select(); }
+    }, 150);
+    return;
+  }
+  // No config yet — go to settings
   if (typeof switchCtx === 'function') switchCtx('settings');
   if (typeof wireSettingsTabs2 === 'function') wireSettingsTabs2();
-  // Switch to Preferences tab in settings
   setTimeout(function() {
     var prefTab = document.querySelector('[data-sett-tab="preferences"]');
     if (prefTab) prefTab.click();
-    // Scroll to / focus the location input
     var locField = document.getElementById('settLocationInput') || document.getElementById('siRegionInput');
     if (locField) {
       locField.scrollIntoView({ behavior: 'smooth', block: 'center' });
