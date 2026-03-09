@@ -742,6 +742,61 @@ def api_log_product():
     sheets_append('Product Interest', [now_str(), session.get('user_id',''), session.get('user_org',''), b.get('product',''), b.get('source',''), b.get('time_on',0), b.get('clicked_learn_more','No')])
     return jsonify({"ok": True})
 
+
+# ── Telemetry aliases (legacy /api/log/* → /api/telemetry/*) ─────────────────
+@app.route('/api/log/action', methods=['POST'])
+@login_required
+def api_log_action_alias():
+    b = request.get_json() or {}
+    device, browser = get_device_info()
+    sheets_append('Activity Log', [now_str(), session.get('user_id',''), session.get('user_name',''),
+        session.get('user_org',''), b.get('action', b.get('d1','')), b.get('detail1', b.get('d1','')),
+        b.get('detail2', b.get('d2','')), b.get('detail3', b.get('d3','')), '', device, browser])
+    return jsonify({"ok": True})
+
+@app.route('/api/log/sim', methods=['POST'])
+@login_required
+def api_log_sim_alias():
+    b = request.get_json() or {}
+    sheets_append('Simulations', [now_str(), session.get('user_id',''), session.get('user_name',''),
+        session.get('user_org',''), b.get('facility_type',''), b.get('chemistry',''),
+        b.get('modules',''), b.get('suppression',''), b.get('mode',''),
+        b.get('acts', 0), b.get('pdf_exported','No'), b.get('ai_questions',0),
+        b.get('top_question',''), b.get('recos_viewed','No'), b.get('impact_shown','No')])
+    row, row_num = find_user(session.get('user_id',''))
+    if row and row_num > 0:
+        sims  = int(row[10]) if len(row) > 10 and row[10] else 0
+        total = int(row[11]) if len(row) > 11 and row[11] else 0
+        sheets_update_cell('Users', row_num, 11, str(sims + 1))
+        sheets_update_cell('Users', row_num, 12, str(total + 1))
+    return jsonify({"ok": True})
+
+@app.route('/api/log/product', methods=['POST'])
+@login_required
+def api_log_product_alias():
+    b = request.get_json() or {}
+    sheets_append('Product Interest', [now_str(), session.get('user_id',''), session.get('user_org',''),
+        b.get('product',''), b.get('source',''), b.get('time_on',0), b.get('clicked_learn_more','No')])
+    return jsonify({"ok": True})
+
+@app.route('/api/telemetry/act', methods=['POST'])
+@login_required
+def api_log_act():
+    """Log individual simulation act completion to Activity Log."""
+    b = request.get_json() or {}
+    device, browser = get_device_info()
+    sheets_append('Activity Log', [
+        now_str(), session.get('user_id',''), session.get('user_name',''),
+        session.get('user_org',''),
+        'act_completed',
+        b.get('mode','') + ' · Act ' + str(b.get('act_id','')),
+        b.get('act_name',''),
+        b.get('facility_type',''),
+        b.get('time_spent',''),
+        device, browser
+    ])
+    return jsonify({"ok": True})
+
 # ── Incident data ──────────────────────────────────────────────────────────────
 
 def load_data():
