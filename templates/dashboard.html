@@ -439,11 +439,14 @@
         <!-- Post-onboarding: location standards + product recommendations (shown after onboarding completes) -->
         <div id="obStandardsBanner" class="ob-standards-banner hidden">
           <div class="ob-banner-head">
-            <div>
+            <div style="flex:1">
               <div class="ob-banner-title">Your jurisdiction is loaded.</div>
+              <div style="margin-top:5px">
+                <button class="ob-change-loc-link" onclick="openSettingsLocation()">Change location</button>
+              </div>
             </div>
             <span class="ob-banner-loc" id="obBannerLoc">—</span>
-            <button class="ob-banner-dismiss" onclick="document.getElementById('obStandardsBanner').classList.add('hidden')" aria-label="Dismiss">×</button>
+            <button class="ob-banner-dismiss" onclick="dismissJurisdictionBanner()" aria-label="Dismiss">×</button>
           </div>
           <div class="ob-standards-list" id="obStandardsList"></div>
           <div class="ob-products-title">Recommended for your facility</div>
@@ -485,13 +488,17 @@
       </div>
 
       <div class="main-input">
-        <div class="suggestion-row" id="homeSuggestions" style="display:none;padding:0 0 8px"></div>
-        <input type="text" id="homeChat" placeholder="Ask about fire safety, standards, or your facility..." autocomplete="off">
-        <button class="main-send" id="homeSend" aria-label="Send">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
-          </svg>
-        </button>
+        <div class="main-input-inner" style="flex-direction:column;align-items:stretch;gap:0">
+          <div class="suggestion-row" id="homeSuggestions" style="display:none;padding:0 0 8px"></div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <input type="text" id="homeChat" placeholder="Ask about fire safety, standards, or your facility..." autocomplete="off">
+            <button class="main-send" id="homeSend" aria-label="Send">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
