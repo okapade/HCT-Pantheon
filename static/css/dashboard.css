@@ -223,7 +223,7 @@ input, textarea { font-family:var(--sans) }
 /* ── INPUT BAR ───────────────────────────────────────────── */
 .main-input {
   flex-shrink:0; padding:12px 56px 22px;
-  background:var(--bg); border-top:1px solid var(--b0);
+  background:var(--bg);
   display:flex; align-items:center; gap:10px;
 }
 .main-input-inner {
@@ -572,6 +572,31 @@ input, textarea { font-family:var(--sans) }
   width:100%;
 }
 .ai-response-body { flex:1; min-width:0 }
+
+/* ── NOTIFICATION TOGGLES ───────────────────────────────────────────────── */
+.notif-row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--b0) }
+.notif-row:last-child { border-bottom:none; padding-bottom:0 }
+.notif-label { font:400 13px/1 var(--sans); color:var(--t1) }
+.notif-toggle-wrap { display:flex; align-items:center; gap:8px }
+.notif-toggle-label { font:500 11.5px/1 var(--sans); min-width:52px; text-align:right }
+.notif-toggle-label.on  { color:var(--green) }
+.notif-toggle-label.off { color:var(--red,#dc2626) }
+/* pill track */
+.notif-toggle {
+  position:relative; width:42px; height:24px; flex-shrink:0;
+  border-radius:99px; cursor:pointer;
+  background:var(--s2); border:1px solid var(--b1);
+  transition:background .2s, border-color .2s;
+}
+.notif-toggle.on { background:var(--green); border-color:var(--green) }
+/* thumb */
+.notif-toggle::after {
+  content:''; position:absolute; top:3px; left:3px;
+  width:16px; height:16px; border-radius:50%;
+  background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.2);
+  transition:transform .2s var(--spring);
+}
+.notif-toggle.on::after { transform:translateX(18px) }
 /* ── CATALOG ─────────────────────────────────────────────── */
 .cat-header  { display:flex; flex-direction:column; align-items:center; margin-bottom:20px }
 .cat-title   { font:700 22px/1 var(--sans); color:var(--t0); margin-bottom:12px; letter-spacing:-.3px }
@@ -792,20 +817,19 @@ input, textarea { font-family:var(--sans) }
 .sett-inline-edit.open { display:block }
 .sett-inline-edit .cf-input { width:100%; margin-bottom:8px }
 .sett-inline-actions { display:flex; gap:7px; justify-content:flex-end }
-.sett-role-chips { display:flex; flex-wrap:wrap; gap:9px; padding:6px 0 4px }
+.sett-role-chips { display:flex; flex-wrap:wrap; gap:8px; padding:6px 0 4px }
 .sett-role-chip {
-  padding:9px 18px; border-radius:99px; font:500 12.5px/1 var(--sans);
-  border:1.5px solid var(--b1); background:var(--s1); color:var(--t1); cursor:pointer;
-  transition:all .15s var(--spring); letter-spacing:-.1px;
-  box-shadow:var(--sh1);
+  padding:8px 16px; border-radius:99px; font:500 12.5px/1 var(--sans);
+  border:1px solid var(--b1); background:var(--s0); color:var(--t1); cursor:pointer;
+  transition:all .15s var(--spring); box-shadow:var(--sh1);
 }
 .sett-role-chip:hover {
   border-color:var(--acc); color:var(--acc);
-  background:var(--s0); transform:translateY(-1px); box-shadow:var(--sh2);
+  background:var(--s1); transform:translateY(-1px); box-shadow:var(--sh2);
 }
 .sett-role-chip.active {
   background:var(--acc); color:#fff; border-color:var(--acc);
-  box-shadow:0 2px 8px rgba(154,122,40,.25);
+  box-shadow:0 2px 8px rgba(154,122,40,.2);
 }
 .dark .sett-role-chip.active { color:var(--bg) }
 .dark .sett-role-chip:hover  { color:var(--acc) }
