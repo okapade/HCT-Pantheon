@@ -115,60 +115,105 @@ def sheets_update_cell_sync(tab, row, col, value):
 # ── User management ────────────────────────────────────────────────────────────
 import fcntl
 
-USERS_FILE = '/tmp/pantheon_users.json'
+# ── User storage: Google Sheets as source of truth (no /tmp on Vercel) ──────
+# Users tab columns (1-indexed):
+# A=Name B=Email C=Phone D=Org E=Password F=Created G=Source
+# H=? I=? J=TrialDays K=Sims L=? M=Status N=EmailVerified O=Role
+# P=FacilityType Q=Location R=OnboardingComplete S=? T=RememberToken
+
+def _sheet_row_to_user(row):
+    """Convert a sheet row list to a user dict."""
+    def g(i, default=''):
+        return row[i].strip() if len(row) > i and row[i] else default
+    return {
+        'name': g(0), 'email': g(1), 'phone': g(2), 'org': g(3),
+        'password': g(4), 'created': g(5), 'source': g(6),
+        'trial_days': g(9, '90'), 'sims': g(10, '0'),
+        'status': g(12, 'Active'), 'email_verified': g(13, 'false'),
+        'role': g(14), 'facility_type': g(15), 'location': g(16),
+        'onboarding_complete': g(17, 'false'), 'remember_token': g(19, '')
+    }
 
 def _load_users():
+    """Load all users from Google Sheet into dict keyed by email."""
     try:
-        if os.path.exists(USERS_FILE):
-            with open(USERS_FILE, 'r') as f:
-                return json.load(f)
+        svc = get_sheets()
+        if not svc:
+            print("[USERS] No sheets service available")
+            return {}
+        res = svc.spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range='Users!A:T').execute()
+        rows = res.get('values', [])
+        out = {}
+        for row in rows[1:]:  # skip header
+            if len(row) >= 2 and row[1]:
+                email = row[1].strip().lower()
+                out[email] = _sheet_row_to_user(row)
+        print(f"[USERS] Loaded {len(out)} users from sheet")
+        return out
     except Exception as e:
         print(f"[USERS] Load error: {e}")
-    return {}
+        return {}
 
 def _save_users(users):
-    try:
-        with open(USERS_FILE, 'w') as f:
-            fcntl.flock(f, fcntl.LOCK_EX)
-            json.dump(users, f)
-            fcntl.flock(f, fcntl.LOCK_UN)
-    except Exception as e:
-        print(f"[USERS] Save error: {e}")
+    pass  # no-op — writes go through save_user / update_user directly
 
 def find_user(email):
-    users = _load_users()
-    u = users.get(email.strip().lower())
-    if u:
-        return [
-            u.get('name',''), u.get('email',''), '', u.get('org',''),
-            u.get('password',''), u.get('created',''), 'self-registered',
-            '', '', '90', '0', '0', 'Active',
-            u.get('email_verified','false'), u.get('role',''),
-            u.get('facility_type',''), u.get('location',''),
-            u.get('onboarding_complete','false'),
-            '', ''
-        ], email
+    """Find a user by email in the sheet. Returns (row_list, row_num) or (None, -1)."""
+    em = email.strip().lower()
+    try:
+        svc = get_sheets()
+        if not svc: return None, -1
+        res = svc.spreadsheets().values().get(
+            spreadsheetId=SHEET_ID, range='Users!A:T').execute()
+        rows = res.get('values', [])
+        for i, row in enumerate(rows[1:], start=2):
+            if len(row) >= 2 and row[1].strip().lower() == em:
+                # Pad row to 20 cols
+                row = row + [''] * (20 - len(row))
+                print(f"[USERS] Found user {em} at row {i}, verified={row[13]!r}")
+                return row, i
+    except Exception as e:
+        print(f"[USERS] find_user error: {e}")
+    print(f"[USERS] No user found for {em}")
     return None, -1
 
 def save_user(email, data):
-    users = _load_users()
-    users[email.strip().lower()] = data
-    _save_users(users)
-    sheets_append('Users', [
+    """Write new user row to sheet."""
+    row = [
         data.get('name',''), email, '', data.get('org',''),
         data.get('password',''), data.get('created',''), 'self-registered',
         '', '', '90', '0', '0', 'Active',
         data.get('email_verified','false'), data.get('role',''),
         data.get('facility_type',''), data.get('location',''),
         data.get('onboarding_complete','false')
-    ])
+    ]
+    sheets_append('Users', row)
 
 def update_user(email, key, value):
-    users = _load_users()
-    em = email.strip().lower()
-    if em in users:
-        users[em][key] = value
-        _save_users(users)
+    """Update a single field for a user in the sheet."""
+    col_map = {
+        'name':0,'email':1,'phone':2,'org':3,'password':4,'created':5,
+        'email_verified':13,'role':14,'facility_type':15,'location':16,
+        'onboarding_complete':17,'remember_token':19
+    }
+    col_idx = col_map.get(key)
+    _, row_num = find_user(email)
+    if row_num == -1 or col_idx is None:
+        print(f"[USERS] update_user: cant find {email} or key {key}")
+        return
+    try:
+        col_letter = chr(ord('A') + col_idx)
+        svc = get_sheets()
+        if svc:
+            svc.spreadsheets().values().update(
+                spreadsheetId=SHEET_ID,
+                range=f'Users!{col_letter}{row_num}',
+                valueInputOption='RAW',
+                body={'values': [[value]]}
+            ).execute()
+    except Exception as e:
+        print(f"[USERS] update_user error: {e}")
 
 def get_user_profile(email):
     row, _ = find_user(email)
