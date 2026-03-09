@@ -20,7 +20,8 @@ ANTHROPIC_KEY      = os.environ.get('ANTHROPIC_API_KEY', '')
 OPENAI_KEY         = os.environ.get('OPENAI_API_KEY', '')
 SIM_LIMIT_PER_WEEK = int(os.environ.get('SIM_LIMIT_PER_WEEK', '10'))
 TRIAL_DAYS         = int(os.environ.get('TRIAL_DAYS', '90'))
-SHEET_ID           = os.environ.get('GOOGLE_SHEET_ID', '')
+SHEET_ID           = os.environ.get('GOOGLE_SHEET_ID', '1gpVD1AyRe6UR4o_tU9nFMArczV7YX26ZLQrSWtwU8n0')
+APPS_SCRIPT_URL    = os.environ.get('APPS_SCRIPT_LOG_URL', '')  # Google Apps Script web app URL
 SHEETS_CREDS       = os.environ.get('GOOGLE_SHEETS_CREDS', '')
 SENDGRID_KEY       = os.environ.get('SENDGRID_API_KEY', '')
 FROM_EMAIL         = os.environ.get('FROM_EMAIL', 'pantheon@hct-world.com')
@@ -60,7 +61,23 @@ def get_sheets():
     except Exception as e:
         print(f"[SHEETS] Error: {type(e).__name__}: {e}"); return None
 
+def log_via_apps_script(tab, values):
+    """Fire-and-forget POST to Apps Script web app."""
+    if not APPS_SCRIPT_URL: return False
+    def _do():
+        try:
+            import urllib.request
+            payload = json.dumps({"action": "append", "tab": tab, "values": values}).encode()
+            req = urllib.request.Request(APPS_SCRIPT_URL, data=payload,
+                headers={"Content-Type": "application/json"}, method="POST")
+            urllib.request.urlopen(req, timeout=8)
+        except Exception as e: print(f"[AppsScript] Error ({tab}): {e}")
+    threading.Thread(target=_do, daemon=True).start()
+    return True
+
 def sheets_append(tab, values):
+    # Try Apps Script first (faster, no auth needed), fall back to service account
+    if log_via_apps_script(tab, values): return
     def _do():
         try:
             svc = get_sheets()
@@ -354,14 +371,14 @@ def admin_page():
 def index():
     if not session.get('onboarding_complete'):
         return redirect(url_for('onboarding_page'))
-    return render_template('dashboard.html')
+    return render_template('dashboard.html', apps_script_url=APPS_SCRIPT_URL)
 
 @app.route('/dashboard')
 @login_required
 def dashboard_page():
     if not session.get('onboarding_complete'):
         return redirect(url_for('onboarding_page'))
-    return render_template('dashboard.html')
+    return render_template('dashboard.html', apps_script_url=APPS_SCRIPT_URL)
 
 # ── Auth API ───────────────────────────────────────────────────────────────────
 
