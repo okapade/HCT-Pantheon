@@ -226,6 +226,10 @@ input, textarea { font-family:var(--sans) }
   background:var(--bg); border-top:1px solid var(--b0);
   display:flex; align-items:center; gap:10px;
 }
+.main-input-inner {
+  display:flex; align-items:center; gap:10px;
+  width:100%; max-width:760px; margin:0 auto;
+}
 .main-input input {
   flex:1; height:50px;
   background:var(--s0); border:1px solid var(--b1); border-radius:var(--r-full);
@@ -488,6 +492,7 @@ input, textarea { font-family:var(--sans) }
   background:var(--s0); border:1px solid var(--b0); border-top:3px solid var(--acc);
   border-radius:var(--r-lg); padding:22px 24px; margin-bottom:24px;
   animation:cardIn .4s var(--ease); box-shadow:var(--sh2);
+  width:100%; max-width:760px; margin-left:auto; margin-right:auto;
 }
 .ob-banner-head     { display:flex; align-items:center; gap:10px; margin-bottom:14px }
 .ob-banner-title    { font:700 17px/1.2 var(--sans); color:var(--t0); flex:1; letter-spacing:-.2px }
@@ -824,7 +829,9 @@ input, textarea { font-family:var(--sans) }
 /* ── TOASTS ──────────────────────────────────────────────── */
 .toast-container { position:fixed; top:14px; right:14px; z-index:9999; display:flex; flex-direction:column; gap:6px; max-width:340px; pointer-events:none }
 .toast { display:flex; align-items:flex-start; gap:9px; padding:11px 13px; background:rgba(255,255,255,.96); border:1px solid var(--b0); border-radius:var(--r-md); box-shadow:var(--sh4); pointer-events:auto; animation:toastIn .26s var(--spring); position:relative; overflow:hidden; backdrop-filter:blur(8px) }
-.dark .toast { background:rgba(28,28,26,.96) }
+.dark .toast { background:rgba(22,22,20,.97); color:var(--t0) }
+.dark .toast-msg { color:var(--t0) }
+.dark .toast-close { color:var(--t2) }
 .toast-alert   { border-left:3px solid var(--red)   }
 .toast-warning { border-left:3px solid var(--amber) }
 .toast-ok      { border-left:3px solid var(--green) }
@@ -862,6 +869,7 @@ input, textarea { font-family:var(--sans) }
   :root { --ctx:264px }
   .main-scroll { padding:36px 40px 48px }
   .main-input  { padding:10px 40px 18px }
+  .main-input-inner { max-width:none }
   .mon-grid    { grid-template-columns:repeat(2,1fr) }
 }
 @media(max-width:768px) {
@@ -870,6 +878,7 @@ input, textarea { font-family:var(--sans) }
   .context:not(.collapsed) { width:280px; opacity:1; border-right:1px solid var(--b0); box-shadow:var(--sh4) }
   .main-scroll { padding:20px 16px 28px }
   .main-input  { padding:9px 16px 13px }
+  .main-input-inner { max-width:none }
   .role-grid   { grid-template-columns:repeat(3,1fr) }
   .fs-grid     { grid-template-columns:repeat(3,1fr) }
   .ss-cards    { flex-direction:column }
@@ -880,3 +889,7 @@ input, textarea { font-family:var(--sans) }
   .fs-grid   { grid-template-columns:repeat(2,1fr) }
   .em-type-grid { grid-template-columns:repeat(2,1fr) }
 }
+
+/* Change location link in jurisdiction banner */
+.ob-change-loc-link { background:none; border:none; color:var(--gold,#9A7A28); font:500 11.5px/1 var(--sans); cursor:pointer; padding:0; text-decoration:underline; text-underline-offset:2px }
+.ob-change-loc-link:hover { opacity:.75 }
