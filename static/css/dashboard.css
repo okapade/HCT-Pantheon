@@ -754,15 +754,23 @@ input, textarea { font-family:var(--sans) }
 .sett-inline-edit.open { display:block }
 .sett-inline-edit .cf-input { width:100%; margin-bottom:8px }
 .sett-inline-actions { display:flex; gap:7px; justify-content:flex-end }
-.sett-role-chips { display:flex; flex-wrap:wrap; gap:7px; padding:4px 0 2px }
+.sett-role-chips { display:flex; flex-wrap:wrap; gap:9px; padding:6px 0 4px }
 .sett-role-chip {
-  padding:6px 14px; border-radius:99px; font:500 12px/1 var(--sans);
-  border:1px solid var(--b1); background:var(--s1); color:var(--t2); cursor:pointer;
-  transition:all .12s;
+  padding:9px 18px; border-radius:99px; font:500 12.5px/1 var(--sans);
+  border:1.5px solid var(--b1); background:var(--s1); color:var(--t1); cursor:pointer;
+  transition:all .15s var(--spring); letter-spacing:-.1px;
+  box-shadow:var(--sh1);
 }
-.sett-role-chip:hover { border-color:var(--b2); color:var(--t1) }
-.sett-role-chip.active { background:var(--acc); color:#fff; border-color:var(--acc) }
+.sett-role-chip:hover {
+  border-color:var(--acc); color:var(--acc);
+  background:var(--s0); transform:translateY(-1px); box-shadow:var(--sh2);
+}
+.sett-role-chip.active {
+  background:var(--acc); color:#fff; border-color:var(--acc);
+  box-shadow:0 2px 8px rgba(154,122,40,.25);
+}
 .dark .sett-role-chip.active { color:var(--bg) }
+.dark .sett-role-chip:hover  { color:var(--acc) }
 .sett-dot { margin-right:3px; font-size:10px }
 
 /* ── LIVE MONITOR ────────────────────────────────────────── */
