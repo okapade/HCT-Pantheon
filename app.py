@@ -167,9 +167,12 @@ def find_user(email):
         res = svc.spreadsheets().values().get(
             spreadsheetId=SHEET_ID, range='Users!A:T').execute()
         rows = res.get('values', [])
+        print(f"[USERS] Sheet rows={len(rows)} header={rows[0] if rows else 'EMPTY'}")
         for i, row in enumerate(rows[1:], start=2):
+            c0 = row[0] if len(row)>0 else ''
+            c1 = row[1] if len(row)>1 else 'MISSING'
+            print(f"[USERS] Row {i}: col0={c0!r} col1={c1!r}")
             if len(row) >= 2 and row[1].strip().lower() == em:
-                # Pad row to 20 cols
                 row = row + [''] * (20 - len(row))
                 print(f"[USERS] Found user {em} at row {i}, verified={row[13]!r}")
                 return row, i
