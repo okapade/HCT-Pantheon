@@ -40,6 +40,12 @@
           <path d="M10 6v4l2.5 1.5"/>
         </svg>
       </button>
+      <button class="rail-btn" data-view="history" title="Chat History" id="railHistoryBtn">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4">
+          <polyline points="1 4 1 10 7 10"/>
+          <path d="M3.5 15A8 8 0 1 0 5.5 5L1 10"/>
+        </svg>
+      </button>
       <button class="rail-btn" data-view="catalog" title="Catalog">
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4">
           <rect x="2" y="2" width="6.5" height="6.5" rx="1.5"/>
@@ -497,6 +503,22 @@
                 <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
               </svg>
             </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- HISTORY VIEW -->
+    <div class="main-view" id="viewHistory">
+      <div class="main-scroll">
+        <div class="history-wrap">
+          <div class="history-header">
+            <h2 class="history-title">Conversation History</h2>
+            <p class="history-sub">Your recent conversations with Pantheon AI</p>
+          </div>
+          <div id="historyList" class="history-list">
+            <div class="history-loading">Loading conversations...</div>
           </div>
         </div>
       </div>
