@@ -277,28 +277,41 @@ document.getElementById('pwToggle').addEventListener('click', function() {
   inp.type = inp.type === 'password' ? 'text' : 'password';
 });
 
-// ── Restore remembered credentials ──────────────────────────────────────────
-(function restoreRemembered() {
+// ── Auto-login via remember token (cookie-based, no password needed) ────────
+(function tryAutoLogin() {
+  // Only attempt if we have a saved email (signals user previously checked remember me)
+  var savedEmail = localStorage.getItem('pantheon_saved_email');
+  if (!savedEmail) return;
+
+  fetch('/api/auth/auto', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({})
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.ok) {
+      // Auto-login succeeded — go straight to dashboard
+      window.location.href = data.redirect || '/dashboard';
+    } else {
+      // Token invalid/expired — show form with email pre-filled
+      restoreEmailField();
+    }
+  })
+  .catch(function() { restoreEmailField(); });
+})();
+
+// ── Pre-fill email field if remembered ───────────────────────────────────────
+function restoreEmailField() {
   try {
     var savedEmail = localStorage.getItem('pantheon_saved_email');
-    var savedPw    = localStorage.getItem('pantheon_saved_pw');
-    var remember   = localStorage.getItem('pantheon_remember');
-    // Support both storage formats
-    if (!savedEmail) {
-      try {
-        var legacyData = JSON.parse(remember || '{}');
-        if (legacyData && legacyData.email) savedEmail = legacyData.email;
-      } catch(e) {}
-    }
     if (savedEmail) {
       document.getElementById('emailInput').value = savedEmail;
       document.getElementById('rememberMe').checked = true;
     }
-    if (savedEmail && savedPw && remember === 'true') {
-      document.getElementById('passwordInput').value = savedPw;
-    }
   } catch(e) {}
-})();
+}
 
 // ── Sign-in handler ──────────────────────────────────────────────────────────
 function handleSignIn() {
