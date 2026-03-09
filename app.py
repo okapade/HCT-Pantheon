@@ -420,11 +420,33 @@ def verify_email_link():
     sheets_append('Activity Log', [now_str(), email, row[0], '', 'Email Verified', '', '', '', '', device, browser])
     return redirect(url_for('onboarding_page'))
 
+@app.route('/api/auth/auto', methods=['POST'])
+def auth_auto():
+    """Auto-login using remember token stored in cookie — no password needed."""
+    token = request.cookies.get('pantheon_remember_token', '')
+    if not token: return jsonify({"error": "No token"}), 401
+    rows = sheets_read('Users')
+    for i, row in enumerate(rows[1:], 2):
+        stored_token = row[18].strip() if len(row) > 18 else ''
+        if stored_token and stored_token == token:
+            email = row[1].strip().lower() if len(row) > 1 else ''
+            if not email: continue
+            email_verified = row[13].strip().lower() if len(row) > 13 else ''
+            if email_verified != 'true': return jsonify({"error": "email_not_verified"}), 403
+            _create_session(email, row, i)
+            onboarding_done = (row[17] if len(row) > 17 else '') == 'true'
+            sims = int(row[10]) if len(row) > 10 and row[10] else 0
+            resp = jsonify({"ok": True, "name": row[0], "onboarding_complete": onboarding_done,
+                           "sims_remaining": max(0, SIM_LIMIT_PER_WEEK - sims)})
+            return resp
+    return jsonify({"error": "Invalid token"}), 401
+
 @app.route('/api/auth/verify', methods=['POST'])
 def auth_verify():
     b        = request.get_json()
     email    = (b.get('email', '') or b.get('identifier', '')).strip().lower()
     password = b.get('password', '').strip()
+    remember = b.get('remember_me', False)
     if not email or not password: return jsonify({"error": "Email and password required"}), 400
     row, row_num = find_user(email)
     if not row:
@@ -455,7 +477,14 @@ def auth_verify():
     sheets_append('Activity Log', [now_str(), email, row[0], row[3] if len(row)>3 else '', 'Logged In', '', '', '', '', device, browser])
     onboarding_done = (row[17] if len(row) > 17 else '') == 'true'
     sims = int(row[10]) if len(row) > 10 and row[10] else 0
-    return jsonify({"ok": True, "name": row[0], "onboarding_complete": onboarding_done, "days_left": days_left, "sims_remaining": max(0, SIM_LIMIT_PER_WEEK - sims)})
+    resp = jsonify({"ok": True, "name": row[0], "onboarding_complete": onboarding_done, "days_left": days_left, "sims_remaining": max(0, SIM_LIMIT_PER_WEEK - sims)})
+    # Set persistent remember-me token if requested
+    if remember:
+        token = secrets.token_hex(32)
+        sheets_update_cell('Users', row_num, 19, token)  # col S — remember_token
+        resp.set_cookie('pantheon_remember_token', token,
+                       max_age=30*24*3600, httponly=True, secure=True, samesite='Lax')
+    return resp
 
 @app.route('/api/auth/verify_otp', methods=['POST'])
 def auth_verify_otp():
@@ -813,6 +842,24 @@ def api_log_act():
         device, browser
     ])
     return jsonify({"ok": True})
+
+
+@app.route('/api/debug/user')
+@login_required
+def debug_user():
+    """Show what's stored in the sheet for the current user — for troubleshooting."""
+    email = session.get('user_id', '')
+    row, row_num = find_user(email)
+    if not row: return jsonify({"error": "not found"})
+    return jsonify({
+        "email":          row[1]  if len(row) > 1  else '',
+        "stored_pw_len":  len(row[4].strip()) if len(row) > 4 else 0,
+        "email_verified": row[13] if len(row) > 13 else '',
+        "status":         row[12] if len(row) > 12 else '',
+        "onboarding":     row[17] if len(row) > 17 else '',
+        "remember_token": 'set' if (len(row) > 18 and row[18]) else 'not set',
+        "row_num":        row_num
+    })
 
 # ── Incident data ──────────────────────────────────────────────────────────────
 
