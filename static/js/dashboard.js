@@ -42,13 +42,13 @@ function icon(name, cls) { return `<span class="ico${cls ? ' ' + cls : ''}">${IC
 
 /* ═══ TELEMETRY ═══ */
 function _logAction(action, d1, d2, d3) {
-  try { fetch('/api/log/action', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:action,d1:d1||'',d2:d2||'',d3:d3||''}) }).catch(()=>{}) } catch(e){}
+  try { fetch('/api/telemetry/action', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:action,detail1:d1||'',detail2:d2||'',detail3:d3||''}) }).catch(()=>{}) } catch(e){}
 }
 function _logSim(mode, fc) {
-  try { fetch('/api/log/sim', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({mode:mode,facility_type:fc?.typeName||fc?.type||'',chemistry:fc?.battery||'',modules:fc?.modules||'',suppression:fc?.suppression||''}) }).catch(()=>{}) } catch(e){}
+  try { fetch('/api/telemetry/simulation', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({mode:mode,facility_type:fc?.typeName||fc?.type||'',chemistry:fc?.battery||'',modules:String(fc?.modules||''),suppression:fc?.suppression||'',acts:0,pdf_exported:'No',ai_questions:0}) }).catch(()=>{}) } catch(e){}
 }
 function _logProduct(product, source) {
-  try { fetch('/api/log/product', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({product:product,source:source||''}) }).catch(()=>{}) } catch(e){}
+  try { fetch('/api/telemetry/product', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({product:product,source:source||'',time_on:0,clicked_learn_more:'No'}) }).catch(()=>{}) } catch(e){}
 }
 function _logChat(msg) {
   try { fetch('/api/log/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({message:msg.substring(0,200)}) }).catch(()=>{}) } catch(e){}
@@ -486,6 +486,19 @@ async function startSim(mode) {
     // Trigger live simulation effects
     if (typeof triggerSimEffects === 'function') triggerSimEffects(mode, i);
     if (typeof triggerSimToasts === 'function') triggerSimToasts(mode, i);
+    // Log each act completion
+    (function(actIdx, actName, actText) {
+      const fc = facilityConfig || {};
+      fetch('/api/telemetry/act', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: mode, act_id: actIdx, act_name: actName,
+          facility_type: fc.typeName || fc.type || '',
+          time_spent: ''
+        })
+      }).catch(() => {});
+    })(i, actNames[i], text);
     if (!text && !simRunning) break;
     if (!text) {
       body.innerHTML = body.textContent || '<span class="act-error">Unable to generate — check API connection and retry.</span>';
@@ -508,6 +521,28 @@ async function startSim(mode) {
   logAudit(`Simulation completed: ${mode} failure — 5 acts generated`, 'CONFIDENTIAL');
   // Cross-section reactivity
   if (typeof onSimulationComplete === 'function') onSimulationComplete(mode);
+  // ── Log completed simulation to Sheets ──
+  (function() {
+    const fc = facilityConfig || {};
+    const aiQCount = chatHistory ? Math.floor(chatHistory.length / 2) : 0;
+    fetch('/api/telemetry/simulation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mode:          mode,
+        facility_type: fc.typeName || fc.type || '',
+        chemistry:     fc.battery  || '',
+        modules:       String(fc.modules || ''),
+        suppression:   fc.suppression || '',
+        detection:     Array.isArray(fc.detection) ? fc.detection.join(', ') : (fc.detection || ''),
+        acts:          actTexts.length,
+        pdf_exported:  'No',
+        ai_questions:  aiQCount,
+      })
+    }).catch(() => {});
+    // Also log to Activity Log
+    _logAction('simulation_complete', mode + ' failure', fc.typeName || fc.type || '', actTexts.length + ' acts');
+  })();
   // Scroll to the summary card, not the very bottom
   sc.scrollIntoView({ behavior: 'smooth', block: 'start' });
   simRunning = false;
@@ -552,6 +587,18 @@ function resetSim() {
 }
 function exportPDF() {
   logAudit(`PDF export: ${simMode} failure report`, 'RESTRICTED');
+  // Log PDF export
+  const fc = facilityConfig || {};
+  fetch('/api/telemetry/simulation', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      mode: simMode, facility_type: fc.typeName || fc.type || '',
+      chemistry: fc.battery || '', modules: String(fc.modules || ''),
+      suppression: fc.suppression || '', acts: 5, pdf_exported: 'Yes', ai_questions: 0
+    })
+  }).catch(() => {});
+  _logAction('pdf_export', simMode + ' failure report', fc.typeName || '', '');
   const acts = [...$('#simScroll .act-body')].map(b => b.innerText);
   fetch('/api/report/pdf', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: simMode, acts }) })
     .then(r => r.blob()).then(b => { const u = URL.createObjectURL(b), a = document.createElement('a'); a.href = u; a.download = `pantheon-${simMode}-report.pdf`; a.click(); URL.revokeObjectURL(u) }).catch(() => alert('PDF export failed'));
