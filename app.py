@@ -1078,6 +1078,10 @@ def api_report_pdf():
     buf = io.BytesIO(); pdf.output(buf); buf.seek(0)
     return Response(buf.read(), mimetype='application/pdf', headers={'Content-Disposition': f'attachment; filename=pantheon-{mode}-{inc.get("id","report")}.pdf'})
 
+@app.route('/forgot-password')
+def forgot_password_page():
+    return render_template('forgot_password.html')
+
 @app.route('/api/auth/forgot_password', methods=['POST'])
 def auth_forgot_password():
     b = request.get_json()
