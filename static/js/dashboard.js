@@ -4649,17 +4649,63 @@ function handleLogout() {
    ══════════════════════════════════════════════════════════════════════════ */
 (function sheetsLogger() {
 
-  var SHEETS_ENDPOINT = '/api/log-event'; // Backend endpoint that writes to Sheets
+  var SHEETS_ENDPOINT  = '/api/log-event';  // server fallback
+  // Apps Script URL injected by server into window.PANTHEON_LOG_URL at render time
+  // Falls back to server endpoint if not set
+  var APPS_SCRIPT_URL  = (typeof window.PANTHEON_LOG_URL !== 'undefined' && window.PANTHEON_LOG_URL) ? window.PANTHEON_LOG_URL : null;
 
   function logEvent(tab, payload) {
+    // Build flat row values in the correct column order per tab
+    var values = buildRow(tab, payload);
+    var body   = JSON.stringify({ action: 'append', tab: tab, values: values });
+    // Fire to Apps Script directly (no auth, fastest path)
+    if (APPS_SCRIPT_URL) {
+      try {
+        fetch(APPS_SCRIPT_URL, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body
+        }).catch(function() {
+          // Apps Script failed — fall back to server
+          serverLog(tab, payload);
+        });
+        return;
+      } catch(e) {}
+    }
+    // Fall back to server endpoint
+    serverLog(tab, payload);
+  }
+
+  function serverLog(tab, payload) {
     try {
       fetch(SHEETS_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ tab: tab, data: payload, ts: new Date().toISOString() })
-      }).catch(function() {}); // fire-and-forget, never block UI
-    } catch (e) {}
+      }).catch(function() {});
+    } catch(e) {}
+  }
+
+  // Convert payload object to ordered array matching sheet columns
+  function buildRow(tab, p) {
+    var ts = p.timestamp || new Date().toISOString();
+    if (tab === 'Activity Log') {
+      return [ts, p.email||p.user||'', p.name||'', p.org||'', p.action||'',
+              p.detail1||p.detail||'', p.detail2||'', p.detail3||'', p.time_spent||'', p.device||navigator.platform, p.browser||navigator.userAgent.split(' ').pop()];
+    }
+    if (tab === 'Simulations') {
+      return [ts, p.email||p.user||'', p.name||'', p.org||'', p.facility_type||p.facility||'',
+              p.chemistry||p.battery||'', p.modules||'', p.suppression||'', p.mode||p.simulation_mode||'',
+              p.acts||0, p.pdf_exported||'No', p.ai_questions||0, p.top_question||'', p.recos_viewed||'No', p.impact_shown||'No'];
+    }
+    if (tab === 'AI Conversations') {
+      return [ts, p.email||'', p.org||'', p.question||'', p.view||'home',
+              p.facility_type||'', p.chemistry||'', p.modules||'', p.response_len||0];
+    }
+    if (tab === 'Product Interest') {
+      return [ts, p.email||'', p.org||'', p.product||'', p.source||'',
+              p.time_on||0, p.clicked_learn_more||'No'];
+    }
+    // Generic: just values in order
+    return Object.values(p);
   }
 
   // Activity log helper
