@@ -482,12 +482,12 @@ async function startSim(mode) {
     // Collapse all previous acts when new one starts
     feed.querySelectorAll('.act-block').forEach(b => b.classList.add('collapsed'));
     const block = document.createElement('div'); block.className = 'act-block';
-    block.innerHTML = `<div class="act-head"><span class="act-tag ${actTags[i]}">ACT ${String(i).padStart(2, '0')}</span><span class="act-name">${actNames[i]}</span><span class="class-badge class-badge-confidential">CONFIDENTIAL</span><span class="act-collapse">▾</span></div><div class="act-body"><span class="act-typing">Analyzing...</span></div>`;
+    block.innerHTML = `<div class="act-head"><span class="act-tag ${actTags[i]}">ACT ${String(i).padStart(2, '0')}</span><span class="act-name">${actNames[i]}</span><span class="class-badge class-badge-confidential">CONFIDENTIAL</span><span class="act-collapse">▾</span></div><div class="act-body"><div class="ai-response-row"><div class="ai-avatar">✦</div><div class="ai-response-body"><span class="ai-thinking"><span class="ai-sparkle">✦</span></span></div></div></div>`;
     feed.appendChild(block);
     // Scroll the new act into view
     block.scrollIntoView({ behavior: 'smooth', block: 'start' });
     block.querySelector('.act-head').onclick = () => block.classList.toggle('collapsed');
-    const body = block.querySelector('.act-body');
+    const body = block.querySelector('.ai-response-body') || block.querySelector('.act-body');
     const text = await streamAct(mode, i, body);
     actTexts.push(text);
     // Trigger live simulation effects
@@ -903,7 +903,7 @@ async function sendChat(input, scrollId) {
   const uDiv = document.createElement('div'); uDiv.className = 'chat-msg chat-msg-user';
   uDiv.innerHTML = `<div class="chat-bubble">${escHtml(msg)}</div>`; feed.appendChild(uDiv);
   const aDiv = document.createElement('div'); aDiv.className = 'chat-msg chat-msg-assistant';
-  aDiv.innerHTML = `<div class="chat-avatar">✦</div><div class="chat-bubble chat-typing">Thinking...</div>`;
+  aDiv.innerHTML = `<div class="chat-avatar">✦</div><div class="chat-bubble chat-typing"><span class="ai-thinking"><span class="ai-sparkle">✦</span></span></div>`;
   feed.appendChild(aDiv); feed.scrollTop = feed.scrollHeight;
   const bubble = aDiv.querySelector('.chat-bubble');
   // Add facility context to message
@@ -921,6 +921,8 @@ async function sendChat(input, scrollId) {
       feed.scrollTop = feed.scrollHeight;
     }
     chatHistory.push({ role: 'assistant', content: full });
+    // Re-show suggestion chips after response
+    renderSuggestionChips();
     // Log to AI Conversations sheet
     if (typeof window.logAIConversation === 'function') {
       window.logAIConversation('home', msg, full);
@@ -4194,37 +4196,37 @@ function sendChipMsg(btn, msg) {
 }
 
 /* ── STARTER PROMPTS on home (shown before first chat message) ─────── */
-function renderStarterPrompts(userName) {
-  // inject into homeCenter after the scenario/config flow area
-  var center = document.getElementById('homeCenter');
-  if (!center) return;
-  var existing = document.getElementById('starterGrid');
-  if (existing) return; // only once
+// Plain-English chip prompts — audience is Facility Managers, Fire Chiefs, Insurance, Gen X/Boomers
+var SUGGESTION_CHIPS = [
+  { label: 'Is my facility protected?',      msg: 'Assess my suppression gap' },
+  { label: 'Show me a fire scenario',        msg: 'Simulate thermal runaway' },
+  { label: 'What codes apply to me?',        msg: 'Check compliance standards' },
+  { label: 'Is my team trained enough?',     msg: 'Review training readiness' }
+];
 
-  var greeting = userName ? ('Hello, ' + userName.split(' ')[0] + '.') : 'Life Safety OS.';
-  var grid = document.createElement('div');
-  grid.id = 'starterGrid';
-  grid.style.cssText = 'max-width:680px;width:100%;margin-top:20px;display:none'; // hidden, revealed after role selected
-  grid.className = 'starter-grid';
-  var prompts = [
-    {label:'Assess my suppression gap',    sub:'Compare installed systems vs. NFPA requirements'},
-    {label:'Simulate thermal runaway',      sub:'Run a full or partial failure scenario'},
-    {label:'Check compliance standards',    sub:'NFPA 855, 75, 13 · NEC 706 · UL 9540A'},
-    {label:'Review training readiness',     sub:'Certifications, gaps, and drill schedule'}
-  ];
-  grid.innerHTML = prompts.map(function(p) {
-    return '<div class="starter-card" onclick="sendStarterPrompt(\'' + escAttr(p.label) + '\')">' +
-      '<div class="starter-card-label">' + escHtml(p.label) + '</div>' +
-      '<div class="starter-card-sub">' + escHtml(p.sub) + '</div></div>';
+function renderStarterPrompts(userName) {
+  // Render as chips above the input bar
+  renderSuggestionChips();
+}
+
+function renderSuggestionChips() {
+  var wrap = document.getElementById('suggestionChips');
+  if (!wrap) return;
+  wrap.innerHTML = SUGGESTION_CHIPS.map(function(c) {
+    return '<button class="suggestion-chip" onclick="sendStarterPrompt(' + JSON.stringify(c.msg) + ')">' + escHtml(c.label) + '</button>';
   }).join('');
-  center.appendChild(grid);
+  wrap.style.display = 'flex';
+}
+
+function hideSuggestionChips() {
+  var wrap = document.getElementById('suggestionChips');
+  if (wrap) wrap.style.display = 'none';
 }
 
 function sendStarterPrompt(msg) {
   var inputEl = document.getElementById('homeChat');
   if (!inputEl) return;
-  var grid = document.getElementById('starterGrid');
-  if (grid) grid.style.display = 'none';
+  hideSuggestionChips();
   inputEl.value = msg;
   sendChat(inputEl, '#homeScroll');
 }
@@ -4241,7 +4243,7 @@ var _patchedSendChat = false;
     var sugEl = document.getElementById(sugId);
     if (sugEl) sugEl.innerHTML = '';
     // Hide starter grid
-    var sg = document.getElementById('starterGrid'); if (sg) sg.style.display = 'none';
+    hideSuggestionChips();
 
     await _orig(input, scrollId);
 
