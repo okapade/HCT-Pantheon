@@ -170,12 +170,20 @@ def find_user(email):
         rows = res.get('values', [])
         print(f"[USERS] Sheet rows={len(rows)} header={rows[0] if rows else 'EMPTY'}")
         for i, row in enumerate(rows[1:], start=2):
-            c0 = row[0] if len(row)>0 else ''
-            c1 = row[1] if len(row)>1 else 'MISSING'
-            print(f"[USERS] Row {i}: col0={c0!r} col1={c1!r}")
             if len(row) >= 2 and row[1].strip().lower() == em:
+                # Skip garbage rows (last_login_update etc)
+                if row[1].strip().lower() == 'last_login_update':
+                    continue
+                # Pad to 20 cols
                 row = row + [''] * (20 - len(row))
-                print(f"[USERS] Found user {em} at row {i}, verified={row[13]!r}")
+                # Sheet structure: col4=password, col12=status, col13=remember_token
+                # email_verified not in sheet — treat Active status as verified
+                status = row[12].strip().lower() if row[12] else 'active'
+                # Inject 'true' into col13 slot for email_verified check
+                # by remapping: move remember_token to col19, put 'true' at col13
+                row[19] = row[13]  # remember_token → col19
+                row[13] = 'true' if status != 'revoked' else 'false'
+                print(f"[USERS] Found {em} at row {i}, status={status!r} pw_len={len(row[4])}")
                 return row, i
     except Exception as e:
         print(f"[USERS] find_user error: {e}")
@@ -183,14 +191,13 @@ def find_user(email):
     return None, -1
 
 def save_user(email, data):
-    """Write new user row to sheet."""
+    """Write new user row matching actual sheet column order:
+    Name|Email|Phone|Org|Password|DateInvited|InvitedBy|FirstLogin|LastLogin
+    |DaysRemaining|SimsThisWeek|TotalSims|Status|remember_token"""
     row = [
         data.get('name',''), email, '', data.get('org',''),
         data.get('password',''), data.get('created',''), 'self-registered',
-        '', '', '90', '0', '0', 'Active',
-        data.get('email_verified','false'), data.get('role',''),
-        data.get('facility_type',''), data.get('location',''),
-        data.get('onboarding_complete','false')
+        '', '', '90', '0', '0', 'Active', ''
     ]
     sheets_append('Users', row)
 
@@ -199,7 +206,7 @@ def update_user(email, key, value):
     col_map = {
         'name':0,'email':1,'phone':2,'org':3,'password':4,'created':5,
         'email_verified':13,'role':14,'facility_type':15,'location':16,
-        'onboarding_complete':17,'remember_token':19
+        'onboarding_complete':17,'remember_token':13  # col N in sheet
     }
     col_idx = col_map.get(key)
     _, row_num = find_user(email)
