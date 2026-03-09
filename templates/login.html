@@ -283,18 +283,19 @@ document.getElementById('pwToggle').addEventListener('click', function() {
     var savedEmail = localStorage.getItem('pantheon_saved_email');
     var savedPw    = localStorage.getItem('pantheon_saved_pw');
     var remember   = localStorage.getItem('pantheon_remember');
-    if (savedEmail && remember === 'true') {
-      document.getElementById('emailInput').value    = savedEmail;
-      document.getElementById('passwordInput').value = savedPw || '';
-      document.getElementById('rememberMe').checked  = true;
-    } else {
+    // Support both storage formats
+    if (!savedEmail) {
       try {
-        var saved = localStorage.getItem('pantheon_remember');
-        if (saved && saved !== 'true') {
-          var data = JSON.parse(saved);
-          if (data.email) { document.getElementById('emailInput').value = data.email; document.getElementById('rememberMe').checked = true; }
-        }
+        var legacyData = JSON.parse(remember || '{}');
+        if (legacyData && legacyData.email) savedEmail = legacyData.email;
       } catch(e) {}
+    }
+    if (savedEmail) {
+      document.getElementById('emailInput').value = savedEmail;
+      document.getElementById('rememberMe').checked = true;
+    }
+    if (savedEmail && savedPw && remember === 'true') {
+      document.getElementById('passwordInput').value = savedPw;
     }
   } catch(e) {}
 })();
@@ -333,11 +334,19 @@ function handleSignIn() {
   .then(function(r) { return r.json(); })
   .then(function(data) {
     if (data.ok) {
-      // Save remember-me preference
+      // Save remember-me credentials
       if (remember) {
-        try { localStorage.setItem('pantheon_remember', JSON.stringify({ email: email })); } catch(e) {}
+        try {
+          localStorage.setItem('pantheon_saved_email', email);
+          localStorage.setItem('pantheon_saved_pw', password);
+          localStorage.setItem('pantheon_remember', 'true');
+        } catch(e) {}
       } else {
-        try { localStorage.removeItem('pantheon_remember'); } catch(e) {}
+        try {
+          localStorage.removeItem('pantheon_saved_email');
+          localStorage.removeItem('pantheon_saved_pw');
+          localStorage.removeItem('pantheon_remember');
+        } catch(e) {}
       }
       // Log login event to Sheets
       logLoginEvent(email, data.name || '');
