@@ -1089,28 +1089,52 @@ def auth_forgot_password():
     if not email: return jsonify({"error": "Email required"}), 400
     row, row_num = find_user(email)
     if row:
-        token = generate_verify_token(email + ':reset')
-        t = _load_tokens(); t[token] = {'email': email, 'expires': time.time() + 3600, 'purpose': 'reset'}; _save_tokens(t)
+        token = secrets.token_urlsafe(32)
+        _write_token_to_sheet(token, email, time.time() + 3600, 'reset')
         reset_url = f"https://hct-pantheon.vercel.app/reset-password?token={token}"
+        print(f"[RESET] Token written to sheet for {email}")
         if SENDGRID_KEY:
             try:
                 import httpx
-                body = f'<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:40px"><h2>Reset your Pantheon password</h2><p>Click below to set a new password. Expires in 1 hour.</p><a href="{reset_url}" style="display:inline-block;background:#111110;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-family:monospace;font-size:12px;text-transform:uppercase">Reset Password</a></div>'
-                httpx.post('https://api.sendgrid.com/v3/mail/send',
+                email_html = (
+                    '<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:40px;background:#f9f9f9">'
+                    '<div style="background:#fff;border-radius:12px;padding:36px;border:1px solid #e5e5e5">'
+                    '<h2 style="font-size:22px;margin:0 0 10px;color:#111">Reset your Pantheon password</h2>'
+                    '<p style="color:#666;font-size:14px;margin:0 0 24px">Click below to set a new password. This link expires in 1 hour.</p>'
+                    f'<a href="{reset_url}" style="display:inline-block;background:#111;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">Reset Password</a>'
+                    '<p style="color:#999;font-size:12px;margin:24px 0 0">If you did not request this, you can safely ignore this email.</p>'
+                    '</div></div>'
+                )
+                resp = httpx.post(
+                    'https://api.sendgrid.com/v3/mail/send',
                     headers={'Authorization': f'Bearer {SENDGRID_KEY}', 'Content-Type': 'application/json'},
-                    json={'personalizations': [{'to': [{'email': email}]}], 'from': {'email': FROM_EMAIL, 'name': 'Pantheon'}, 'subject': 'Reset your Pantheon password', 'content': [{'type': 'text/html', 'value': body}]},
-                    timeout=15.0)
-            except Exception as e: print(f"SendGrid reset error: {e}")
+                    json={
+                        'personalizations': [{'to': [{'email': email}]}],
+                        'from': {'email': FROM_EMAIL, 'name': 'Pantheon'},
+                        'subject': 'Reset your Pantheon password',
+                        'content': [{'type': 'text/html', 'value': email_html}]
+                    },
+                    timeout=15.0
+                )
+                print(f"[RESET] SendGrid status={resp.status_code} body={resp.text[:300]}")
+            except Exception as e:
+                print(f"[RESET] SendGrid error: {e}")
         else:
             print(f"[DEV] Reset link for {email}: {reset_url}")
+    else:
+        print(f"[RESET] No user found for {email}")
     return jsonify({"ok": True})
 
 @app.route('/reset-password')
 def reset_password_page():
     token = request.args.get('token', '').strip()
-    if not token or token not in _load_tokens(): return redirect(url_for('login_page') + '?msg=invalid_token')
-    entry = _load_tokens().get(token, {})
-    if time.time() > entry.get('expires', 0): return redirect(url_for('login_page') + '?msg=invalid_token')
+    entry = _read_token_from_sheet(token) if token else None
+    if not entry:
+        print(f"[RESET] Token not found: {token[:20] if token else 'none'}")
+        return render_template('reset_password.html', token=None)
+    if time.time() > entry.get('expires', 0):
+        _delete_token_from_sheet(token)
+        return render_template('reset_password.html', token=None)
     return render_template('reset_password.html', token=token)
 
 @app.route('/api/auth/reset_password', methods=['POST'])
