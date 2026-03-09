@@ -366,7 +366,7 @@ input, textarea { font-family:var(--sans) }
 .cf-standards-notes { font:400 10.5px/1.4 var(--sans); color:var(--t3); margin-top:7px; font-style:italic }
 
 /* ── SCENARIO SELECT ─────────────────────────────────────── */
-.scenario-select { max-width:760px; width:100%; margin:0 auto; animation:fadeUp .3s var(--ease) }
+.scenario-select { max-width:760px; width:100%; margin:40px auto 0; animation:fadeUp .3s var(--ease) }
 .ss-summary { background:var(--s0); border:1px solid var(--b0); border-radius:var(--r-md); padding:14px 18px; margin-bottom:14px; box-shadow:var(--sh1) }
 .ss-sum-top  { display:flex; align-items:center; justify-content:space-between; margin-bottom:7px }
 .ss-sum-name { font:600 16px/1 var(--sans); color:var(--t0); display:flex; align-items:center; gap:7px }
@@ -893,3 +893,38 @@ input, textarea { font-family:var(--sans) }
 /* Change location link in jurisdiction banner */
 .ob-change-loc-link { background:none; border:none; color:var(--gold,#9A7A28); font:500 11.5px/1 var(--sans); cursor:pointer; padding:0; text-decoration:underline; text-underline-offset:2px }
 .ob-change-loc-link:hover { opacity:.75 }
+
+/* ── STARTER PROMPT GRID ──────────────────────────────────── */
+.starter-grid {
+  display:grid; grid-template-columns:repeat(2,1fr); gap:8px;
+  max-width:680px; width:100%; margin:0 auto;
+}
+.starter-card {
+  background:var(--s0); border:1px solid var(--b0); border-radius:var(--r-md);
+  padding:14px 16px; cursor:pointer; text-align:left;
+  transition:all .15s var(--spring);
+}
+.starter-card:hover { background:var(--s1); border-color:var(--b1); transform:translateY(-1px); box-shadow:var(--sh2) }
+.starter-card-label { font:600 13.5px/1.3 var(--sans); color:var(--t0); margin-bottom:4px }
+.starter-card-sub   { font:400 11.5px/1.4 var(--sans); color:var(--t2) }
+
+/* ── HISTORY VIEW ──────────────────────────────────────────── */
+.history-wrap   { max-width:760px; width:100%; margin:0 auto; padding:8px 0 40px }
+.history-header { margin-bottom:28px }
+.history-title  { font:700 22px/1.2 var(--sans); color:var(--t0); letter-spacing:-.4px; margin-bottom:6px }
+.history-sub    { font:400 13px/1.5 var(--sans); color:var(--t2) }
+.history-list   { display:flex; flex-direction:column; gap:8px }
+.history-loading { font:400 13px/1 var(--sans); color:var(--t3); padding:24px 0 }
+.history-empty  { font:400 13px/1.5 var(--sans); color:var(--t3); padding:24px 0 }
+.history-item {
+  background:var(--s0); border:1px solid var(--b0); border-radius:var(--r-md);
+  padding:14px 18px; cursor:pointer; transition:all .15s var(--spring);
+  display:flex; flex-direction:column; gap:5px;
+}
+.history-item:hover { border-color:var(--b1); background:var(--s1); transform:translateY(-1px); box-shadow:var(--sh2) }
+.history-item-q    { font:500 13.5px/1.4 var(--sans); color:var(--t0) }
+.history-item-meta { display:flex; gap:12px; align-items:center }
+.history-item-time { font:400 11px/1 var(--mono); color:var(--t3) }
+.history-item-view { font:500 10px/1 var(--mono); color:var(--t3); background:var(--s2); padding:3px 7px; border-radius:var(--r-sm); text-transform:uppercase }
+.history-item-fac  { font:400 11px/1 var(--sans); color:var(--t2) }
+.history-group-label { font:500 9px/1 var(--mono); letter-spacing:3px; color:var(--t3); text-transform:uppercase; padding:16px 0 8px; border-bottom:1px solid var(--b0); margin-bottom:4px }
