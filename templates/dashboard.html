@@ -744,9 +744,27 @@
             </div>
             <div class="sett-section">
               <div class="sett-sh">Notifications</div>
-              <div class="sett-row"><span class="sett-label">Simulation complete</span><span class="sett-val">Enabled</span></div>
-              <div class="sett-row"><span class="sett-label">Inspection reminders</span><span class="sett-val">Enabled</span></div>
-              <div class="sett-row"><span class="sett-label">Emergency alerts</span><span class="sett-val">Enabled</span></div>
+              <div class="notif-row">
+                <span class="notif-label">Simulation complete</span>
+                <div class="notif-toggle-wrap">
+                  <span class="notif-toggle-label on" id="notifLbl0">Enabled</span>
+                  <div class="notif-toggle on" id="notifToggle0" onclick="toggleNotif(0)" title="Toggle"></div>
+                </div>
+              </div>
+              <div class="notif-row">
+                <span class="notif-label">Inspection reminders</span>
+                <div class="notif-toggle-wrap">
+                  <span class="notif-toggle-label on" id="notifLbl1">Enabled</span>
+                  <div class="notif-toggle on" id="notifToggle1" onclick="toggleNotif(1)" title="Toggle"></div>
+                </div>
+              </div>
+              <div class="notif-row">
+                <span class="notif-label">Emergency alerts</span>
+                <div class="notif-toggle-wrap">
+                  <span class="notif-toggle-label on" id="notifLbl2">Enabled</span>
+                  <div class="notif-toggle on" id="notifToggle2" onclick="toggleNotif(2)" title="Toggle"></div>
+                </div>
+              </div>
             </div>
             <div class="sett-section sett-danger-zone">
               <div class="sett-sh">Session</div>
