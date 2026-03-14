@@ -1,530 +1,688 @@
 <!DOCTYPE html>
+
 <html lang="en" data-theme="light">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pantheon — Setup</title>
-  <link rel="icon" type="image/png" href="/static/assets/PantheonLogoGold.png">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --gold: #9A7A28;
-      --gold-sel: #B8922E;
-      --gold-pale: rgba(154,122,40,0.09);
-      --gold-ring: rgba(154,122,40,0.2);
-      --bg:      #F4F2ED;
-      --bg2:     #FFFFFF;
-      --bg3:     #EDEAE3;
-      --bg4:     #E2DDD4;
-      --border:  rgba(0,0,0,0.09);
-      --border-sel: #9A7A28;
-      --text:    #111110;
-      --sub:     #4A4740;
-      --muted:   #8A8278;
-      --logo-filter: brightness(0);
-      --logo-text-color: #111110;
-      --red: #A83030;
-      --red-bg: rgba(168,48,48,0.06);
-      --red-border: rgba(168,48,48,0.18);
-      --shadow-xs: 0 1px 2px rgba(0,0,0,0.05);
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.07), 0 3px 10px rgba(0,0,0,0.04);
-      --shadow-md: 0 2px 6px rgba(0,0,0,0.09), 0 6px 20px rgba(0,0,0,0.05);
-      --grid-color: rgba(0,0,0,0.055);
-      --mono: 'IBM Plex Mono', monospace;
-      --sans: 'IBM Plex Sans', sans-serif;
-    }
-
-    [data-theme="dark"] {
-      --gold: #C8A84B;
-      --gold-sel: #E2C46A;
-      --gold-pale: rgba(200,168,75,0.12);
-      --gold-ring: rgba(200,168,75,0.25);
-      --bg:      #0A0A0B;
-      --bg2:     #111113;
-      --bg3:     #17171A;
-      --bg4:     #1E1E22;
-      --border:  rgba(255,255,255,0.07);
-      --border-sel: #C8A84B;
-      --text:    #F0EDE8;
-      --sub:     #A09890;
-      --muted:   #6A6460;
-      --logo-filter: none;
-      --logo-text-color: #C8A84B;
-      --red: #E05555;
-      --red-bg: rgba(224,85,85,0.08);
-      --red-border: rgba(224,85,85,0.22);
-      --shadow-xs: 0 1px 3px rgba(0,0,0,0.4);
-      --shadow-sm: 0 1px 4px rgba(0,0,0,0.35), 0 4px 16px rgba(0,0,0,0.25);
-      --shadow-md: 0 2px 10px rgba(0,0,0,0.5), 0 8px 28px rgba(0,0,0,0.3);
-      --grid-color: rgba(200,168,75,0.04);
-    }
-
-    html, body { min-height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); -webkit-font-smoothing: antialiased; transition: background 0.22s, color 0.22s; }
-
-    body::before { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0; background-image: linear-gradient(var(--grid-color) 1px, transparent 1px), linear-gradient(90deg, var(--grid-color) 1px, transparent 1px); background-size: 48px 48px; }
-
-    .shell { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
-
-    .topbar { height: 54px; display: flex; align-items: center; padding: 0 24px; background: var(--bg2); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; gap: 10px; transition: background 0.22s, border-color 0.22s; box-shadow: var(--shadow-xs); }
-    .t-brand { display: flex; align-items: center; gap: 9px; flex: 1; }
-    .t-logo { width: 24px; height: 24px; object-fit: contain; filter: var(--logo-filter); transition: filter 0.22s; }
-    .t-name { font-family: var(--mono); font-size: 16px; font-weight: 600; letter-spacing: 0.13em; color: var(--logo-text-color); transition: color 0.22s; text-transform: uppercase; }
-    .t-sep { width: 1px; height: 14px; background: var(--border); flex-shrink: 0; }
-    .t-subtitle { font-size: 15px; color: var(--muted); letter-spacing: 0.05em; }
-
-    .theme-btn { display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 11px; border: 1px solid var(--border); border-radius: 7px; background: var(--bg3); cursor: pointer; transition: all 0.15s; flex-shrink: 0; }
-    .theme-btn:hover { border-color: var(--gold); background: var(--bg4); }
-    .theme-btn svg { width: 13px; height: 13px; stroke: var(--sub); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; transition: stroke 0.2s; }
-    .theme-btn-label { font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: 0.1em; color: var(--muted); transition: color 0.2s; text-transform: uppercase; }
-    .theme-btn:hover .theme-btn-label { color: var(--text); }
-    .theme-btn:hover svg { stroke: var(--text); }
-
-    .prog-track { height: 2px; background: var(--bg4); transition: background 0.22s; }
-    .prog-fill { height: 100%; background: var(--gold); transition: width 0.4s cubic-bezier(.4,0,.2,1), background 0.22s; }
-
-    .prog-row { padding: 22px 24px 0; display: flex; align-items: center; gap: 7px; max-width: 840px; }
-    .pdot { width: 6px; height: 6px; border-radius: 50%; background: var(--bg4); border: 1px solid var(--border); transition: all 0.25s; flex-shrink: 0; }
-    .pdot.done   { background: var(--gold); border-color: var(--gold); }
-    .pdot.active { background: var(--gold-sel); border-color: var(--gold-sel); transform: scale(1.6); }
-    .plabel { font-family: var(--mono); font-size: 14px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-left: 10px; }
-
-    .content { flex: 1; display: flex; align-items: center; justify-content: center; padding: 36px 20px 52px; }
-    .panel { width: 100%; max-width: 900px; }
-
-    .step-enter { animation: fadeUp 0.2s ease both; }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(7px); } }
-
-    .pstep  { font-family: var(--mono); font-size: 14px; color: var(--gold); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 7px; }
-    .ptitle { font-size: 36px; font-weight: 700; line-height: 1.2; margin-bottom: 7px; color: var(--text); }
-    .psub   { font-size: 21px; color: var(--sub); line-height: 1.6; margin-bottom: 24px; }
-
-    .opts { display: grid; gap: 8px; margin-bottom: 24px; }
-    .opts.g2 { grid-template-columns: 1fr 1fr; }
-    .opts.g3 { grid-template-columns: 1fr 1fr 1fr; }
-
-    .opt { background: var(--bg2); border: 1px solid var(--border); border-radius: 9px; padding: 18px 20px; cursor: pointer; display: flex; align-items: flex-start; gap: 10px; transition: border-color 0.13s, background 0.13s, box-shadow 0.13s; box-shadow: var(--shadow-sm); }
-    .opt:hover { border-color: var(--gold); background: var(--bg3); }
-    .opt.sel   { border-color: var(--border-sel); background: var(--gold-pale); box-shadow: 0 0 0 1px var(--border-sel), var(--shadow-sm); }
-
-    .oico { width: 28px; height: 28px; border-radius: 6px; background: var(--bg3); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.13s, border-color 0.13s; }
-    .opt.sel .oico { background: var(--gold-pale); border-color: var(--gold); }
-    .oico svg { width: 13px; height: 13px; stroke: var(--muted); fill: none; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.13s; }
-    .opt.sel .oico svg { stroke: var(--gold-sel); }
-    .opt:hover .oico svg { stroke: var(--sub); }
-
-    .olabel { font-size: 18px; font-weight: 600; color: var(--text); line-height: 1.3; margin-bottom: 1px; }
-    .odesc  { font-size: 15px; color: var(--muted); line-height: 1.4; }
-
-    .custom-input-wrap { margin-top: 10px; display: none; }
-    .custom-input-wrap.show { display: block; }
-    .custom-input-wrap input { width: 100%; height: 54px; background: var(--bg2); border: 1px solid var(--border); border-radius: 7px; padding: 0 12px; font-family: var(--sans); font-size: 18px; color: var(--text); outline: none; transition: border-color 0.13s, box-shadow 0.13s; }
-    .custom-input-wrap input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-ring); }
-    ::placeholder { color: var(--muted); }
-
-    .fields { display: grid; gap: 12px; margin-bottom: 22px; }
-    .fields.f2 { grid-template-columns: 1fr 1fr; }
-    .field label { display: block; font-family: var(--mono); font-size: 14px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
-    .field input, .field select { width: 100%; height: 56px; background: var(--bg2); border: 1px solid var(--border); border-radius: 7px; padding: 0 12px; font-family: var(--sans); font-size: 18px; color: var(--text); outline: none; -webkit-appearance: none; box-shadow: var(--shadow-xs); transition: border-color 0.13s, box-shadow 0.13s, background 0.22s; }
-    .field input:focus, .field select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-ring); }
-    [data-theme="dark"] .field input, [data-theme="dark"] .field select { background: var(--bg3); }
-    .field select option { background: var(--bg3); }
-
-    .field-custom { display: none; margin-top: 8px; }
-    .field-custom.show { display: block; }
-    .field-custom input { height: 54px; border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-ring); }
-
-    .gap-box { display: none; border-radius: 9px; padding: 13px 15px; margin-bottom: 18px; background: var(--red-bg); border: 1px solid var(--red-border); }
-    .gap-box.show { display: flex; gap: 11px; align-items: flex-start; }
-    .gap-ico svg { width: 17px; height: 17px; stroke: var(--red); fill: none; stroke-width: 1.5; stroke-linecap: round; flex-shrink: 0; margin-top: 1px; }
-    .gap-title { font-family: var(--mono); font-size: 18px; font-weight: 600; color: var(--red); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
-    .gap-text  { font-size: 16px; color: var(--sub); line-height: 1.55; }
-
-    .nav { display: flex; gap: 9px; align-items: center; padding-top: 4px; }
-
-    .btn-primary { height: 56px; background: var(--text); border: none; border-radius: 8px; font-family: var(--mono); font-size: 15px; font-weight: 600; letter-spacing: 0.09em; color: var(--bg2); cursor: pointer; padding: 0 24px; display: flex; align-items: center; gap: 7px; transition: background 0.15s, opacity 0.15s; }
-    .btn-primary:hover:not(:disabled) { background: var(--gold-sel); color: #fff; }
-    [data-theme="dark"] .btn-primary:hover:not(:disabled) { color: #0A0A0B; }
-    .btn-primary:disabled { opacity: 0.28; cursor: not-allowed; }
-
-    .btn-ghost { height: 56px; background: none; border: 1px solid var(--border); border-radius: 8px; font-family: var(--sans); font-size: 18px; color: var(--muted); cursor: pointer; padding: 0 16px; transition: border-color 0.13s, color 0.13s; }
-    .btn-ghost:hover { border-color: var(--gold); color: var(--text); }
-
-    .step-num { font-family: var(--mono); font-size: 14px; color: var(--muted); margin-left: auto; letter-spacing: 0.06em; }
-
-    .spin { width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.2); border-top-color: currentColor; border-radius: 50%; animation: sp 0.7s linear infinite; display: none; }
-    @keyframes sp { to { transform: rotate(360deg); } }
-
-    .finish { text-align: center; padding: 24px 0; }
-    .finish-ring { width: 50px; height: 50px; border-radius: 50%; background: var(--gold-pale); border: 1px solid var(--gold); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
-    .finish-ring svg { width: 20px; height: 20px; stroke: var(--gold-sel); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .finish h2 { font-size: 33px; font-weight: 700; margin-bottom: 8px; }
-    .finish p  { font-size: 19px; color: var(--sub); margin-bottom: 28px; line-height: 1.65; max-width: 510px; margin-left: auto; margin-right: auto; }
-
-    @media(max-width:560px) {
-      .opts.g2,.opts.g3,.fields.f2 { grid-template-columns: 1fr; }
-      .ptitle { font-size: 20px; }
-      .content { padding: 20px 14px 40px; }
-    }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pantheon — Setup</title>
+  <link rel="icon" type="image/png" href="/static/assets/PantheonLogoGold.png">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold:#9A7A28;--gold-sel:#B8922E;--gold-pale:rgba(154,122,40,0.09);--gold-ring:rgba(154,122,40,0.2);
+      --bg:#F4F2ED;--bg2:#FFFFFF;--bg3:#EDEAE3;--bg4:#E2DDD4;
+      --border:rgba(0,0,0,0.09);--border-sel:#9A7A28;
+      --text:#111110;--sub:#4A4740;--muted:#8A8278;
+      --logo-filter:brightness(0);--logo-text-color:#111110;
+      --red:#A83030;--red-bg:rgba(168,48,48,0.06);--red-border:rgba(168,48,48,0.18);
+      --green:#2A6A2A;--green-bg:rgba(42,106,42,0.06);--green-border:rgba(42,106,42,0.18);
+      --amber:#B87020;--amber-bg:rgba(184,112,32,0.06);--amber-border:rgba(184,112,32,0.18);
+      --shadow-xs:0 1px 2px rgba(0,0,0,0.05);
+      --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
+    }
+    [data-theme="dark"] {
+      --gold:#C8A84B;--gold-sel:#E2C46A;--gold-pale:rgba(200,168,75,0.12);--gold-ring:rgba(200,168,75,0.25);
+      --bg:#0A0A0B;--bg2:#111113;--bg3:#17171A;--bg4:#1E1E22;
+      --border:rgba(255,255,255,0.07);--border-sel:#C8A84B;
+      --text:#F0EDE8;--sub:#A09890;--muted:#6A6460;
+      --logo-filter:none;--logo-text-color:#C8A84B;
+      --red:#E05555;--red-bg:rgba(224,85,85,0.08);--red-border:rgba(224,85,85,0.22);
+      --green:#4A9A4A;--green-bg:rgba(74,154,74,0.08);--green-border:rgba(74,154,74,0.22);
+      --amber:#E09040;--amber-bg:rgba(224,144,64,0.08);--amber-border:rgba(224,144,64,0.22);
+      --shadow-xs:0 1px 3px rgba(0,0,0,0.4);
+    }
+    html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;transition:background .22s,color .22s;}
+    body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(0,0,0,0.055) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,0.055) 1px,transparent 1px);background-size:48px 48px;}
+    [data-theme="dark"] body::before{background-image:linear-gradient(rgba(200,168,75,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(200,168,75,0.04) 1px,transparent 1px);background-size:48px 48px;}
+    .shell{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;}
+    /* TOPBAR */
+    .topbar{height:54px;display:flex;align-items:center;padding:0 24px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;gap:10px;box-shadow:var(--shadow-xs);}
+    .t-brand{display:flex;align-items:center;gap:9px;flex:1;}
+    .t-logo{width:24px;height:24px;object-fit:contain;filter:var(--logo-filter);transition:filter .22s;}
+    .t-name{font-family:var(--mono);font-size:16px;font-weight:600;letter-spacing:.13em;color:var(--logo-text-color);text-transform:uppercase;}
+    .t-sep{width:1px;height:14px;background:var(--border);flex-shrink:0;}
+    .t-sub{font-size:13px;color:var(--muted);letter-spacing:.05em;}
+    .theme-btn{display:flex;align-items:center;gap:6px;height:32px;padding:0 11px;border:1px solid var(--border);border-radius:7px;background:var(--bg3);cursor:pointer;transition:all .15s;}
+    .theme-btn:hover{border-color:var(--gold);}
+    .theme-btn svg{width:13px;height:13px;stroke:var(--sub);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
+    .theme-btn-label{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;}
+    /* PROGRESS */
+    .prog-wrap{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 24px 12px;}
+    .prog-bar{height:3px;background:var(--bg3);border-radius:99px;overflow:hidden;margin-bottom:10px;}
+    .prog-fill{height:100%;background:var(--gold);border-radius:99px;transition:width .4s cubic-bezier(.4,0,.2,1);width:0%;}
+    .prog-dots{display:flex;gap:8px;align-items:center;}
+    .pdot{width:8px;height:8px;border-radius:50%;background:var(--bg4);transition:all .2s;flex-shrink:0;}
+    .pdot.done{background:var(--gold);transform:scale(.85);}
+    .pdot.active{background:var(--gold-sel);transform:scale(1.2);box-shadow:0 0 0 3px var(--gold-ring);}
+    .prog-label{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-left:auto;}
+    /* BODY */
+    .body{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px 80px;}
+    .panel{width:100%;max-width:720px;}
+    /* STEP */
+    .step{animation:none;}
+    .step-enter{animation:stepIn .22s ease;}
+    @keyframes stepIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+    .step-head{margin-bottom:28px;}
+    .step-eyebrow{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;}
+    .step-title{font-size:26px;font-weight:700;color:var(--text);line-height:1.25;}
+    .step-sub{font-size:14px;color:var(--sub);margin-top:6px;line-height:1.55;}
+    /* OPTIONS */
+    .opt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;}
+    .opt-grid.wide{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));}
+    .opt{padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg2);cursor:pointer;transition:all .14s;text-align:left;}
+    .opt:hover{border-color:var(--gold-ring);background:var(--bg3);}
+    .opt.sel{border-color:var(--gold);background:var(--gold-pale);}
+    .opt-label{font-size:13px;font-weight:500;color:var(--text);display:block;}
+    .opt-sub{font-size:11px;color:var(--muted);margin-top:3px;display:block;}
+    /* CHECKBOXES */
+    .chk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:7px;}
+    .chk-item{display:flex;align-items:center;gap:10px;padding:10px 13px;border:1.5px solid var(--border);border-radius:9px;background:var(--bg2);cursor:pointer;transition:all .14s;}
+    .chk-item:hover{border-color:var(--gold-ring);background:var(--bg3);}
+    .chk-item.sel{border-color:var(--gold);background:var(--gold-pale);}
+    .chk-box{width:16px;height:16px;border:1.5px solid var(--border);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .14s;}
+    .chk-item.sel .chk-box{background:var(--gold);border-color:var(--gold);}
+    .chk-box svg{width:10px;height:10px;stroke:#fff;fill:none;stroke-width:2.2;display:none;}
+    .chk-item.sel .chk-box svg{display:block;}
+    .chk-label{font-size:13px;font-weight:500;color:var(--text);}
+    /* RADIO */
+    .radio-list{display:flex;flex-direction:column;gap:7px;}
+    .radio-item{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg2);cursor:pointer;transition:all .14s;}
+    .radio-item:hover{border-color:var(--gold-ring);background:var(--bg3);}
+    .radio-item.sel{border-color:var(--gold);background:var(--gold-pale);}
+    .radio-dot{width:16px;height:16px;border:1.5px solid var(--border);border-radius:50%;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .14s;}
+    .radio-item.sel .radio-dot{border-color:var(--gold);}
+    .radio-dot-inner{width:8px;height:8px;border-radius:50%;background:var(--gold);display:none;}
+    .radio-item.sel .radio-dot-inner{display:block;}
+    .radio-content{flex:1;}
+    .radio-label{font-size:13px;font-weight:500;color:var(--text);}
+    .radio-sub{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.5;}
+    /* SUBMENU */
+    .submenu{margin-top:12px;padding:16px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg3);display:none;}
+    .submenu.show{display:block;animation:stepIn .18s ease;}
+    .submenu-label{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+    /* FIELDS */
+    .fields{display:grid;gap:14px;}
+    .fields.f2{grid-template-columns:1fr 1fr;}
+    @media(max-width:560px){.fields.f2{grid-template-columns:1fr;}}
+    .field{display:flex;flex-direction:column;gap:6px;}
+    .field label{font-size:12px;font-weight:600;color:var(--sub);letter-spacing:.04em;text-transform:uppercase;}
+    .field input,.field select,.field textarea{height:40px;padding:0 12px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg2);color:var(--text);font-family:var(--sans);font-size:14px;outline:none;transition:border-color .14s,box-shadow .14s;appearance:none;-webkit-appearance:none;}
+    .field textarea{height:80px;padding:10px 12px;resize:vertical;}
+    .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-ring);}
+    .field-custom{display:none;margin-top:6px;}
+    .field-custom.show{display:block;}
+    .field-hint{font-size:11px;color:var(--muted);margin-top:4px;font-style:italic;}
+    /* SECTION */
+    .sect{margin:24px 0 16px;}
+    .sect-label{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:14px;}
+    /* GAP BOX */
+    .gap-box{padding:13px 15px;border:1.5px solid var(--red-border);border-radius:9px;background:var(--red-bg);display:none;margin-top:14px;}
+    .gap-box.show{display:block;animation:stepIn .2s ease;}
+    .gap-box-head{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--red);margin-bottom:5px;}
+    .gap-box-txt{font-size:13px;color:var(--sub);line-height:1.55;}
+    /* SCORE PREVIEW */
+    .score-preview{padding:16px 18px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg2);margin-top:16px;display:none;}
+    .score-preview.show{display:block;animation:stepIn .2s ease;}
+    .score-row{display:flex;align-items:center;gap:14px;}
+    .score-num{font-family:var(--mono);font-size:36px;font-weight:700;color:var(--text);line-height:1;}
+    .score-badge{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;border-radius:5px;}
+    .badge-unacceptable{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border);}
+    .badge-alarp{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border);}
+    .badge-acceptable{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border);}
+    .score-detail{font-size:12px;color:var(--sub);margin-top:6px;line-height:1.5;}
+    /* CUSTOM WRAP */
+    .cust-wrap{display:none;margin-top:10px;}
+    .cust-wrap.show{display:block;}
+    /* NAV */
+    .nav{display:flex;align-items:center;gap:10px;margin-top:28px;padding-top:20px;border-top:1px solid var(--border);}
+    .btn-primary{height:40px;padding:0 22px;background:var(--text);color:var(--bg2);border:none;border-radius:8px;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .14s;display:flex;align-items:center;gap:8px;}
+    .btn-primary:hover:not(:disabled){opacity:.85;}
+    .btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+    .btn-ghost{height:40px;padding:0 18px;background:transparent;color:var(--sub);border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .14s;}
+    .btn-ghost:hover{border-color:var(--gold);color:var(--text);}
+    .step-num{font-family:var(--mono);font-size:11px;color:var(--muted);margin-left:auto;letter-spacing:.08em;}
+    .spin{width:16px;height:16px;border:2px solid transparent;border-top-color:currentColor;border-radius:50%;animation:spin .7s linear infinite;display:none;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    /* FINISH */
+    .finish{text-align:center;padding:40px 20px;}
+    .finish-ring{width:64px;height:64px;border-radius:50%;border:2.5px solid var(--gold);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;}
+    .finish-ring svg{width:28px;height:28px;stroke:var(--gold);fill:none;stroke-width:2;}
+    .finish h2{font-size:26px;font-weight:700;margin-bottom:12px;}
+    .finish p{font-size:14px;color:var(--sub);max-width:420px;margin:0 auto 28px;line-height:1.6;}
+  </style>
 </head>
 <body>
 <div class="shell">
+  <div class="topbar">
+    <div class="t-brand">
+      <img src="/static/assets/PantheonLogoGold.png" alt="P" class="t-logo">
+      <span class="t-name">PANTHEON</span>
+      <span class="t-sep"></span>
+      <span class="t-sub">Life Safety OS</span>
+    </div>
+    <button class="theme-btn" onclick="toggleTheme()">
+      <svg viewBox="0 0 18 18"><path id="themeP" d=""/></svg>
+      <span class="theme-btn-label" id="themeLbl">Dark</span>
+    </button>
+  </div>
 
-  <div class="topbar">
-    <div class="t-brand">
-      <img class="t-logo" src="/static/assets/PantheonLogoGold.png" alt="Pantheon" id="topLogo">
-      <span class="t-name" id="topName">Pantheon</span>
-      <div class="t-sep"></div>
-      <span class="t-subtitle">Life Safety OS</span>
-    </div>
-    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">
-      <svg id="themeIco" viewBox="0 0 20 20"><path id="themeP" d=""/></svg>
-      <span class="theme-btn-label" id="themeLbl"></span>
-    </button>
-  </div>
+  <div class="prog-wrap">
+    <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+    <div class="prog-dots">
+      <span class="pdot active" id="d0"></span><span class="pdot" id="d1"></span>
+      <span class="pdot" id="d2"></span><span class="pdot" id="d3"></span>
+      <span class="pdot" id="d4"></span><span class="pdot" id="d5"></span>
+      <span class="prog-label" id="plabel">Your role</span>
+    </div>
+  </div>
 
-  <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
-  <div class="prog-row">
-    <div class="pdot active" id="d0"></div>
-    <div class="pdot" id="d1"></div>
-    <div class="pdot" id="d2"></div>
-    <div class="pdot" id="d3"></div>
-    <span class="plabel" id="plabel">Your role</span>
-  </div>
+  <div class="body"><div class="panel">
 
-  <div class="content">
-    <div class="panel">
+```
+<!-- STEP 0 — ROLE -->
+<div id="s0" class="step">
+  <div class="step-head">
+    <div class="step-eyebrow">Step 1 of 6</div>
+    <div class="step-title">What is your role?</div>
+    <div class="step-sub">Pantheon tailors its intelligence, standards, and recommendations to your specific position.</div>
+  </div>
+  <div class="opt-grid">
+    <button class="opt" data-val="Fire Chief / Fire Marshal" onclick="pickRole(this)"><span class="opt-label">Fire Chief / Fire Marshal</span></button>
+    <button class="opt" data-val="Facility Manager" onclick="pickRole(this)"><span class="opt-label">Facility Manager</span></button>
+    <button class="opt" data-val="Safety Officer / EHS" onclick="pickRole(this)"><span class="opt-label">Safety Officer / EHS</span></button>
+    <button class="opt" data-val="Insurance Professional" onclick="pickRole(this)"><span class="opt-label">Insurance Professional</span></button>
+    <button class="opt" data-val="Risk Manager" onclick="pickRole(this)"><span class="opt-label">Risk Manager</span></button>
+    <button class="opt" data-val="Operations Director" onclick="pickRole(this)"><span class="opt-label">Operations Director</span></button>
+    <button class="opt" data-val="Emergency Planner" onclick="pickRole(this)"><span class="opt-label">Emergency Planner</span></button>
+    <button class="opt" data-val="Engineer / Consultant" onclick="pickRole(this)"><span class="opt-label">Engineer / Consultant</span></button>
+    <button class="opt" data-val="_custom" onclick="pickRole(this)"><span class="opt-label">Other</span><span class="opt-sub">Define your role</span></button>
+  </div>
+  <div class="cust-wrap" id="roleCustomWrap">
+    <div class="field"><input type="text" id="roleCustomInput" placeholder="Describe your role…"></div>
+  </div>
+  <div class="nav"><button class="btn-primary" id="n0" onclick="go(1)" disabled>Next</button><span class="step-num">01 / 06</span></div>
+</div>
 
-      <!-- S0: Role -->
-      <div id="s0" class="step-enter">
-        <div class="pstep">Step 1 of 4</div>
-        <div class="ptitle">What's your role?</div>
-        <div class="psub">Pantheon tailors every briefing, standard, and recommendation to how you actually work.</div>
-        <div class="opts g2">
-          <div class="opt" data-val="Facility Manager" onclick="pickRole(this)">
-            <div class="oico"><svg viewBox="0 0 20 20"><rect x="2" y="4" width="16" height="12" rx="1.5"/><line x1="2" y1="8" x2="18" y2="8"/><line x1="8" y1="8" x2="8" y2="16"/></svg></div>
-            <div><div class="olabel">Facility Manager</div><div class="odesc">Operations, maintenance, compliance</div></div>
-          </div>
-          <div class="opt" data-val="Fire Chief / AHJ" onclick="pickRole(this)">
-            <div class="oico"><svg viewBox="0 0 20 20"><path d="M10 3C7.5 6 6 8.5 6 11a4 4 0 008 0c0-2.5-1.5-5-4-8z"/><line x1="10" y1="14.5" x2="10" y2="17"/><line x1="7.5" y1="17" x2="12.5" y2="17"/></svg></div>
-            <div><div class="olabel">Fire Chief / AHJ</div><div class="odesc">Emergency response, code enforcement</div></div>
-          </div>
-          <div class="opt" data-val="Insurance Underwriter" onclick="pickRole(this)">
-            <div class="oico"><svg viewBox="0 0 20 20"><rect x="3" y="3" width="14" height="14" rx="1.5"/><line x1="6" y1="7" x2="14" y2="7"/><line x1="6" y1="10" x2="11" y2="10"/><line x1="6" y1="13" x2="9" y2="13"/></svg></div>
-            <div><div class="olabel">Insurance Underwriter</div><div class="odesc">Risk assessment, premium modelling</div></div>
-          </div>
-          <div class="opt" data-val="Safety Engineer" onclick="pickRole(this)">
-            <div class="oico"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/><polyline points="7,10 9,12.5 13,8"/></svg></div>
-            <div><div class="olabel">Safety Engineer</div><div class="odesc">System design, gap analysis</div></div>
-          </div>
-          <div class="opt" data-val="HCT Sales Engineer" onclick="pickRole(this)">
-            <div class="oico"><svg viewBox="0 0 20 20"><polyline points="3,14 7,9 11,12 15,6"/><polyline points="13,6 17,6 17,10"/></svg></div>
-            <div><div class="olabel">HCT Sales Engineer</div><div class="odesc">Product recommendations, site surveys</div></div>
-          </div>
-          <div class="opt" data-val="Executive / Leadership" onclick="pickRole(this)">
-            <div class="oico"><svg viewBox="0 0 20 20"><circle cx="10" cy="6" r="3"/><path d="M4 17v-1a6 6 0 0112 0v1"/></svg></div>
-            <div><div class="olabel">Executive / Leadership</div><div class="odesc">Risk overview, strategic decisions</div></div>
-          </div>
-          <div class="opt" data-val="_custom" onclick="pickRole(this)" style="grid-column:1/-1">
-            <div class="oico"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="1.3" fill="currentColor" style="stroke:none"/><circle cx="4" cy="10" r="1.3" fill="currentColor" style="stroke:none"/><circle cx="16" cy="10" r="1.3" fill="currentColor" style="stroke:none"/></svg></div>
-            <div style="flex:1">
-              <div class="olabel">Other / Custom</div>
-              <div class="odesc">Describe your role below</div>
-              <div class="custom-input-wrap" id="roleCustomWrap">
-                <input type="text" id="roleCustomInput" placeholder="e.g. Fire Investigator, Risk Consultant…" onclick="event.stopPropagation()">
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="nav">
-          <button class="btn-primary" id="n0" onclick="go(1)" disabled>Continue</button>
-          <span class="step-num">01 / 04</span>
-        </div>
-      </div>
+<!-- STEP 1 — ORG -->
+<div id="s1" class="step" style="display:none">
+  <div class="step-head">
+    <div class="step-eyebrow">Step 2 of 6</div>
+    <div class="step-title">Your organisation</div>
+    <div class="step-sub">Location and jurisdiction determine applicable NFPA, ALARP, and regional standards.</div>
+  </div>
+  <div class="fields f2">
+    <div class="field"><label>Organisation Name</label><input type="text" id="orgI" placeholder="Organisation or facility name…"></div>
+    <div class="field"><label>Location / Jurisdiction</label><input type="text" id="locI" placeholder="City, State / Country…"></div>
+  </div>
+  <div class="nav"><button class="btn-ghost" onclick="go(0)">Back</button><button class="btn-primary" onclick="go(2)">Next</button><span class="step-num">02 / 06</span></div>
+</div>
 
-      <!-- S1: Org + Location -->
-      <div id="s1" style="display:none">
-        <div class="pstep">Step 2 of 4</div>
-        <div class="ptitle">Where do you work?</div>
-        <div class="psub">Your jurisdiction auto-surfaces NFPA, NEC, and local AHJ requirements — filtered to where you actually operate.</div>
-        <div class="fields f2">
-          <div class="field"><label>Organisation</label><input type="text" id="orgI" placeholder="ACME Data Centers Inc." autocomplete="organization"></div>
-          <div class="field"><label>City / Country</label><input type="text" id="locI" placeholder="Phoenix, AZ  ·  London, UK"></div>
-        </div>
-        <div class="nav">
-          <button class="btn-ghost" onclick="go(0)">Back</button>
-          <button class="btn-primary" onclick="go(2)">Continue</button>
-          <span class="step-num">02 / 04</span>
-        </div>
-      </div>
+<!-- STEP 2 — ENTITY TYPE -->
+<div id="s2" class="step" style="display:none">
+  <div class="step-head">
+    <div class="step-eyebrow">Step 3 of 6</div>
+    <div class="step-title">What type of entity?</div>
+    <div class="step-sub">Pantheon identifies key threats, hazards, applicable standards, and challenging characteristics based on your entity type, location, and operating environment.</div>
+  </div>
+  <div class="opt-grid wide" id="entityGrid">
+    <button class="opt" data-val="Data Center" onclick="pickEntity(this)"><span class="opt-label">Data Center</span><span class="opt-sub">Colocation, hyperscale, edge</span></button>
+    <button class="opt" data-val="Power Grid" onclick="pickEntity(this)"><span class="opt-label">Power Grid</span><span class="opt-sub">Generation, storage, distribution</span></button>
+    <button class="opt" data-val="Parking / Charging Facility" onclick="pickEntity(this)"><span class="opt-label">Parking / Charging</span><span class="opt-sub">EV, multi-storey, underground</span></button>
+    <button class="opt" data-val="Fleet / Transportation" onclick="pickEntity(this)"><span class="opt-label">Fleet / Transportation</span><span class="opt-sub">Vehicles, logistics, transit</span></button>
+    <button class="opt" data-val="Government" onclick="pickEntity(this)"><span class="opt-label">Government</span><span class="opt-sub">Federal, state/provincial, municipal</span></button>
+    <button class="opt" data-val="Mining" onclick="pickEntity(this)"><span class="opt-label">Mining</span><span class="opt-sub">Coal, metals, minerals</span></button>
+    <button class="opt" data-val="Oil & Gas" onclick="pickEntity(this)"><span class="opt-label">Oil &amp; Gas</span><span class="opt-sub">Refinery, drilling, pipeline</span></button>
+    <button class="opt" data-val="Recycling" onclick="pickEntity(this)"><span class="opt-label">Recycling</span><span class="opt-sub">Solid waste, metals, batteries</span></button>
+    <button class="opt" data-val="Manufacturing" onclick="pickEntity(this)"><span class="opt-label">Manufacturing</span><span class="opt-sub">Industrial production</span></button>
+    <button class="opt" data-val="Warehouse" onclick="pickEntity(this)"><span class="opt-label">Warehouse / Logistics</span><span class="opt-sub">Storage, distribution</span></button>
+    <button class="opt" data-val="Healthcare" onclick="pickEntity(this)"><span class="opt-label">Healthcare</span><span class="opt-sub">Hospital, clinic, lab</span></button>
+    <button class="opt" data-val="Marine / Port" onclick="pickEntity(this)"><span class="opt-label">Marine / Port</span><span class="opt-sub">Vessel, terminal, offshore</span></button>
+    <button class="opt" data-val="Aviation" onclick="pickEntity(this)"><span class="opt-label">Aviation</span><span class="opt-sub">Airport, hangar, MRO</span></button>
+    <button class="opt" data-val="Telecom" onclick="pickEntity(this)"><span class="opt-label">Telecom</span><span class="opt-sub">Network, tower, exchange</span></button>
+    <button class="opt" data-val="Services" onclick="pickEntity(this)"><span class="opt-label">Services</span><span class="opt-sub">Construction, safety, FM</span></button>
+    <button class="opt" data-val="_custom" onclick="pickEntity(this)"><span class="opt-label">Other</span><span class="opt-sub">Keywords separated by comma</span></button>
+  </div>
 
-      <!-- S2: Facility -->
-      <div id="s2" style="display:none">
-        <div class="pstep">Step 3 of 4</div>
-        <div class="ptitle">What type of facility?</div>
-        <div class="psub">Each environment carries a distinct threat profile. Pantheon adapts its zones, suppression analysis, training, and standards accordingly.</div>
-        <div class="opts g3">
-          <div class="opt" data-val="Data Center" onclick="pickFacility(this)"><div class="oico"><svg viewBox="0 0 20 20"><rect x="3" y="4" width="14" height="4" rx="1"/><rect x="3" y="10" width="14" height="4" rx="1"/><circle cx="14.5" cy="6" r="0.8" fill="currentColor" style="stroke:none"/><circle cx="14.5" cy="12" r="0.8" fill="currentColor" style="stroke:none"/></svg></div><div><div class="olabel">Data Center</div></div></div>
-          <div class="opt" data-val="BESS" onclick="pickFacility(this)"><div class="oico"><svg viewBox="0 0 20 20"><rect x="4" y="7" width="12" height="8" rx="1.5"/><path d="M7 7V5.5h6V7"/><line x1="8" y1="11" x2="12" y2="11"/><line x1="10" y1="9" x2="10" y2="13"/></svg></div><div><div class="olabel">BESS</div></div></div>
-          <div class="opt" data-val="EV Charging Hub" onclick="pickFacility(this)"><div class="oico"><svg viewBox="0 0 20 20"><path d="M7 3l-3 7h5l-2 7 6-9h-5l2-5H7z"/></svg></div><div><div class="olabel">EV Charging</div></div></div>
-          <div class="opt" data-val="Electrical Substation" onclick="pickFacility(this)"><div class="oico"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="6"/><line x1="10" y1="4" x2="10" y2="7"/><line x1="10" y1="13" x2="10" y2="16"/><line x1="4" y1="10" x2="7" y2="10"/><line x1="13" y1="10" x2="16" y2="10"/></svg></div><div><div class="olabel">Substation</div></div></div>
-          <div class="opt" data-val="Manufacturing" onclick="pickFacility(this)"><div class="oico"><svg viewBox="0 0 20 20"><rect x="2" y="11" width="16" height="7" rx="1"/><path d="M2 11l4-6h8l4 6"/></svg></div><div><div class="olabel">Manufacturing</div></div></div>
-          <div class="opt" data-val="Warehouse" onclick="pickFacility(this)"><div class="oico"><svg viewBox="0 0 20 20"><path d="M2 9l8-6 8 6v9H2z"/><rect x="7" y="13" width="6" height="5" rx="0.5"/></svg></div><div><div class="olabel">Warehouse</div></div></div>
-          <div class="opt" data-val="Marine / Port" onclick="pickFacility(this)"><div class="oico"><svg viewBox="0 0 20 20"><path d="M4 14c2-1.5 4-2 6-2s4 .5 6 2"/><line x1="10" y1="4" x2="10" y2="12"/><line x1="7" y1="7" x2="13" y2="7"/><line x1="2" y1="17" x2="18" y2="17"/></svg></div><div><div class="olabel">Marine / Port</div></div></div>
-          <div class="opt" data-val="Aviation / Hangar" onclick="pickFacility(this)"><div class="oico"><svg viewBox="0 0 20 20"><path d="M2 13l3.5-4 2 2 4.5-7 1.5.5-4 8.5h5l1 2.5H4L2 13z"/></svg></div><div><div class="olabel">Aviation</div></div></div>
-          <div class="opt" data-val="Healthcare / Hospital" onclick="pickFacility(this)"><div class="oico"><svg viewBox="0 0 20 20"><rect x="3" y="3" width="14" height="14" rx="2"/><line x1="10" y1="7" x2="10" y2="13"/><line x1="7" y1="10" x2="13" y2="10"/></svg></div><div><div class="olabel">Healthcare</div></div></div>
-          <div class="opt" data-val="Solar + BESS" onclick="pickFacility(this)"><div class="oico"><svg viewBox="0 0 20 20"><circle cx="10" cy="7" r="3"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="10" y1="10" x2="10" y2="12"/><line x1="4" y1="7" x2="6" y2="7"/><line x1="14" y1="7" x2="16" y2="7"/><rect x="5" y="14" width="10" height="3.5" rx="0.5"/></svg></div><div><div class="olabel">Solar + BESS</div></div></div>
-          <div class="opt" data-val="Telecom" onclick="pickFacility(this)"><div class="oico"><svg viewBox="0 0 20 20"><line x1="10" y1="3" x2="10" y2="17"/><path d="M6.5 6c-2 1.5-2 7 0 8.5"/><path d="M13.5 6c2 1.5 2 7 0 8.5"/><path d="M4 4C1 6.5 1 13.5 4 16"/><path d="M16 4c3 2.5 3 9.5 0 12"/></svg></div><div><div class="olabel">Telecom</div></div></div>
-          <div class="opt" data-val="_custom" onclick="pickFacility(this)">
-            <div class="oico"><svg viewBox="0 0 20 20"><circle cx="5" cy="10" r="1.3" fill="currentColor" style="stroke:none"/><circle cx="10" cy="10" r="1.3" fill="currentColor" style="stroke:none"/><circle cx="15" cy="10" r="1.3" fill="currentColor" style="stroke:none"/></svg></div>
-            <div style="flex:1">
-              <div class="olabel">Other</div>
-              <div class="custom-input-wrap" id="facCustomWrap">
-                <input type="text" id="facCustomInput" placeholder="Describe your facility…" onclick="event.stopPropagation()">
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="nav">
-          <button class="btn-ghost" onclick="go(1)">Back</button>
-          <button class="btn-primary" id="n2" onclick="go(3)" disabled>Continue</button>
-          <span class="step-num">03 / 04</span>
-        </div>
-      </div>
+  <!-- Sub-menus -->
+  <div class="submenu" id="subPowerGrid">
+    <div class="submenu-label">Power Grid — select sub-type(s)</div>
+    <div class="chk-grid" id="subPowerGridOpts"></div>
+  </div>
+  <div class="submenu" id="subGovernment">
+    <div class="submenu-label">Government — select level(s)</div>
+    <div class="chk-grid" id="subGovernmentOpts"></div>
+  </div>
+  <div class="submenu" id="subMining">
+    <div class="submenu-label">Mining — select type(s)</div>
+    <div class="chk-grid" id="subMiningOpts"></div>
+  </div>
+  <div class="submenu" id="subOilGas">
+    <div class="submenu-label">Oil &amp; Gas — select operation(s)</div>
+    <div class="chk-grid" id="subOilGasOpts"></div>
+  </div>
+  <div class="submenu" id="subRecycling">
+    <div class="submenu-label">Recycling — select stream(s)</div>
+    <div class="chk-grid" id="subRecyclingOpts"></div>
+  </div>
+  <div class="submenu" id="subServices">
+    <div class="submenu-label">Services — select type(s)</div>
+    <div class="chk-grid" id="subServicesOpts"></div>
+  </div>
+  <div class="submenu" id="subParking">
+    <div class="submenu-label">Parking / Charging — details</div>
+    <div class="fields f2">
+      <div class="field"><label>Number of Spaces / Vehicles</label><input type="number" id="parkingSpaces" placeholder="e.g. 500" min="1"></div>
+      <div class="field"><label>Number of Locations</label><input type="number" id="parkingLocations" placeholder="e.g. 3" min="1"></div>
+    </div>
+  </div>
+  <div class="submenu" id="subFleet">
+    <div class="submenu-label">Fleet / Transportation — describe</div>
+    <div class="field"><textarea id="fleetDesc" placeholder="e.g. 200 electric delivery vehicles, 50 diesel HGVs, 3 depots…"></textarea></div>
+  </div>
+  <div class="cust-wrap" id="facCustomWrap">
+    <div class="field"><input type="text" id="facCustomInput" placeholder="Other — keywords separated by comma…"></div>
+    <div class="field-hint">e.g. lithium recycling, underground storage, food processing</div>
+  </div>
+  <div class="nav"><button class="btn-ghost" onclick="go(1)">Back</button><button class="btn-primary" id="n2" onclick="go(3)" disabled>Next</button><span class="step-num">03 / 06</span></div>
+</div>
 
-      <!-- S3: Suppression picture -->
-      <div id="s3" style="display:none">
-        <div class="pstep">Step 4 of 4</div>
-        <div class="ptitle">Your suppression picture</div>
-        <div class="psub">Tell Pantheon what's installed. This is where gaps are identified — before an incident does it for you.</div>
-        <div class="fields" id="suppFields"></div>
-        <div class="gap-box" id="gapBox">
-          <div class="gap-ico"><svg viewBox="0 0 20 20"><path d="M10 3L2 17h16L10 3z"/><line x1="10" y1="9" x2="10" y2="13"/><circle cx="10" cy="15.5" r="0.65" fill="currentColor" style="stroke:none"/></svg></div>
-          <div><div class="gap-title">Suppression Gap Detected</div><div class="gap-text" id="gapTxt"></div></div>
-        </div>
-        <div class="nav">
-          <button class="btn-ghost" onclick="go(2)">Back</button>
-          <button class="btn-primary" id="n3" onclick="finish()">
-            <span id="finLbl">Launch Pantheon</span>
-            <div class="spin" id="finSpin"></div>
-          </button>
-          <span class="step-num">04 / 04</span>
-        </div>
-      </div>
+<!-- STEP 3 — SYSTEMS & HAZARDS -->
+<div id="s3" class="step" style="display:none">
+  <div class="step-head">
+    <div class="step-eyebrow">Step 4 of 6</div>
+    <div class="step-title">Systems &amp; hazards</div>
+    <div class="step-sub">Pantheon calculates your Probability of Failure on Demand (PFD) and ALARP zone based on installed systems and hazard profile.</div>
+  </div>
+  <div id="suppFields"></div>
 
-      <!-- FINISH -->
-      <div id="sFin" style="display:none">
-        <div class="finish">
-          <div class="finish-ring"><svg viewBox="0 0 20 20"><polyline points="4,10 8,14 16,6"/></svg></div>
-          <h2>You're set, <span id="finName"></span>.</h2>
-          <p>Pantheon is calibrated to your facility, role, and jurisdiction. Monitor zones, product catalog, training courses, and applicable standards are ready.</p>
-          <!-- ▼ CHANGED: onclick calls enterPantheon() instead of inline href -->
-          <button class="btn-primary" style="margin:0 auto" onclick="enterPantheon()">Enter Pantheon</button>
-        </div>
-      </div>
+  <div class="sect">
+    <div class="sect-label">Detection / Monitoring — check all that apply</div>
+    <div class="chk-grid" id="detectionGrid">
+      <div class="chk-item" data-val="IR Camera" onclick="toggleDet(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">IR Camera</span></div>
+      <div class="chk-item" data-val="Smoke Camera" onclick="toggleDet(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Smoke Camera</span></div>
+      <div class="chk-item" data-val="Vapor / Off-Gas" onclick="toggleDet(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Vapor / Off-Gas</span></div>
+      <div class="chk-item" data-val="VESDA" onclick="toggleDet(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">VESDA</span></div>
+      <div class="chk-item" data-val="Smoke (Standard)" onclick="toggleDet(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Smoke (Standard)</span></div>
+      <div class="chk-item" data-val="Heat Detection" onclick="toggleDet(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Heat Detection</span></div>
+      <div class="chk-item" data-val="Explosivity" onclick="toggleDet(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Explosivity</span></div>
+      <div class="chk-item" data-val="Smart-LX Gateway" onclick="toggleDet(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Smart-LX Gateway</span></div>
+      <div class="chk-item" data-val="None" onclick="toggleDet(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">None</span></div>
+      <div class="chk-item" data-val="_custom_det" onclick="toggleDet(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Custom / Multiple / Other</span></div>
+    </div>
+    <div class="cust-wrap" id="detCustomWrap"><div class="field"><input type="text" id="detCustomInput" placeholder="Keywords separated by comma…"></div></div>
+  </div>
 
-    </div>
-  </div>
+  <div class="sect">
+    <div class="sect-label">Hazard categories — check all that apply</div>
+    <div class="chk-grid">
+      <div class="chk-item" data-val="Fire" onclick="toggleHaz(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Fire</span></div>
+      <div class="chk-item" data-val="Flammable Liquids" onclick="toggleHaz(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Flammable Liquids</span></div>
+      <div class="chk-item" data-val="Explosion" onclick="toggleHaz(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Explosion</span></div>
+      <div class="chk-item" data-val="Vapors / Toxins" onclick="toggleHaz(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Vapors / Toxins</span></div>
+      <div class="chk-item" data-val="Airborne Hazards" onclick="toggleHaz(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Airborne Hazards</span></div>
+      <div class="chk-item" data-val="Natural Disaster" onclick="toggleHaz(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Natural Disaster</span></div>
+      <div class="chk-item" data-val="Weather" onclick="toggleHaz(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Weather</span></div>
+      <div class="chk-item" data-val="Transportation Incident" onclick="toggleHaz(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Transportation Incident</span></div>
+      <div class="chk-item" data-val="Industrial Incident" onclick="toggleHaz(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Industrial Incident</span></div>
+      <div class="chk-item" data-val="Attack / Security" onclick="toggleHaz(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Attack / Security</span></div>
+      <div class="chk-item" data-val="Disease / Biological" onclick="toggleHaz(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Disease / Biological</span></div>
+      <div class="chk-item" data-val="Economic Disruption" onclick="toggleHaz(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Economic Disruption</span></div>
+    </div>
+  </div>
+  <div class="gap-box" id="gapBox"><div class="gap-box-head">Suppression Gap Detected</div><div class="gap-box-txt" id="gapTxt"></div></div>
+  <div class="nav"><button class="btn-ghost" onclick="go(2)">Back</button><button class="btn-primary" onclick="go(4)">Next</button><span class="step-num">04 / 06</span></div>
+</div>
+
+<!-- STEP 4 — ISO 31000 READINESS -->
+<div id="s4" class="step" style="display:none">
+  <div class="step-head">
+    <div class="step-eyebrow">Step 5 of 6 — ISO 31000 Intake</div>
+    <div class="step-title">Readiness assessment</div>
+    <div class="step-sub">These answers generate your risk score, ALARP zone, SIL target, and PFD. All responses calibrate Pantheon for your specific facility.</div>
+  </div>
+
+  <div class="sect">
+    <div class="sect-label">Is there a current incident or active threat?</div>
+    <div class="radio-list">
+      <div class="radio-item" onclick="pickRad(this,'current_incident','Yes — active incident in progress')"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-content"><div class="radio-label">Yes — active incident in progress</div><div class="radio-sub">Pantheon activates emergency response mode</div></div></div>
+      <div class="radio-item" onclick="pickRad(this,'current_incident','Recent incident — post-event review')"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-content"><div class="radio-label">Recent incident — post-event review</div></div></div>
+      <div class="radio-item" onclick="pickRad(this,'current_incident','No current incident — planning / prevention')"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-content"><div class="radio-label">No current incident — planning / prevention</div></div></div>
+    </div>
+  </div>
+
+  <div class="sect">
+    <div class="sect-label">Workforce training &amp; emergency response plan</div>
+    <div class="radio-list">
+      <div class="radio-item" onclick="pickRad(this,'training_level','Fully trained and certified, with an emergency response plan in place')"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-content"><div class="radio-label">Fully trained and certified — ERP in place</div></div></div>
+      <div class="radio-item" onclick="pickRad(this,'training_level','Partially trained and certified, with an emergency response plan in place')"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-content"><div class="radio-label">Partially trained — ERP in place</div></div></div>
+      <div class="radio-item" onclick="pickRad(this,'training_level','Not trained and certified, no emergency response plan in place')"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-content"><div class="radio-label">Not trained — no ERP</div></div></div>
+      <div class="radio-item" onclick="pickRad(this,'training_level','No training for this threat, no planning, no emergency response plan')"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-content"><div class="radio-label">No training for this threat — no planning, no ERP</div><div class="radio-sub">Highest risk band — Pantheon prioritises training prescription</div></div></div>
+    </div>
+  </div>
+
+  <div class="sect">
+    <div class="sect-label">Emergency Response Plan — upload (optional)</div>
+    <div class="field">
+      <label>Paste your ERP text or key procedures</label>
+      <textarea id="erpTextInput" placeholder="Paste your site-specific Emergency Response Plan here. Pantheon will reference your actual procedures — not generic guidance. If your plan states a specific emergency number, Pantheon will use it instead of generic 911."></textarea>
+      <div class="field-hint">Confidential — used only to personalise your emergency response guidance within Pantheon.</div>
+    </div>
+    <div class="field" style="margin-top:8px"><label>ERP Name / Reference</label><input type="text" id="erpNameInput" placeholder="e.g. Site ERP Rev 4 — March 2025"></div>
+  </div>
+
+  <div class="sect">
+    <div class="sect-label">System preparation level</div>
+    <div class="radio-list">
+      <div class="radio-item" onclick="pickRad(this,'system_prep','Could use more real-time condition monitoring, detection, suppression, equipment, training')"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-content"><div class="radio-label">Could use more — monitoring, detection, suppression, training</div></div></div>
+      <div class="radio-item" onclick="pickRad(this,'system_prep','Limited monitoring, detection, suppression, equipment, training')"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-content"><div class="radio-label">Limited systems — significant gaps</div></div></div>
+      <div class="radio-item" onclick="pickRad(this,'system_prep','Not equipped for the hazard / threat level')"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-content"><div class="radio-label">Not equipped for this hazard / threat level</div><div class="radio-sub">ALARP — Unacceptable zone. Immediate action required.</div></div></div>
+    </div>
+  </div>
+
+  <div class="sect">
+    <div class="sect-label">Insurance posture</div>
+    <div class="radio-list">
+      <div class="radio-item" onclick="pickRad(this,'insurance_level','Fully insured, business continuity plan in place')"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-content"><div class="radio-label">Fully insured — business continuity plan in place</div></div></div>
+      <div class="radio-item" onclick="pickRad(this,'insurance_level','Partially insured, limited continuity planning')"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-content"><div class="radio-label">Partially insured — limited continuity planning</div></div></div>
+      <div class="radio-item" onclick="pickRad(this,'insurance_level','Minimal insurance, no continuity plan')"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-content"><div class="radio-label">Minimal insurance — no continuity plan</div></div></div>
+      <div class="radio-item" onclick="pickRad(this,'insurance_level','Unknown or uninsured')"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-content"><div class="radio-label">Unknown or uninsured</div></div></div>
+    </div>
+  </div>
+
+  <div class="sect">
+    <div class="sect-label">Contingency for large loss or service interruption</div>
+    <div class="radio-list">
+      <div class="radio-item" onclick="pickRad(this,'contingency_level','Comprehensive contingency plan with tested backups')"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-content"><div class="radio-label">Comprehensive contingency plan — tested backups</div></div></div>
+      <div class="radio-item" onclick="pickRad(this,'contingency_level','Some contingency planning, partial backups')"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-content"><div class="radio-label">Some contingency planning — partial backups</div></div></div>
+      <div class="radio-item" onclick="pickRad(this,'contingency_level','Minimal contingency planning')"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-content"><div class="radio-label">Minimal contingency planning</div></div></div>
+      <div class="radio-item" onclick="pickRad(this,'contingency_level','No contingency plan')"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-content"><div class="radio-label">No contingency plan</div></div></div>
+    </div>
+  </div>
+
+  <div class="sect">
+    <div class="sect-label">How many people do you employ at this site?</div>
+    <div class="field" style="max-width:240px"><input type="number" id="employeeCount" placeholder="Number of employees…" min="1"><div class="field-hint">Used to estimate training costs and workforce risk exposure.</div></div>
+  </div>
+
+  <div class="sect">
+    <div class="sect-label">Compliance measures — check all that apply</div>
+    <div class="chk-grid">
+      <div class="chk-item" data-val="NFPA" onclick="toggleComp(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">NFPA Standards</span></div>
+      <div class="chk-item" data-val="VdS" onclick="toggleComp(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">VdS Certification</span></div>
+      <div class="chk-item" data-val="UL" onclick="toggleComp(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">UL Listed</span></div>
+      <div class="chk-item" data-val="FM Global" onclick="toggleComp(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">FM Approved</span></div>
+      <div class="chk-item" data-val="ISO 31000" onclick="toggleComp(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">ISO 31000</span></div>
+      <div class="chk-item" data-val="IEC 61508" onclick="toggleComp(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">IEC 61508 / SIL</span></div>
+      <div class="chk-item" data-val="OSHA" onclick="toggleComp(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">OSHA</span></div>
+      <div class="chk-item" data-val="Local / AHJ" onclick="toggleComp(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Local / AHJ</span></div>
+      <div class="chk-item" data-val="Unknown" onclick="toggleComp(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Not Sure</span></div>
+    </div>
+  </div>
+
+  <div class="nav"><button class="btn-ghost" onclick="go(3)">Back</button><button class="btn-primary" onclick="go(5)">Next</button><span class="step-num">05 / 06</span></div>
+</div>
+
+<!-- STEP 5 — WHY ARE YOU HERE -->
+<div id="s5" class="step" style="display:none">
+  <div class="step-head">
+    <div class="step-eyebrow">Step 6 of 6</div>
+    <div class="step-title">Why are you here today?</div>
+    <div class="step-sub">Pantheon configures its mode — scenario planning, real-time threat analysis, training, or emergency response — based on what you need right now.</div>
+  </div>
+
+  <div class="sect">
+    <div class="sect-label">Select all that apply</div>
+    <div class="chk-grid">
+      <div class="chk-item" data-val="Equipping and training workforce" onclick="toggleWhy(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Equipping and training workforce</span></div>
+      <div class="chk-item" data-val="Planning and prevention" onclick="toggleWhy(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Planning and prevention</span></div>
+      <div class="chk-item" data-val="Detection and suppression systems" onclick="toggleWhy(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Detection and suppression systems</span></div>
+      <div class="chk-item" data-val="Run a scenario for planning or training" onclick="toggleWhy(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Planning / training scenario</span></div>
+      <div class="chk-item" data-val="Real-time threat analysis and loss reports" onclick="toggleWhy(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Real-time threat analysis</span></div>
+      <div class="chk-item" data-val="Exercising and evaluation" onclick="toggleWhy(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Exercising and evaluation</span></div>
+      <div class="chk-item" data-val="Post-incident review" onclick="toggleWhy(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Post-incident review</span></div>
+      <div class="chk-item" data-val="Insurance and compliance documentation" onclick="toggleWhy(this)"><div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">Insurance and compliance documentation</span></div>
+    </div>
+  </div>
+
+  <div class="sect">
+    <div class="sect-label">General risk or specific hazard?</div>
+    <div class="radio-list">
+      <div class="radio-item" onclick="pickRad(this,'risk_scope','General risk assessment across all hazards')"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-content"><div class="radio-label">General risk assessment across all hazards</div></div></div>
+      <div class="radio-item" onclick="pickRad(this,'risk_scope','Specific risk or hazard')"><div class="radio-dot"><div class="radio-dot-inner"></div></div><div class="radio-content"><div class="radio-label">Specific risk or hazard</div></div></div>
+    </div>
+    <div class="cust-wrap show" style="margin-top:10px"><div class="field"><input type="text" id="specificHazardInput" placeholder="e.g. Li-ion thermal runaway, hydrogen vapour, dust explosion, AFFF contamination…"></div></div>
+  </div>
+
+  <div class="sect">
+    <div class="sect-label">Biggest hazard — keywords (optional)</div>
+    <div class="field">
+      <input type="text" id="hazardKeywords" placeholder="e.g. ordinary combustibles, flammable liquids, vapors, toxins, explosion, airborne hazards, Li-ion…">
+      <div class="field-hint">Helps Pantheon surface the most relevant incident data, standards, and product recommendations.</div>
+    </div>
+  </div>
+
+  <!-- Live score preview -->
+  <div class="score-preview" id="scorePreview">
+    <div class="score-row">
+      <div class="score-num" id="scoreNum">—</div>
+      <div>
+        <div class="score-badge" id="scoreBadge">—</div>
+        <div class="score-detail" id="scoreDetail"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="btn-ghost" onclick="go(4)">Back</button>
+    <button class="btn-primary" id="n5" onclick="finish()">
+      <span id="finLbl">Launch Pantheon</span>
+      <div class="spin" id="finSpin"></div>
+    </button>
+    <span class="step-num">06 / 06</span>
+  </div>
+</div>
+
+<!-- FINISH -->
+<div id="sFin" style="display:none">
+  <div class="finish">
+    <div class="finish-ring"><svg viewBox="0 0 20 20"><polyline points="4,10 8,14 16,6"/></svg></div>
+    <h2>You're set, <span id="finName"></span>.</h2>
+    <p>Pantheon is calibrated to your entity, role, and jurisdiction. Your risk score, ALARP zone, and SIL target are ready. Monitor, simulate, and act.</p>
+    <button class="btn-primary" style="margin:0 auto" onclick="window.location.href='/'">Enter Pantheon</button>
+  </div>
+</div>
+```
+
+  </div></div>
 </div>
 
 <script>
-var MOON_ICO = "M15 10.5a6 6 0 01-8.5-8.5 7 7 0 108.5 8.5z";
-var SUN_ICO  = "M10 2v2M10 16v2M2 10h2M16 10h2M4.93 4.93l1.41 1.41M13.66 13.66l1.41 1.41M4.93 15.07l1.41-1.41M13.66 6.34l1.41-1.41M10 7a3 3 0 100 6 3 3 0 000-6z";
+var MOON = "M15 10.5a6 6 0 01-8.5-8.5 7 7 0 108.5 8.5z";
+var SUN  = "M10 2v2M10 16v2M2 10h2M16 10h2M4.93 4.93l1.41 1.41M13.66 13.66l1.41 1.41M4.93 15.07l1.41-1.41M13.66 6.34l1.41-1.41M10 7a3 3 0 100 6 3 3 0 000-6z";
+function applyTheme(t){document.documentElement.setAttribute('data-theme',t);var g=t==='light'?'dark':'light';document.getElementById('themeP').setAttribute('d',g==='dark'?MOON:SUN);document.getElementById('themeLbl').textContent=g==='dark'?'Dark':'Light';localStorage.setItem('pantheon-theme',t);}
+function toggleTheme(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');}
+applyTheme(localStorage.getItem('pantheon-theme')||'light');
 
-function applyTheme(t) {
-  document.documentElement.setAttribute('data-theme', t);
-  var going = t === 'light' ? 'dark' : 'light';
-  document.getElementById('themeP').setAttribute('d', going === 'dark' ? MOON_ICO : SUN_ICO);
-  document.getElementById('themeLbl').textContent = going === 'dark' ? 'Dark' : 'Light';
-  localStorage.setItem('pantheon-theme', t);
+var P={role:'',org:'',location:'',entity_type:'',facility_type:'',entity_sub:[],chemistry:'',suppression:'',detection:[],detection_custom:'',hazards:[],compliance:[],why:[],training_level:'',current_incident:'',system_prep:'',insurance_level:'',contingency_level:'',risk_scope:'',specific_hazard:'',hazard_keywords:'',employee_count:'',has_erp:'false',erp_name:'',erp_text:'',extra:{}};
+var cur=0;
+var STEPS=['Your role','Organisation','Entity type','Systems & hazards','Readiness assessment','Why are you here'];
+
+// Sub-menu config
+var SUBS={
+  'Power Grid':{id:'subPowerGrid',opts:['Power Generation','BESS','Solar+BESS','Substation','Multiple','Other']},
+  'Government':{id:'subGovernment',opts:['Federal','State / Provincial','Municipal','Multiple']},
+  'Mining':{id:'subMining',opts:['Coal','Precious Metals','Minerals','Multiple','Other']},
+  'Oil & Gas':{id:'subOilGas',opts:['Refinery','Drilling','Transportation','Pipeline','Multiple','Other']},
+  'Recycling':{id:'subRecycling',opts:['Solid Waste','Metals','Tires','Lithium-ion Batteries','Multiple','Other']},
+  'Services':{id:'subServices',opts:['Construction','Safety','Facility Management','Other']},
+  'Parking / Charging Facility':{id:'subParking',opts:[]},
+  'Fleet / Transportation':{id:'subFleet',opts:[]}
+};
+var ALL_SUBS=['subPowerGrid','subGovernment','subMining','subOilGas','subRecycling','subServices','subParking','subFleet'];
+
+function buildSubs(){
+  ['Power Grid','Government','Mining','Oil & Gas','Recycling','Services'].forEach(function(k){
+    var cfg=SUBS[k],c=document.getElementById(cfg.id+'Opts');
+    if(!c)return;
+    cfg.opts.forEach(function(o){
+      var el=document.createElement('div');el.className='chk-item';el.dataset.val=o;
+      el.innerHTML='<div class="chk-box"><svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></div><span class="chk-label">'+o+'</span>';
+      el.onclick=function(){this.classList.toggle('sel');updateEntitySubs();};
+      c.appendChild(el);
+    });
+  });
 }
-function toggleTheme() {
-  var cur = document.documentElement.getAttribute('data-theme');
-  applyTheme(cur === 'dark' ? 'light' : 'dark');
+buildSubs();
+
+function updateEntitySubs(){var s=[];document.querySelectorAll('[id^="sub"] .chk-item.sel').forEach(function(e){s.push(e.dataset.val);});P.entity_sub=s;}
+
+function pickRole(el){document.querySelectorAll('#s0 .opt').forEach(function(o){o.classList.remove('sel');});el.classList.add('sel');var v=el.dataset.val;var w=document.getElementById('roleCustomWrap');if(v==='_custom'){w.classList.add('show');setTimeout(function(){document.getElementById('roleCustomInput').focus();},50);P.role=document.getElementById('roleCustomInput').value.trim()||'_custom';}else{w.classList.remove('show');P.role=v;}document.getElementById('n0').disabled=false;}
+document.getElementById('roleCustomInput').addEventListener('input',function(){P.role=this.value.trim()||'_custom';});
+
+function pickEntity(el){
+  document.querySelectorAll('#entityGrid .opt').forEach(function(o){o.classList.remove('sel');});
+  el.classList.add('sel');var v=el.dataset.val;
+  ALL_SUBS.forEach(function(id){var m=document.getElementById(id);if(m)m.classList.remove('show');});
+  document.getElementById('facCustomWrap').classList.remove('show');
+  if(SUBS[v]&&SUBS[v].id){var m=document.getElementById(SUBS[v].id);if(m)m.classList.add('show');}
+  if(v==='_custom')document.getElementById('facCustomWrap').classList.add('show');
+  P.entity_type=v;P.facility_type=v;P.entity_sub=[];
+  renderSuppFields(v);
+  document.getElementById('n2').disabled=false;
 }
-applyTheme(localStorage.getItem('pantheon-theme') || 'light');
+document.getElementById('facCustomInput').addEventListener('input',function(){P.entity_type=this.value.trim()||'_custom';P.facility_type=P.entity_type;renderSuppFields('_default');});
 
-var P = { role:'', org:'', location:'', facility_type:'', chemistry:'', suppression:'', detection:'', modules:'', extra:{} };
-var cur = 0;
-var LABELS = ['Your role', 'Organisation', 'Facility type', 'Suppression picture'];
-
-function pickRole(el) {
-  document.querySelectorAll('#s0 .opt').forEach(function(o){ o.classList.remove('sel'); });
-  el.classList.add('sel');
-  var val = el.dataset.val;
-  var wrap = document.getElementById('roleCustomWrap');
-  if (val === '_custom') {
-    wrap.classList.add('show');
-    setTimeout(function(){ document.getElementById('roleCustomInput').focus(); }, 50);
-    P.role = document.getElementById('roleCustomInput').value.trim() || '_custom';
-  } else {
-    wrap.classList.remove('show');
-    P.role = val;
-  }
-  document.getElementById('n0').disabled = false;
-}
-document.getElementById('roleCustomInput').addEventListener('input', function(){
-  P.role = this.value.trim() || '_custom';
-});
-
-function pickFacility(el) {
-  document.querySelectorAll('#s2 .opt').forEach(function(o){ o.classList.remove('sel'); });
-  el.classList.add('sel');
-  var val = el.dataset.val;
-  var wrap = document.getElementById('facCustomWrap');
-  if (val === '_custom') {
-    wrap.classList.add('show');
-    setTimeout(function(){ document.getElementById('facCustomInput').focus(); }, 50);
-    P.facility_type = document.getElementById('facCustomInput').value.trim() || '_custom';
-  } else {
-    wrap.classList.remove('show');
-    P.facility_type = val;
-    renderSuppFields(val);
-  }
-  document.getElementById('n2').disabled = false;
-}
-document.getElementById('facCustomInput').addEventListener('input', function(){
-  P.facility_type = this.value.trim() || '_custom';
-  renderSuppFields('_default');
-});
-
-var FF = {
-  'Data Center':[ {id:'chemistry',label:'Battery / UPS Chemistry',opts:['NMC (Li-ion)','LFP (Li-ion)','VRLA / Lead-Acid','Other','None / No Battery','Custom…']}, {id:'suppression',label:'Suppression System',opts:['FM-200 (HFC-227ea)','CO₂','Novec 1230','F-500 EA','Dry Chemical','Water Mist','Sprinkler Only','None','Custom…']}, {id:'detection',label:'Smoke / Off-Gas Detection',opts:['VESDA','Standard Smoke','Smart-LX Gateway','None','Custom…']} ],
-  'BESS':[ {id:'chemistry',label:'Cell Chemistry',opts:['NMC (Nickel Manganese Cobalt)','LFP (Lithium Iron Phosphate)','NCA (Nickel Cobalt Aluminium)','LTO (Lithium Titanate)','Other','Custom…']}, {id:'modules',label:'Module Count (approx.)',opts:['<50','50–200','200–500','500–1000','1000+']}, {id:'suppression',label:'Suppression System',opts:['FM-200','CO₂','Water Mist','F-500 EA','Sprinkler Only','None','Custom…']}, {id:'detection',label:'Off-Gas Detection',opts:['Smart-LX Gateway','VESDA','Standard Smoke Only','None','Custom…']} ],
-  'EV Charging Hub':[ {id:'suppression',label:'Suppression System',opts:['Sprinkler','Water Mist','F-500 EA','Dry Chemical','None','Custom…']}, {id:'detection',label:'Detection System',opts:['Smart-LX Gateway','Standard Smoke','Heat Detection','None','Custom…']} ],
-  'Manufacturing':[ {id:'suppression',label:'Suppression System',opts:['Sprinkler','Foam','Dry Chemical','CO₂','F-500 EA','Water Mist','None','Custom…']}, {id:'detection',label:'Detection System',opts:['Smart-LX Gateway','VESDA','Standard Smoke','Flame Detection','None','Custom…']} ],
-  '_default':[ {id:'suppression',label:'Suppression System',opts:['Sprinkler','FM-200','CO₂','Water Mist','Dry Chemical','F-500 EA','Foam','None','Custom…']}, {id:'detection',label:'Detection / Monitoring',opts:['Smart-LX Gateway','VESDA','Standard Smoke','Heat Detection Only','None','Custom…']} ]
+// Suppression fields
+var FF={
+  'Data Center':[{id:'chemistry',label:'Battery / UPS Chemistry',opts:['NMC (Li-ion)','LFP (Li-ion)','VRLA / Lead-Acid','Other','None / No Battery','Custom…']},{id:'suppression',label:'Suppression System(s)',opts:['FM-200 (HFC-227ea)','CO\u2082','Novec 1230','F-500 EA','Dry Chemical','Water Mist','Sprinkler Only','Multiple','None','Custom\u2026']}],
+  'Power Grid':[{id:'chemistry',label:'Cell Chemistry',opts:['NMC (Nickel Manganese Cobalt)','LFP (Lithium Iron Phosphate)','NCA (Nickel Cobalt Aluminium)','LTO (Lithium Titanate)','Other','Custom\u2026']},{id:'modules',label:'Module / Unit Count',opts:['<50','50\u2013200','200\u2013500','500\u20131000','1000+']},{id:'suppression',label:'Suppression System(s)',opts:['FM-200','CO\u2082','Water Mist','F-500 EA','Sprinkler Only','Multiple','None','Custom\u2026']}],
+  'Parking / Charging Facility':[{id:'suppression',label:'Suppression System(s)',opts:['Sprinkler','Water Mist','F-500 EA','Dry Chemical','Multiple','None','Custom\u2026']}],
+  'Fleet / Transportation':[{id:'suppression',label:'Suppression System(s)',opts:['Dry Chemical','Water Mist','F-500 EA','CO\u2082','Multiple','None','Custom\u2026']}],
+  'Mining':[{id:'suppression',label:'Suppression System(s)',opts:['Sprinkler','Dry Chemical','Water Mist','Foam','F-500 EA','Multiple','None','Custom\u2026']}],
+  'Oil & Gas':[{id:'suppression',label:'Suppression System(s)',opts:['Foam (AFFF)','Dry Chemical','CO\u2082','Water Mist','F-500 EA','Multiple','None','Custom\u2026']}],
+  'Recycling':[{id:'chemistry',label:'Battery Type (if applicable)',opts:['Li-ion (mixed)','NMC','LFP','Not applicable','Custom\u2026']},{id:'suppression',label:'Suppression System(s)',opts:['Sprinkler','Water Mist','F-500 EA','Dry Chemical','Foam','Multiple','None','Custom\u2026']}],
+  'Manufacturing':[{id:'suppression',label:'Suppression System(s)',opts:['Sprinkler','Foam','Dry Chemical','CO\u2082','F-500 EA','Water Mist','Multiple','None','Custom\u2026']}],
+  '_default':[{id:'suppression',label:'Suppression System(s)',opts:['Sprinkler','FM-200','CO\u2082','Water Mist','Dry Chemical','F-500 EA','Foam','Multiple','None','Custom\u2026']}]
 };
 
-var INCOMPAT = {
-  'FM-200 (HFC-227ea)':['NMC (Li-ion)','NMC (Nickel Manganese Cobalt)','NCA (Nickel Cobalt Aluminium)','LFP (Li-ion)','LFP (Lithium Iron Phosphate)'],
-  'FM-200':['NMC (Nickel Manganese Cobalt)','NCA (Nickel Cobalt Aluminium)','LFP (Lithium Iron Phosphate)'],
-  'CO₂':['NMC (Li-ion)','NMC (Nickel Manganese Cobalt)'],
-  'Dry Chemical':['NMC (Li-ion)','NMC (Nickel Manganese Cobalt)']
-};
-var NO_DET = ['None','Standard Smoke Only','Standard Smoke','Heat Detection Only','Heat Detection'];
+var LI_CHEMS=['NMC (Li-ion)','LFP (Li-ion)','NMC (Nickel Manganese Cobalt)','LFP (Lithium Iron Phosphate)','NCA (Nickel Cobalt Aluminium)','LTO (Lithium Titanate)','Li-ion (mixed)'];
+var INCOMPAT={'FM-200 (HFC-227ea)':LI_CHEMS,'FM-200':LI_CHEMS,'CO\u2082':LI_CHEMS,'Novec 1230':LI_CHEMS,'Dry Chemical':LI_CHEMS};
 
-function checkGap() {
-  var box = document.getElementById('gapBox'), txt = document.getElementById('gapTxt');
-  var msgs = [], s = P.suppression||'', c = P.chemistry||'', d = P.detection||'';
-  if (s && c && INCOMPAT[s] && INCOMPAT[s].indexOf(c) >= 0)
-    msgs.push(s + ' cannot arrest ' + c + ' thermal runaway — chemically incompatible. F-500 EA Micelle Mist is the validated countermeasure per NFPA 855.');
-  if (d && NO_DET.indexOf(d) >= 0)
-    msgs.push('No off-gas detection means the first alert arrives at visible smoke — 25+ minutes after electrolyte vapour begins accumulating. Smart-LX Gateway + VESDA closes this window.');
-  txt.textContent = msgs.join(' ');
-  box.className = 'gap-box' + (msgs.length ? ' show' : '');
+function checkGap(){
+  var box=document.getElementById('gapBox'),txt=document.getElementById('gapTxt');
+  var msgs=[],s=P.suppression||'',c=P.chemistry||'',d=P.detection||[];
+  if(s&&c&&INCOMPAT[s]&&INCOMPAT[s].indexOf(c)>=0)
+    msgs.push(s+' has a PFD of 1.0 against '+c+' thermal runaway — chemically incompatible, will not arrest the reaction. F-500 EA (PFD=0.03) is the only validated countermeasure per NFPA 855.');
+  if(d.length===0||d.indexOf('None')>=0)
+    msgs.push('No early-warning detection: first alert arrives at visible smoke — 25+ minutes after electrolyte vapour accumulates. Smart-LX Gateway + VESDA closes this window (NFPA 855 §5.7).');
+  txt.textContent=msgs.join(' ');
+  box.className='gap-box'+(msgs.length?' show':'');
 }
 
-function renderSuppFields(ft) {
-  var fields = FF[ft] || FF['_default'];
-  var c = document.getElementById('suppFields');
-  c.innerHTML = '';
-  c.className = 'fields' + (fields.length >= 3 ? ' f2' : '');
-  fields.forEach(function(f) {
-    var d = document.createElement('div'); d.className = 'field';
-    var l = document.createElement('label'); l.textContent = f.label; d.appendChild(l);
-    var s = document.createElement('select'); s.id = 'fld_'+f.id;
-    var blank = document.createElement('option'); blank.value=''; blank.textContent='Select…'; s.appendChild(blank);
-    f.opts.forEach(function(o){ var op = document.createElement('option'); op.value=o; op.textContent=o; s.appendChild(op); });
-    var customDiv = document.createElement('div'); customDiv.className='field-custom'; customDiv.id='fc_'+f.id;
-    var customInp = document.createElement('input'); customInp.type='text'; customInp.placeholder='Describe…';
-    customInp.addEventListener('input', function(){ P[f.id] = this.value; checkGap(); });
-    customDiv.appendChild(customInp); d.appendChild(s); d.appendChild(customDiv);
-    s.addEventListener('change', function(){
-      var v = this.value;
-      if (v === 'Custom…') { customDiv.className='field-custom show'; customInp.focus(); P[f.id] = customInp.value; }
-      else { customDiv.className='field-custom'; P[f.id] = v; }
-      checkGap();
-    });
-    c.appendChild(d);
-  });
+function renderSuppFields(ft){
+  var fields=FF[ft]||FF['_default'],c=document.getElementById('suppFields');
+  c.innerHTML='';c.className='fields'+(fields.length>=2?' f2':'');
+  fields.forEach(function(f){
+    var d=document.createElement('div');d.className='field';
+    var l=document.createElement('label');l.textContent=f.label;d.appendChild(l);
+    var s=document.createElement('select');s.id='fld_'+f.id;
+    var b=document.createElement('option');b.value='';b.textContent='Select\u2026';s.appendChild(b);
+    f.opts.forEach(function(o){var op=document.createElement('option');op.value=o;op.textContent=o;s.appendChild(op);});
+    var cd=document.createElement('div');cd.className='field-custom';cd.id='fc_'+f.id;
+    var ci=document.createElement('input');ci.type='text';ci.placeholder='Describe\u2026';
+    ci.addEventListener('input',function(){P[f.id]=this.value;checkGap();});
+    cd.appendChild(ci);d.appendChild(s);d.appendChild(cd);
+    s.addEventListener('change',function(){var v=this.value;if(v==='Custom\u2026'){cd.className='field-custom show';ci.focus();P[f.id]=ci.value;}else{cd.className='field-custom';P[f.id]=v;}checkGap();});
+    c.appendChild(d);
+  });
+}
+renderSuppFields('_default');
+
+function toggleDet(el){
+  var v=el.dataset.val;
+  if(v==='None'){document.querySelectorAll('#detectionGrid .chk-item').forEach(function(i){i.classList.remove('sel');});el.classList.add('sel');P.detection=['None'];}
+  else{
+    document.querySelectorAll('#detectionGrid .chk-item[data-val="None"]').forEach(function(i){i.classList.remove('sel');});
+    el.classList.toggle('sel');
+    var ni=P.detection.indexOf('None');if(ni>=0)P.detection.splice(ni,1);
+    if(v==='_custom_det'){document.getElementById('detCustomWrap').classList[el.classList.contains('sel')?'add':'remove']('show');}
+    else{var idx=P.detection.indexOf(v);if(idx>=0)P.detection.splice(idx,1);else if(el.classList.contains('sel'))P.detection.push(v);}
+  }
+  checkGap();
+}
+document.getElementById('detCustomInput').addEventListener('input',function(){P.detection_custom=this.value;});
+function toggleHaz(el){el.classList.toggle('sel');var v=el.dataset.val,i=P.hazards.indexOf(v);if(i>=0)P.hazards.splice(i,1);else P.hazards.push(v);}
+function toggleComp(el){el.classList.toggle('sel');var v=el.dataset.val,i=P.compliance.indexOf(v);if(i>=0)P.compliance.splice(i,1);else P.compliance.push(v);}
+function toggleWhy(el){el.classList.toggle('sel');var v=el.dataset.val,i=P.why.indexOf(v);if(i>=0)P.why.splice(i,1);else P.why.push(v);}
+function pickRad(el,field,val){var s=el.closest('.sect');if(s)s.querySelectorAll('.radio-item').forEach(function(r){r.classList.remove('sel');});el.classList.add('sel');P[field]=val;}
+
+var PROG=['0%','16%','32%','50%','67%','83%','100%'];
+function go(step){
+  if(step>1){P.org=document.getElementById('orgI').value.trim();P.location=document.getElementById('locI').value.trim();}
+  if(step>4){P.employee_count=document.getElementById('employeeCount').value.trim();P.erp_text=document.getElementById('erpTextInput').value.trim();P.erp_name=document.getElementById('erpNameInput').value.trim();P.has_erp=P.erp_text.length>10?'true':'false';}
+  if(step===5){P.hazard_keywords=document.getElementById('hazardKeywords').value.trim();P.specific_hazard=document.getElementById('specificHazardInput').value.trim();showScore();}
+  document.getElementById('s'+cur).style.display='none';
+  cur=step;var el=document.getElementById('s'+step);el.style.display='';el.className='step-enter';
+  setTimeout(function(){el.className='';},250);
+  for(var i=0;i<6;i++)document.getElementById('d'+i).className='pdot'+(i<step?' done':i===step?' active':'');
+  document.getElementById('plabel').textContent=STEPS[step]||'';
+  document.getElementById('progFill').style.width=PROG[step];
+  window.scrollTo(0,0);
 }
 
-function go(step) {
-  if (step === 2) { P.org = document.getElementById('orgI').value.trim(); P.location = document.getElementById('locI').value.trim(); }
-  document.getElementById('s'+cur).style.display = 'none';
-  cur = step;
-  var el = document.getElementById('s'+step); el.style.display = ''; el.className = 'step-enter';
-  setTimeout(function(){ el.className = ''; }, 250);
-  for (var i=0; i<4; i++) {
-    document.getElementById('d'+i).className = 'pdot' + (i<step?' done':i===step?' active':'');
-  }
-  document.getElementById('plabel').textContent = LABELS[step] || '';
-  document.getElementById('progFill').style.width = ['0%','25%','50%','75%','100%'][step];
-  window.scrollTo(0,0);
+function showScore(){
+  var score=20,isLi=LI_CHEMS.indexOf(P.chemistry)>=0,s=P.suppression||'',d=P.detection||[];
+  if(isLi&&(s.indexOf('FM-200')>=0||s==='CO\u2082'||s==='Novec 1230'))score+=25;
+  else if(!s||s==='None')score+=20;
+  if(d.length===0||d.indexOf('None')>=0)score+=20;
+  if(P.training_level==='No training for this threat, no planning, no emergency response plan')score+=15;
+  else if(P.training_level==='Not trained and certified, no emergency response plan in place')score+=12;
+  if(P.insurance_level==='Unknown or uninsured')score+=10;
+  if(P.contingency_level==='No contingency plan')score+=5;
+  score=Math.min(100,score);
+  var label,cls;
+  if(score>=70){label='UNACCEPTABLE';cls='badge-unacceptable';}
+  else if(score>=30){label='ALARP';cls='badge-alarp';}
+  else{label='BROADLY ACCEPTABLE';cls='badge-acceptable';}
+  var sil=score>=70?'SIL 3':score>=50?'SIL 2':score>=30?'SIL 1':'No SIL required';
+  document.getElementById('scoreNum').textContent=score;
+  var b=document.getElementById('scoreBadge');b.textContent=label;b.className='score-badge '+cls;
+  document.getElementById('scoreDetail').textContent='Estimated risk score \u00b7 '+sil+' target \u00b7 Full ISO 31000 analysis runs on launch';
+  document.getElementById('scorePreview').classList.add('show');
 }
 
-// ── PATCHED finish() — writes sessionStorage bridge before redirect ─────────
-function finish() {
-  document.getElementById('n3').disabled = true;
-  document.getElementById('finLbl').style.display = 'none';
-  document.getElementById('finSpin').style.display = 'block';
-
-  // Resolve custom values
-  if (P.role === '_custom')          P.role          = document.getElementById('roleCustomInput').value.trim() || 'Other';
-  if (P.facility_type === '_custom') P.facility_type = document.getElementById('facCustomInput').value.trim()  || 'Other';
-
-  // ── BRIDGE: write full profile to sessionStorage NOW ──────────────────────
-  // dashboard.js reads 'pantheon_ob_data' on boot and skips the "I am a..."
-  // role selector, dropping the user straight into their configured state.
-  var obPayload = {
-    role:                P.role,
-    org:                 P.org,
-    location:            P.location,
-    facility_type:       P.facility_type,
-    chemistry:           P.chemistry    || '',
-    battery:             P.chemistry    || '',   // alias dashboard.js reads
-    suppression:         P.suppression  || '',
-    detection:           P.detection    || '',
-    modules:             P.modules      || '',
-    onboarding_complete: 'true',
-    first_login:         new Date().toISOString().split('T')[0]
-  };
-  try {
-    sessionStorage.setItem('pantheon_ob_data',         JSON.stringify(obPayload));
-    sessionStorage.setItem('pantheon_onboarding_done', '1');  // legacy walkthrough flag
-  } catch(e) { console.warn('[Pantheon] sessionStorage write failed:', e); }
-
-  // Save to server (non-blocking — sessionStorage bridge already written)
-  fetch('/api/onboarding/save', {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify(P)
-  })
-  .then(function(r){ return r.json(); })
-  .then(function(d){
-    if (d.ok) { showFinishScreen(); }
-    else      { resetFinishBtn();   }
-  })
-  .catch(function(){
-    // Server unreachable — still proceed, bridge is in sessionStorage
-    showFinishScreen();
-  });
-}
-
-function showFinishScreen() {
-  document.getElementById('s3').style.display = 'none';
-  document.getElementById('sFin').style.display = '';
-  document.getElementById('progFill').style.width = '100%';
-  // Populate name: try auth endpoint, fall back to org
-  fetch('/api/auth/me')
-    .then(function(r){ return r.json(); })
-    .then(function(u){ document.getElementById('finName').textContent = (u.name || P.org || 'there').split(' ')[0]; })
-    .catch(function(){  document.getElementById('finName').textContent = (P.org || 'there').split(' ')[0]; });
-}
-
-function resetFinishBtn() {
-  document.getElementById('n3').disabled = false;
-  document.getElementById('finLbl').style.display = '';
-  document.getElementById('finSpin').style.display = 'none';
-}
-
-// ── PATCHED: Enter Pantheon → /dashboard (not '/') ────────────────────────
-function enterPantheon() {
-  window.location.href = '/dashboard';
+function finish(){
+  document.getElementById('n5').disabled=true;
+  document.getElementById('finLbl').style.display='none';
+  document.getElementById('finSpin').style.display='block';
+  if(P.role==='_custom')P.role=document.getElementById('roleCustomInput').value.trim()||'Other';
+  if(P.entity_type==='_custom')P.entity_type=document.getElementById('facCustomInput').value.trim()||'Other';
+  P.facility_type=P.entity_type;
+  P.hazard_keywords=document.getElementById('hazardKeywords').value.trim();
+  P.specific_hazard=document.getElementById('specificHazardInput').value.trim();
+  P.employee_count=document.getElementById('employeeCount').value.trim();
+  P.erp_text=document.getElementById('erpTextInput').value.trim();
+  P.erp_name=document.getElementById('erpNameInput').value.trim();
+  P.has_erp=P.erp_text.length>10?'true':'false';
+  P.detection=P.detection.join(', ');
+  P.certification=P.compliance.join(', ');
+  P.extra={entity_sub:P.entity_sub,hazards:P.hazards,compliance:P.compliance,why:P.why,current_incident:P.current_incident,system_prep:P.system_prep,risk_scope:P.risk_scope,specific_hazard:P.specific_hazard,hazard_keywords:P.hazard_keywords,employee_count:P.employee_count,detection_custom:P.detection_custom};
+  var payload=JSON.parse(JSON.stringify(P));
+  var erpP=Promise.resolve();
+  if((P.erp_text||'').length>10)erpP=fetch('/api/erp/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({erp_text:P.erp_text,erp_name:P.erp_name||'Site ERP'})}).catch(function(){});
+  erpP.then(function(){return fetch('/api/onboarding/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.ok){
+      document.getElementById('s5').style.display='none';document.getElementById('sFin').style.display='';
+      document.getElementById('progFill').style.width='100%';
+      fetch('/api/auth/me').then(function(r){return r.json();}).then(function(u){document.getElementById('finName').textContent=(u.name||'there').split(' ')[0];}).catch(function(){document.getElementById('finName').textContent='there';});
+    }
+  })
+  .catch(function(){document.getElementById('n5').disabled=false;document.getElementById('finLbl').style.display='';document.getElementById('finSpin').style.display='none';});
 }
 </script>
+
 </body>
 </html>
