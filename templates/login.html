@@ -1,524 +1,450 @@
 <!DOCTYPE html>
-
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pantheon — Sign In</title>
-  <link rel="icon" type="image/png" href="/static/assets/PantheonLogoGold.png">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pantheon — Sign In</title>
+  <link rel="icon" type="image/png" href="/static/assets/PantheonLogoGold.png">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0 }
 
-```
-:root {
-  --gold: #9A7A28; --gold2: #B8922E;
-  --gold-pale: rgba(154,122,40,0.09); --gold-ring: rgba(154,122,40,0.18);
-  --bg: #F4F2ED; --bg2: #FFFFFF; --bg3: #EDEAE3; --bg4: #E2DDD4;
-  --border: rgba(0,0,0,0.09); --border-focus: #9A7A28;
-  --text: #111110; --sub: #4A4740; --muted: #8A8278;
-  --red: #A83030; --red-bg: rgba(168,48,48,0.06); --red-border: rgba(168,48,48,0.18);
-  --green: #2A7A4A; --green-bg: rgba(42,122,74,0.07); --green-border: rgba(42,122,74,0.2);
-  --logo-filter: brightness(0); --logo-text: #111110;
-  --grid: rgba(0,0,0,0.05);
-  --shadow: 0 2px 8px rgba(0,0,0,0.08), 0 16px 48px rgba(0,0,0,0.07);
-  --mono: 'IBM Plex Mono', monospace; --sans: 'IBM Plex Sans', sans-serif;
-}
-[data-theme="dark"] {
-  --gold: #C8A84B; --gold2: #E2C46A;
-  --gold-pale: rgba(200,168,75,0.12); --gold-ring: rgba(200,168,75,0.22);
-  --bg: #0A0A0B; --bg2: #111113; --bg3: #17171A; --bg4: #1E1E22;
-  --border: rgba(255,255,255,0.07); --border-focus: #C8A84B;
-  --text: #F0EDE8; --sub: #A09890; --muted: #6A6460;
-  --red: #E05555; --red-bg: rgba(224,85,85,0.08); --red-border: rgba(224,85,85,0.22);
-  --green: #4CAF7D; --green-bg: rgba(76,175,125,0.08); --green-border: rgba(76,175,125,0.22);
-  --logo-filter: none; --logo-text: #C8A84B;
-  --grid: rgba(200,168,75,0.04);
-  --shadow: 0 2px 12px rgba(0,0,0,0.6), 0 20px 60px rgba(0,0,0,0.5);
-}
+    :root {
+      --bg:    #0d0d0d;
+      --s0:    #161616;
+      --s1:    #1f1f1f;
+      --s2:    #2a2a2a;
+      --b0:    #2e2e2e;
+      --b1:    #3a3a3a;
+      --t0:    #f0eeea;
+      --t1:    #c8c4bc;
+      --t2:    #9a958d;
+      --t3:    #616069;
+      --acc:   #f0eeea;
+      --red:   #e05050;
+      --red-bg:#2a1515;
+      --sans:  'IBM Plex Sans', system-ui, sans-serif;
+      --mono:  'IBM Plex Mono', monospace;
+      --r:     12px;
+      --r-sm:  8px;
+    }
+    .light {
+      --bg:  #f0eeea;
+      --s0:  #fff;
+      --s1:  #f5f3ef;
+      --s2:  #ece9e4;
+      --b0:  #dedad4;
+      --b1:  #ccc8c0;
+      --t0:  #0d0d0d;
+      --t1:  #3a3836;
+      --t2:  #6e6a63;
+      --t3:  #9a968f;
+      --acc: #1a1a1a;
+    }
 
-html, body {
-  min-height: 100%; background: #F4F2ED; color: #111110;
-  font-family: var(--sans); -webkit-font-smoothing: antialiased;
-  transition: background 0.22s, color 0.22s;
-}
-[data-theme="dark"] html, [data-theme="dark"] body { background: #0A0A0B; color: #F0EDE8; }
-body::before {
-  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  background-image: linear-gradient(var(--grid) 1px, transparent 1px),
-                    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-  background-size: 48px 48px;
-}
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--t0);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      transition: background .2s, color .2s;
+    }
 
-.wrap {
-  position: relative; z-index: 1; min-height: 100vh;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  padding: 40px 24px 88px;
-}
+    .card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--s0);
+      border: 1px solid var(--b0);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.24);
+    }
 
-.card {
-  width: 100%; max-width: 540px;
-  background: #FFFFFF; border: 1px solid rgba(0,0,0,0.09);
-  border-radius: 20px; padding: 48px 44px 40px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 16px 48px rgba(0,0,0,0.07);
-  transition: background 0.22s, border-color 0.22s;
-}
-[data-theme="dark"] .card { background: #111113; border-color: rgba(255,255,255,0.07); box-shadow: 0 2px 12px rgba(0,0,0,0.6), 0 20px 60px rgba(0,0,0,0.5); }
+    .logo-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .logo-img { width: 28px; height: 28px; object-fit: contain }
+    .logo-name { font: 600 15px/1 var(--mono); color: var(--t0); letter-spacing: .5px }
+    .logo-divider { width: 1px; height: 16px; background: var(--b1); margin: 0 4px }
+    .logo-sub { font: 400 11px/1 var(--sans); color: var(--t3); letter-spacing: 2px; text-transform: uppercase }
 
-/* brand */
-.brand { display: flex; align-items: center; gap: 10px; margin-bottom: 32px; }
-.brand-logo { width: 32px; height: 32px; object-fit: contain; filter: var(--logo-filter); transition: filter 0.22s; }
-.brand-name { font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: 0.14em; color: var(--logo-text); text-transform: uppercase; transition: color 0.22s; }
-.brand-sep  { width: 1px; height: 14px; background: var(--border); margin: 0 2px; }
-.brand-sub  { font-size: 12px; color: var(--muted); }
+    h1 { font: 700 26px/1.1 var(--sans); letter-spacing: -.4px; margin-bottom: 6px }
+    .subtitle { font: 400 13.5px/1 var(--sans); color: var(--t2); margin-bottom: 28px }
 
-h1   { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
-.sub { font-size: 16px; color: var(--sub); margin-bottom: 24px; line-height: 1.5; }
+    .error-banner {
+      background: var(--red-bg);
+      border: 1px solid var(--red);
+      border-radius: var(--r-sm);
+      color: var(--red);
+      font: 400 13px/1.5 var(--sans);
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .error-banner.visible { display: block }
 
-/* alert */
-.msg { display: none; font-size: 13px; border-radius: 9px; padding: 11px 14px; margin-bottom: 16px; line-height: 1.5; }
-.msg.err  { display: block; background: var(--red-bg);   border: 1px solid var(--red-border);   color: var(--red); }
-.msg.ok   { display: block; background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green); }
-.msg.info { display: block; background: var(--gold-pale); border: 1px solid rgba(154,122,40,0.22); color: var(--gold2); }
+    .field { margin-bottom: 16px }
+    .field label {
+      display: block;
+      font: 500 10px/1 var(--mono);
+      letter-spacing: 2.5px;
+      color: var(--t3);
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+    .field input {
+      width: 100%;
+      background: var(--s1);
+      border: 1px solid var(--b0);
+      border-radius: var(--r-sm);
+      color: var(--t0);
+      font: 400 14px/1 var(--sans);
+      padding: 13px 14px;
+      outline: none;
+      transition: border-color .14s;
+      -webkit-appearance: none;
+    }
+    .field input:focus { border-color: var(--t2) }
+    .field input::placeholder { color: var(--t3) }
 
-/* field */
-.field { margin-bottom: 15px; }
-label {
-  display: block; font-family: var(--mono); font-size: 11px; font-weight: 500;
-  letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px;
-}
-input {
-  width: 100%; height: 50px; background: #F4F2ED; border: 1px solid rgba(0,0,0,0.09);
-  border-radius: 10px; padding: 0 15px; font-family: var(--sans); font-size: 15px;
-  color: #111110; outline: none;
-  transition: border-color 0.13s, box-shadow 0.13s, background 0.22s;
-  -webkit-appearance: none; appearance: none;
-}
-input:focus { border-color: #9A7A28; box-shadow: 0 0 0 3px rgba(154,122,40,0.18); background: #fff; }
-[data-theme="dark"] input { background: #17171A; color: #F0EDE8; border-color: rgba(255,255,255,0.07); }
-[data-theme="dark"] input:focus { background: #1E1E22; }
-input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus, input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 50px #F4F2ED inset !important;
-  -webkit-text-fill-color: #111110 !important;
-  caret-color: #111110;
-}
-[data-theme="dark"] input:-webkit-autofill, [data-theme="dark"] input:-webkit-autofill:hover, [data-theme="dark"] input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 50px #17171A inset !important;
-  -webkit-text-fill-color: #F0EDE8 !important;
-}
-::placeholder { color: #8A8278; }
+    .pw-wrap { position: relative }
+    .pw-wrap input { padding-right: 44px }
+    .pw-toggle {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; color: var(--t3);
+      padding: 4px; line-height: 0;
+    }
+    .pw-toggle:hover { color: var(--t1) }
 
-/* password eye */
-.pw-wrap { position: relative; }
-.pw-wrap input { padding-right: 52px; }
-.eye-btn {
-  position: absolute; right: 0; top: 0; width: 50px; height: 50px;
-  background: none; border: none; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--muted); transition: color 0.13s;
-}
-.eye-btn:hover { color: var(--text); }
-.eye-btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+    .row-between {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    /* Remember me checkbox */
+    .remember-label {
+      display: flex; align-items: center; gap: 8px;
+      font: 400 13px/1 var(--sans); color: var(--t2); cursor: pointer;
+    }
+    .remember-label input[type="checkbox"] {
+      width: 16px; height: 16px; cursor: pointer;
+      accent-color: var(--t0); border-radius: 4px;
+    }
+    .forgot-link {
+      font: 400 13px/1 var(--sans); color: var(--t2);
+      text-decoration: none; transition: color .12s;
+    }
+    .forgot-link:hover { color: var(--t0) }
 
-/* password requirements */
-.pw-reqs { margin-top: 8px; display: none; }
-.pw-reqs.show { display: block; }
-.req-row { display: flex; align-items: center; gap: 7px; font-size: 14px; color: var(--muted); margin-bottom: 4px; }
-.req-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--bg4); border: 1px solid var(--muted); flex-shrink: 0; transition: all 0.2s; }
-.req-row.met .req-dot { background: var(--green); border-color: var(--green); }
-.req-row.met { color: var(--green); }
+    .btn-primary {
+      width: 100%;
+      background: var(--t0);
+      color: var(--bg);
+      border: none;
+      border-radius: var(--r-sm);
+      font: 600 14px/1 var(--sans);
+      letter-spacing: .3px;
+      padding: 14px;
+      cursor: pointer;
+      transition: opacity .14s, transform .14s;
+      margin-bottom: 20px;
+    }
+    .btn-primary:hover { opacity: .88; transform: translateY(-1px) }
+    .btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none }
 
-/* forgot */
-.forgot { text-align: right; margin-top: -6px; margin-bottom: 14px; }
-.forgot a { font-size: 12px; color: var(--muted); cursor: pointer; }
-.forgot a:hover { color: var(--gold2); text-decoration: underline; }
+    .create-link {
+      text-align: center;
+      font: 400 13px/1 var(--sans);
+      color: var(--t2);
+    }
+    .create-link a {
+      color: var(--t0);
+      font-weight: 500;
+      text-decoration: none;
+      border-bottom: 1px solid var(--b1);
+      padding-bottom: 1px;
+    }
+    .create-link a:hover { border-color: var(--t0) }
 
-/* btn */
-.btn {
-  width: 100%; height: 52px; background: #111110; border: none; border-radius: 10px;
-  font-family: var(--mono); font-size: 13px; font-weight: 600; letter-spacing: 0.08em;
-  color: #FFFFFF; cursor: pointer; margin-top: 4px;
-  display: flex; align-items: center; justify-content: center; gap: 9px;
-  transition: background 0.15s, opacity 0.15s;
-}
-.btn:hover:not(:disabled) { background: #B8922E; }
-[data-theme="dark"] .btn { background: #F0EDE8; color: #111110; }
-[data-theme="dark"] .btn:hover:not(:disabled) { background: #C8A84B; }
-.btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
-.toggle { text-align: center; font-size: 13px; color: var(--muted); margin-top: 18px; }
-.toggle a { color: var(--gold2); cursor: pointer; font-weight: 500; }
-.toggle a:hover { text-decoration: underline; }
-
-/* forgot/reset states */
-.state-icon { width: 56px; height: 56px; border-radius: 50%; background: var(--gold-pale); border: 1px solid var(--gold); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
-.state-icon svg { width: 24px; height: 24px; stroke: var(--gold2); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-.pill { font-family: var(--mono); font-size: 13px; color: var(--gold2); background: var(--gold-pale); border: 1px solid rgba(154,122,40,0.2); border-radius: 7px; padding: 5px 12px; display: inline-block; margin: 8px 0 16px; }
-.note { font-size: 13px; color: var(--sub); line-height: 1.65; }
-hr.div { border: none; border-top: 1px solid var(--border); margin: 20px 0 16px; }
-
-.spin { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.25); border-top-color: currentColor; border-radius: 50%; animation: sp 0.7s linear infinite; display: none; }
-@keyframes sp { to { transform: rotate(360deg); } }
-
-/* theme toggle pill — bottom center */
-.theme-bar {
-  position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); z-index: 100;
-  display: flex; align-items: center;
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 40px; overflow: hidden;
-  box-shadow: 0 2px 14px rgba(0,0,0,0.1);
-  transition: background 0.22s, border-color 0.22s;
-}
-.tb-opt {
-  display: flex; align-items: center; gap: 6px;
-  height: 36px; padding: 0 16px;
-  font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--muted); cursor: pointer; border: none; background: none; transition: all 0.15s;
-}
-.tb-opt svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-.tb-opt.active { background: var(--bg4); color: var(--text); }
-.tb-div { width: 1px; height: 18px; background: var(--border); }
-```
-
-  </style>
+    /* Theme toggle */
+    .theme-bar {
+      margin-top: 24px;
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+    }
+    .theme-btn {
+      display: flex; align-items: center; gap: 5px;
+      padding: 7px 14px;
+      background: var(--s1); border: 1px solid var(--b0); border-radius: 99px;
+      font: 500 11px/1 var(--sans); letter-spacing: .5px; color: var(--t2);
+      cursor: pointer; transition: all .14s;
+    }
+    .theme-btn.active { background: var(--s2); border-color: var(--b1); color: var(--t0) }
+    .theme-btn svg { width: 13px; height: 13px }
+  </style>
 </head>
-<body>
+<body class="dark" id="body">
 
-<div class="wrap">
-  <div class="card">
+  <div class="card">
+    <div class="logo-row">
+      <img src="/static/assets/PantheonLogoGold.png" alt="Pantheon" class="logo-img">
+      <span class="logo-name">PANTHEON</span>
+      <div class="logo-divider"></div>
+      <span class="logo-sub">Life Safety OS</span>
+    </div>
 
-```
-<div class="brand">
-  <img class="brand-logo" src="/static/assets/PantheonLogoGold.png" alt="P">
-  <span class="brand-name">Pantheon</span>
-  <div class="brand-sep"></div>
-  <span class="brand-sub">Life Safety OS</span>
-</div>
+    <h1>Sign in</h1>
+    <p class="subtitle">Welcome back. Access your Pantheon workspace.</p>
 
-<!-- ── SIGN IN ─────────────────────────────────────────────── -->
-<div id="vLogin">
-  <h1>Sign in</h1>
-  <p class="sub">Welcome back. Access your Pantheon workspace.</p>
-  <div id="loginMsg" class="msg"></div>
-  <div class="field">
-    <label>Email</label>
-    <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email">
-  </div>
-  <div class="field">
-    <label>Password</label>
-    <div class="pw-wrap">
-      <input type="password" id="loginPw" placeholder="Your password" autocomplete="current-password">
-      <button class="eye-btn" type="button" onclick="toggleEye('loginPw',this)" tabindex="-1">
-        <svg viewBox="0 0 20 20"><path d="M1 10s3-6 9-6 9 6 9 6-3 6-9 6-9-6-9-6z"/><circle cx="10" cy="10" r="2.5"/></svg>
-      </button>
-    </div>
-  </div>
-  <div class="forgot"><a onclick="show('vForgot')">Forgot password?</a></div>
-  <button class="btn" id="loginBtn" onclick="doLogin()">
-    <span id="loginLbl">Sign In</span>
-    <div class="spin" id="loginSpin"></div>
-  </button>
-  <div class="toggle">No account? <a onclick="show('vRegister')">Create one</a></div>
-</div>
+    <div class="error-banner" id="errorBanner"></div>
 
-<!-- ── REGISTER ────────────────────────────────────────────── -->
-<div id="vRegister" style="display:none">
-  <h1>Create account</h1>
-  <p class="sub">Set up your Pantheon access in seconds.</p>
-  <div id="regMsg" class="msg"></div>
-  <div class="field">
-    <label>Full Name</label>
-    <input type="text" id="regName" placeholder="Your full name" autocomplete="name">
-  </div>
-  <div class="field">
-    <label>Email</label>
-    <input type="email" id="regEmail" placeholder="you@example.com" autocomplete="email">
-  </div>
-  <div class="field">
-    <label>Password</label>
-    <div class="pw-wrap">
-      <input type="password" id="regPw" placeholder="Create a password" autocomplete="new-password" oninput="checkPwReqs()">
-      <button class="eye-btn" type="button" onclick="toggleEye('regPw',this)" tabindex="-1">
-        <svg viewBox="0 0 20 20"><path d="M1 10s3-6 9-6 9 6 9 6-3 6-9 6-9-6-9-6z"/><circle cx="10" cy="10" r="2.5"/></svg>
-      </button>
-    </div>
-    <div class="pw-reqs" id="pwReqs">
-      <div class="req-row" id="req-len"><div class="req-dot"></div>At least 8 characters</div>
-      <div class="req-row" id="req-upper"><div class="req-dot"></div>At least 1 uppercase letter</div>
-      <div class="req-row" id="req-special"><div class="req-dot"></div>At least 1 special character (!@#$%^&amp;*)</div>
-    </div>
-  </div>
-  <div class="field">
-    <label>Confirm Password</label>
-    <div class="pw-wrap">
-      <input type="password" id="regPwC" placeholder="Repeat password" autocomplete="new-password">
-      <button class="eye-btn" type="button" onclick="toggleEye('regPwC',this)" tabindex="-1">
-        <svg viewBox="0 0 20 20"><path d="M1 10s3-6 9-6 9 6 9 6-3 6-9 6-9-6-9-6z"/><circle cx="10" cy="10" r="2.5"/></svg>
-      </button>
-    </div>
-  </div>
-  <button class="btn" id="regBtn" onclick="doRegister()">
-    <span id="regLbl">Create Account</span>
-    <div class="spin" id="regSpin"></div>
-  </button>
-  <div class="toggle">Already have an account? <a onclick="show('vLogin')">Sign in</a></div>
-</div>
+    <div class="field">
+      <label for="emailInput">Email</label>
+      <input type="email" id="emailInput" name="email"
+             placeholder="you@organization.com"
+             autocomplete="email"
+             spellcheck="false">
+    </div>
 
-<!-- ── FORGOT PASSWORD ─────────────────────────────────────── -->
-<div id="vForgot" style="display:none">
-  <h1>Forgot password?</h1>
-  <p class="sub">Enter your email and we'll send a reset link if an account exists.</p>
-  <div id="forgotMsg" class="msg"></div>
-  <div class="field">
-    <label>Email</label>
-    <input type="email" id="forgotEmail" placeholder="you@example.com" autocomplete="email">
-  </div>
-  <button class="btn" id="forgotBtn" onclick="doForgot()">
-    <span id="forgotLbl">Send Reset Link</span>
-    <div class="spin" id="forgotSpin"></div>
-  </button>
-  <div class="toggle"><a onclick="show('vLogin')">Back to sign in</a></div>
-</div>
+    <div class="field">
+      <label for="passwordInput">Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="passwordInput" name="password"
+               autocomplete="current-password"
+               placeholder="••••••••••••">
+        <button class="pw-toggle" type="button" id="pwToggle" aria-label="Show password">
+          <svg id="pwEye" width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4">
+            <path d="M1 10s3.6-6 9-6 9 6 9 6-3.6 6-9 6-9-6-9-6z"/>
+            <circle cx="10" cy="10" r="2.5"/>
+          </svg>
+        </button>
+      </div>
+    </div>
 
-<!-- ── RESET SENT ──────────────────────────────────────────── -->
-<div id="vResetSent" style="display:none; text-align:center">
-  <div class="state-icon">
-    <svg viewBox="0 0 20 20"><path d="M2 5l8 6 8-6"/><rect x="2" y="4" width="16" height="12" rx="2"/></svg>
-  </div>
-  <h1>Reset link sent</h1>
-  <p class="note" style="margin-bottom:6px">If an account exists for</p>
-  <div class="pill" id="resetEmail">—</div>
-  <p class="note">you'll receive a password reset link. It expires in 1 hour.</p>
-  <div class="toggle" style="margin-top:20px"><a onclick="show('vLogin')">Back to sign in</a></div>
-</div>
+    <div class="row-between">
+      <label class="remember-label">
+        <input type="checkbox" id="rememberMe" name="remember_me">
+        Remember me
+      </label>
+      <a href="/forgot-password" class="forgot-link">Forgot password?</a>
+    </div>
 
-<!-- ── CHECK INBOX (after register) ───────────────────────── -->
-<div id="vInbox" style="display:none; text-align:center">
-  <div class="state-icon">
-    <svg viewBox="0 0 20 20"><path d="M2 5l8 6 8-6"/><rect x="2" y="4" width="16" height="12" rx="2"/></svg>
-  </div>
-  <h1>Check your inbox</h1>
-  <p class="note" style="margin-bottom:6px">We sent a verification link to</p>
-  <div class="pill" id="inboxEmail">—</div>
-  <p class="note">Click the link to verify your account — then come back here to sign in.</p>
-  <hr class="div" style="margin:20px 0 16px; border:none; border-top:1px solid var(--border)">
-  <p class="note">Didn't get it? <a onclick="resendLink()" style="color:var(--gold2);cursor:pointer;font-weight:500">Resend the link</a>.</p>
-  <div class="toggle" style="margin-top:14px"><a onclick="show('vLogin')">Back to sign in</a></div>
-</div>
+    <button class="btn-primary" id="signInBtn" onclick="handleSignIn()">Sign In</button>
 
-<!-- ── EMAIL NOT VERIFIED (on login attempt) ──────────────── -->
-<div id="vUnverified" style="display:none; text-align:center">
-  <div class="state-icon" style="background:var(--red-bg);border-color:var(--red-border)">
-    <svg viewBox="0 0 20 20"><path d="M10 3L2 17h16L10 3z"/><line x1="10" y1="9" x2="10" y2="13"/><circle cx="10" cy="15.5" r="0.7" fill="currentColor" style="stroke:none"/></svg>
-  </div>
-  <h1>Verify your email</h1>
-  <p class="note" style="margin-bottom:6px">Check your inbox for the link sent to</p>
-  <div class="pill" id="unverEmail">—</div>
-  <button class="btn" id="resendBtn" onclick="resendLink()" style="margin-top:20px">
-    <span id="resendLbl">Resend Verification Link</span>
-    <div class="spin" id="resendSpin"></div>
-  </button>
-  <div class="toggle"><a onclick="show('vLogin')">Back to sign in</a></div>
-</div>
-```
+    <p class="create-link">No account? <a href="/register">Create one</a></p>
+  </div>
 
-  </div>
-</div>
-
-<!-- theme toggle -->
-
-<div class="theme-bar">
-  <button class="tb-opt active" id="tbLight" onclick="applyTheme('light')">
-    <svg viewBox="0 0 20 20"><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.93 4.93l1.41 1.41M13.66 13.66l1.41 1.41M4.93 15.07l1.41-1.41M13.66 6.34l1.41-1.41M10 7a3 3 0 100 6 3 3 0 000-6z"/></svg>
-    Light
-  </button>
-  <div class="tb-div"></div>
-  <button class="tb-opt" id="tbDark" onclick="applyTheme('dark')">
-    <svg viewBox="0 0 20 20"><path d="M15 10.5a6 6 0 01-8.5-8.5 7 7 0 108.5 8.5z"/></svg>
-    Dark
-  </button>
-</div>
+  <div class="theme-bar">
+    <button class="theme-btn" id="btnLight" onclick="setTheme('light')">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4">
+        <circle cx="10" cy="10" r="4"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.3 4.3l1.4 1.4M14.3 14.3l1.4 1.4M4.3 15.7l1.4-1.4M14.3 5.7l1.4-1.4"/>
+      </svg>
+      LIGHT
+    </button>
+    <button class="theme-btn active" id="btnDark" onclick="setTheme('dark')">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4">
+        <path d="M17.3 11.3A8 8 0 118.7 2.7a6 6 0 008.6 8.6z"/>
+      </svg>
+      DARK
+    </button>
+  </div>
 
 <script>
-// ── Theme ────────────────────────────────────────────────────────────────
-function applyTheme(t) {
-  document.documentElement.setAttribute('data-theme', t);
-  document.getElementById('tbLight').className = 'tb-opt' + (t === 'light' ? ' active' : '');
-  document.getElementById('tbDark').className  = 'tb-opt' + (t === 'dark'  ? ' active' : '');
-  localStorage.setItem('pantheon-theme', t);
+// ── Theme ────────────────────────────────────────────────────────────────────
+function setTheme(t) {
+  document.getElementById('body').className = t;
+  document.getElementById('btnLight').classList.toggle('active', t === 'light');
+  document.getElementById('btnDark').classList.toggle('active', t === 'dark');
+  try { localStorage.setItem('pantheon_theme', t); } catch(e) {}
 }
-applyTheme(localStorage.getItem('pantheon-theme') || 'light');
+(function initTheme() {
+  var t = 'dark';
+  try { t = localStorage.getItem('pantheon_theme') || 'dark'; } catch(e) {}
+  setTheme(t);
+})();
 
-// ── Eye toggle ────────────────────────────────────────────────────────────
-function toggleEye(id, btn) {
-  var inp = document.getElementById(id);
-  var revealing = inp.type === 'password';
-  inp.type = revealing ? 'text' : 'password';
-  btn.querySelector('svg').innerHTML = revealing
-    ? '<path d="M3 3l14 14M10.5 5c4.3.4 7.5 5 7.5 5s-1.2 2-3.3 3.7M6 6.3A9.4 9.4 0 001 10s3 6 9 6c1.8 0 3.4-.5 4.8-1.3"/>'
-    : '<path d="M1 10s3-6 9-6 9 6 9 6-3 6-9 6-9-6-9-6z"/><circle cx="10" cy="10" r="2.5"/>';
-}
+// ── Password toggle ──────────────────────────────────────────────────────────
+document.getElementById('pwToggle').addEventListener('click', function() {
+  var inp = document.getElementById('passwordInput');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+});
 
-// ── Password requirements ─────────────────────────────────────────────────
-function checkPwReqs() {
-  var pw = document.getElementById('regPw').value;
-  document.getElementById('pwReqs').className = 'pw-reqs' + (pw.length ? ' show' : '');
-  setReq('req-len',     pw.length >= 8);
-  setReq('req-upper',   /[A-Z]/.test(pw));
-  setReq('req-special', /[!@#$%^&*()\-_=+[\]{};':"\\|,.<>/?`~]/.test(pw));
-}
-function setReq(id, met) {
-  document.getElementById(id).className = 'req-row' + (met ? ' met' : '');
-}
-function pwValid(pw) {
-  return pw.length >= 8 && /[A-Z]/.test(pw) && /[!@#$%^&*()\-_=+[\]{};':"\\|,.<>/?`~]/.test(pw);
-}
+// ── Auto-login via remember token (cookie-based, no password needed) ────────
+(function tryAutoLogin() {
+  // Only attempt if we have a saved email (signals user previously checked remember me)
+  var savedEmail = localStorage.getItem('pantheon_saved_email');
+  if (!savedEmail) return;
 
-// ── Views ─────────────────────────────────────────────────────────────────
-var ALL = ['vLogin','vRegister','vForgot','vResetSent','vInbox','vUnverified'];
-var _pendingEmail = '';
+  fetch('/api/auth/auto', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({})
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.ok) {
+      // Auto-login succeeded — go straight to dashboard
+      window.location.href = data.redirect || '/dashboard';
+    } else {
+      // Token invalid/expired — show form with email pre-filled
+      restoreEmailField();
+    }
+  })
+  .catch(function() { restoreEmailField(); });
+})();
 
-function show(id) {
-  ALL.forEach(function(v) { document.getElementById(v).style.display = 'none'; });
-  document.getElementById(id).style.display = '';
-  ['loginMsg','regMsg','forgotMsg'].forEach(function(m) {
-    var el = document.getElementById(m);
-    if (el) { el.className = 'msg'; el.textContent = ''; }
-  });
-}
-
-function err(id, txt) {
-  var el = document.getElementById(id);
-  el.textContent = txt; el.className = 'msg err';
-}
-
-function loading(btn, spin, lbl, on) {
-  document.getElementById(btn).disabled = on;
-  document.getElementById(spin).style.display = on ? 'flex' : 'none';
-  document.getElementById(lbl).style.display  = on ? 'none'  : '';
+// ── Pre-fill email field if remembered ───────────────────────────────────────
+function restoreEmailField() {
+  try {
+    var savedEmail = localStorage.getItem('pantheon_saved_email');
+    if (savedEmail) {
+      document.getElementById('emailInput').value = savedEmail;
+      document.getElementById('rememberMe').checked = true;
+    }
+  } catch(e) {}
 }
 
-// ── Register ──────────────────────────────────────────────────────────────
-function doRegister() {
-  var name  = document.getElementById('regName').value.trim();
-  var email = document.getElementById('regEmail').value.trim().toLowerCase();
-  var pw    = document.getElementById('regPw').value;
-  var pwc   = document.getElementById('regPwC').value;
+// ── Sign-in handler ──────────────────────────────────────────────────────────
+function handleSignIn() {
+  var email    = document.getElementById('emailInput').value.trim().toLowerCase();
+  var password = document.getElementById('passwordInput').value;
+  var remember = document.getElementById('rememberMe').checked;
+  var btn      = document.getElementById('signInBtn');
+  var banner   = document.getElementById('errorBanner');
 
-  if (!name)        { err('regMsg', 'Please enter your name.'); return; }
-  if (!email)       { err('regMsg', 'Email is required.'); return; }
-  if (!pwValid(pw)) { err('regMsg', 'Password needs 8+ characters, one uppercase, one special character.'); return; }
-  if (pw !== pwc)   { err('regMsg', 'Passwords do not match.'); return; }
+  // Clear error
+  banner.classList.remove('visible');
 
-  loading('regBtn','regSpin','regLbl', true);
-  fetch('/api/auth/register', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({name: name, email: email, password: pw})
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(d) {
-    loading('regBtn','regSpin','regLbl', false);
-    if (d.ok) {
-      _pendingEmail = email;
-      document.getElementById('inboxEmail').textContent = email;
-      show('vInbox');
-    } else {
-      err('regMsg', d.error || 'Registration failed. Please try again.');
-    }
-  })
-  .catch(function() {
-    loading('regBtn','regSpin','regLbl', false);
-    err('regMsg', 'Connection error. Please try again.');
-  });
+  // Validate
+  if (!email || !email.includes('@')) {
+    showError('Please enter a valid email address.');
+    return;
+  }
+  if (!password) {
+    showError('Please enter your password.');
+    return;
+  }
+
+  // Disable button
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+
+  fetch('/api/auth/verify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ email: email, password: password, remember_me: remember })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.ok) {
+      // Save remember-me credentials
+      if (remember) {
+        try {
+          localStorage.setItem('pantheon_saved_email', email);
+          localStorage.setItem('pantheon_saved_pw', password);
+          localStorage.setItem('pantheon_remember', 'true');
+        } catch(e) {}
+      } else {
+        try {
+          localStorage.removeItem('pantheon_saved_email');
+          localStorage.removeItem('pantheon_saved_pw');
+          localStorage.removeItem('pantheon_remember');
+        } catch(e) {}
+      }
+      // Log login event to Sheets
+      logLoginEvent(email, data.name || '');
+      // Redirect
+      window.location.href = data.redirect || '/dashboard';
+    } else if (data.error === 'email_not_verified') {
+      btn.disabled = false;
+      btn.textContent = 'Sign In';
+      // Show inline resend option
+      var banner = document.getElementById('errorBanner');
+      banner.innerHTML = 'Email not verified. <a href="#" onclick="resendVerify(\''+email+'\');return false;" style="color:var(--red);font-weight:600;text-decoration:underline">Resend link</a>';
+      banner.classList.add('visible');
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Sign In';
+      showError(data.error || 'Incorrect email or password');
+    }
+  })
+  .catch(function() {
+    btn.disabled = false;
+    btn.textContent = 'Sign In';
+    showError('Unable to connect. Please try again.');
+  });
 }
 
-// ── Login ─────────────────────────────────────────────────────────────────
-function doLogin() {
-  var email = document.getElementById('loginEmail').value.trim().toLowerCase();
-  var pw    = document.getElementById('loginPw').value;
 
-  if (!email || !pw) { err('loginMsg', 'Email and password are required.'); return; }
-
-  loading('loginBtn','loginSpin','loginLbl', true);
-  fetch('/api/auth/verify', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({email: email, password: pw})
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(d) {
-    loading('loginBtn','loginSpin','loginLbl', false);
-    if (d.ok) {
-      window.location.href = d.onboarding_complete ? '/' : '/onboarding';
-    } else if (d.error === 'email_not_verified') {
-      _pendingEmail = d.email || email;
-      document.getElementById('unverEmail').textContent = _pendingEmail;
-      show('vUnverified');
-    } else {
-      err('loginMsg', d.error || 'Incorrect email or password.');
-    }
-  })
-  .catch(function() {
-    loading('loginBtn','loginSpin','loginLbl', false);
-    err('loginMsg', 'Connection error. Please try again.');
-  });
+function resendVerify(email) {
+  fetch('/api/auth/resend_otp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ email: email })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.ok) showError('Verification email sent — check your inbox.');
+    else showError('Failed to send. Try again shortly.');
+  })
+  .catch(function() { showError('Network error. Try again.'); });
 }
 
-// ── Forgot password ───────────────────────────────────────────────────────
-function doForgot() {
-  var email = document.getElementById('forgotEmail').value.trim().toLowerCase();
-  if (!email) { err('forgotMsg', 'Please enter your email address.'); return; }
-  loading('forgotBtn','forgotSpin','forgotLbl', true);
-  fetch('/api/auth/forgot_password', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({email: email})
-  })
-  .then(function(r) { return r.json(); })
-  .then(function() {
-    loading('forgotBtn','forgotSpin','forgotLbl', false);
-    document.getElementById('resetEmail').textContent = email;
-    show('vResetSent');
-  })
-  .catch(function() {
-    loading('forgotBtn','forgotSpin','forgotLbl', false);
-    err('forgotMsg', 'Connection error. Please try again.');
-  });
+function showError(msg) {
+  var b = document.getElementById('errorBanner');
+  b.textContent = msg;
+  b.classList.add('visible');
 }
 
-// ── Resend verification ───────────────────────────────────────────────────
-function resendLink() {
-  if (!_pendingEmail) return;
-  var btn = document.getElementById('resendBtn');
-  var spin = document.getElementById('resendSpin');
-  var lbl = document.getElementById('resendLbl');
-  if (btn) btn.disabled = true;
-  if (spin) spin.style.display = 'flex';
-  if (lbl) lbl.style.display = 'none';
-  fetch('/api/auth/resend_otp', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({email: _pendingEmail})
-  })
-  .then(function(r) { return r.json(); })
-  .then(function() {
-    if (btn) { btn.disabled = false; spin.style.display = 'none'; lbl.style.display = ''; }
-    document.getElementById('inboxEmail').textContent = _pendingEmail;
-    show('vInbox');
-  })
-  .catch(function() {
-    if (btn) { btn.disabled = false; spin.style.display = 'none'; lbl.style.display = ''; }
-  });
+// ── Log login to Sheets (fire-and-forget) ───────────────────────────────────
+function logLoginEvent(email, name) {
+  try {
+    fetch('/api/log-event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tab: 'Activity Log',
+        data: {
+          timestamp: new Date().toISOString(),
+          user:      email,
+          action:    'login',
+          detail:    name ? 'Signed in — ' + name : 'Signed in',
+        }
+      })
+    }).catch(function() {});
+
+    // Also update Last Login in Users sheet
+    fetch('/api/log-event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tab: 'Users',
+        data: {
+          action:     'last_login_update',
+          email:      email,
+          name:       name,
+          last_login: new Date().toISOString(),
+        }
+      })
+    }).catch(function() {});
+  } catch(e) {}
 }
 
-// ── Keyboard shortcuts ────────────────────────────────────────────────────
-document.getElementById('loginEmail').addEventListener('keydown', function(e) { if (e.key === 'Enter') document.getElementById('loginPw').focus(); });
-document.getElementById('loginPw').addEventListener('keydown',    function(e) { if (e.key === 'Enter') doLogin(); });
-document.getElementById('regPwC').addEventListener('keydown',     function(e) { if (e.key === 'Enter') doRegister(); });
-document.getElementById('forgotEmail').addEventListener('keydown',function(e) { if (e.key === 'Enter') doForgot(); });
+// ── Enter key submits ────────────────────────────────────────────────────────
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') handleSignIn();
+});
 </script>
-
 </body>
 </html>
