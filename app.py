@@ -365,6 +365,22 @@ def register_page():
 def onboarding_page():
     return render_template('onboarding.html')
 
+@app.route('/api/onboarding/save', methods=['POST'])
+@login_required
+def api_onboarding_save():
+    b = request.get_json() or {}
+    session['onboarding_complete'] = True
+    u = session.get('user_id', '')
+    if u:
+        try:
+            rows = sheets_read('Users')
+            for i, row in enumerate(rows):
+                if row and row[0].strip().lower() == u.strip().lower():
+                    sheets_update_cell_sync('Users', i+1, 18, 'true')
+                    break
+        except: pass
+    return jsonify({"ok": True})
+
 @app.route('/admin')
 def admin_page():
     return render_template('admin.html')
