@@ -764,12 +764,18 @@ def load_data():
 @login_required
 def api_incident(): return jsonify(load_data())
 
-@app.route('/api/status')
+@app.route('/api/user/state', methods=['GET'])
 @login_required
+def api_user_state():
+    u = session.get('user_id', '')
+    return jsonify({"ok": True, "email": u, "onboarding_complete": session.get('onboarding_complete', False)})
+
+@app.route('/api/log-event', methods=['POST'])
+def api_log_event():
+    return jsonify({"ok": True})
+
+@app.route('/api/status')
 def api_status():
-    row, _ = find_user(session.get('user_id',''))
-    sims = int(row[10]) if row and len(row) > 10 and row[10] else 0
-    return jsonify({"has_key": bool(get_key()), "model": "claude-sonnet-4-20250514" if ANTHROPIC_KEY else "gpt-4o", "user": session.get('user_name',''), "org": session.get('user_org',''), "role": session.get('user_role',''), "sims_remaining": max(0, SIM_LIMIT_PER_WEEK - sims), "otp_enabled": OTP_ENABLED})
 
 # ── AI streaming ───────────────────────────────────────────────────────────────
 
