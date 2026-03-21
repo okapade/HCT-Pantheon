@@ -19,6 +19,22 @@
       "dest": "/static/$1"
     },
     {
+      "src": "/login",
+      "dest": "app.py"
+    },
+    {
+      "src": "/register",
+      "dest": "app.py"
+    },
+    {
+      "src": "/onboarding",
+      "dest": "app.py"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "app.py"
+    },
+    {
       "src": "/(.*)",
       "dest": "app.py"
     }
