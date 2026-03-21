@@ -355,6 +355,11 @@ def login_page():
     if 'user_id' in session: return redirect(url_for('index'))
     return render_template('login.html')
 
+@app.route('/register')
+def register_page():
+    if 'user_id' in session: return redirect(url_for('index'))
+    return render_template('register.html')
+
 @app.route('/onboarding')
 @login_required
 def onboarding_page():
