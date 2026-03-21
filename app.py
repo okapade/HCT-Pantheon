@@ -392,6 +392,13 @@ def index():
         return redirect(url_for('onboarding_page'))
     return render_template('dashboard.html')
 
+@app.route('/dashboard')
+@login_required
+def dashboard_page():
+    if not session.get('onboarding_complete'):
+        return redirect(url_for('onboarding_page'))
+    return render_template('dashboard.html')
+
 # ── Auth API ───────────────────────────────────────────────────────────────────
 
 @app.route('/api/auth/register', methods=['POST'])
