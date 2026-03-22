@@ -494,7 +494,7 @@
   /* Walkthrough steps — each step waits for the previous dismiss */
   function runWalkthrough(u) {
     var name = (u.name || '').split(' ')[0] || 'there';
-    var fc   = (typeof facilityConfig !== 'undefined') ? facilityConfig : {};
+    var fc   = (typeof facilityConfig !== 'undefined' && facilityConfig) ? facilityConfig : {};
     var ftype = fc.typeName || u.facility_type || 'your facility';
     var supp  = fc.suppression || u.suppression || '';
     var det   = fc.detection   || u.detection   || '';

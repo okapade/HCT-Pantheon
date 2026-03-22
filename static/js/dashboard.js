@@ -903,7 +903,7 @@ async function sendChat(input, scrollId) {
   const uDiv = document.createElement('div'); uDiv.className = 'chat-msg chat-msg-user';
   uDiv.innerHTML = `<div class="chat-bubble">${escHtml(msg)}</div>`; feed.appendChild(uDiv);
   const aDiv = document.createElement('div'); aDiv.className = 'chat-msg chat-msg-assistant';
-  aDiv.innerHTML = `<div class="chat-avatar">✦</div><div class="chat-bubble chat-typing"><span class="ai-thinking"><span class="ai-sparkle">✦</span></span></div>`;
+  aDiv.innerHTML = `<div class="chat-avatar ai-thinking">✦</div><div class="chat-bubble chat-typing"></div>`;
   feed.appendChild(aDiv); feed.scrollTop = feed.scrollHeight;
   const bubble = aDiv.querySelector('.chat-bubble');
   // Add facility context to message
