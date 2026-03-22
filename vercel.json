@@ -1,7 +1,23 @@
 {
   "version": 2,
-  "rewrites": [
-    { "source": "/static/(.*)", "destination": "/static/$1" },
-    { "source": "/(.*)", "destination": "/app.py" }
+  "builds": [
+    {
+      "src": "app.py",
+      "use": "@vercel/python",
+      "config": { "maxLambdaSize": "15mb" }
+    },
+    {
+      "src": "static/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    { "src": "/static/(.*)", "dest": "/static/$1" },
+    { "src": "/login", "dest": "app.py" },
+    { "src": "/register", "dest": "app.py" },
+    { "src": "/onboarding", "dest": "app.py" },
+    { "src": "/dashboard", "dest": "app.py" },
+    { "src": "/api/(.*)", "dest": "app.py" },
+    { "src": "/(.*)", "dest": "app.py" }
   ]
 }
