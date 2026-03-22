@@ -776,6 +776,7 @@ def api_log_event():
 
 @app.route('/api/status')
 def api_status():
+    return jsonify({"ok": True})
 
 # ── AI streaming ───────────────────────────────────────────────────────────────
 
