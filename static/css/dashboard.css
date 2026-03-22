@@ -273,7 +273,7 @@ input, textarea { font-family:var(--sans) }
 .act-typing::after, .chat-typing::after { content:'▌'; animation:blink 1s step-end infinite; color:var(--acc) }
 
 /* ══ ROLE SELECTOR ═══════════════════════════════════════════ */
-.role-selector { text-align:center; max-width:680px; width:100% }
+.role-selector { text-align:center; max-width:760px; width:100% }
 .role-hero     { margin-bottom:44px; animation:fadeUp .4s var(--ease) }
 .role-hero-title {
   font:700 46px/1.1 var(--sans); color:var(--t0);
@@ -757,7 +757,7 @@ input, textarea { font-family:var(--sans) }
 .pkg-inc-item { display:flex; align-items:center; gap:7px; font-size:12px; color:var(--t1) }
 
 /* ── EMERGENCY ───────────────────────────────────────────── */
-.em-hero        { text-align:center; max-width:520px; margin:0 auto 26px }
+.em-hero        { text-align:center; max-width:760px; margin:0 auto 26px }
 .em-hero-icon   { margin:0 auto 11px }
 .em-hero-icon svg { width:36px; height:36px; color:var(--amber) }
 .em-hero-title  { font:700 28px/1 var(--sans); color:var(--t0); margin-bottom:7px; letter-spacing:-.4px }
@@ -771,7 +771,7 @@ input, textarea { font-family:var(--sans) }
 .em-type-card .ico svg { width:22px; height:22px; color:var(--t2) }
 .em-type-name  { font:600 12.5px/1 var(--sans); color:var(--t0); margin-bottom:2px }
 .em-type-sub   { font:400 10px/1.3 var(--sans); color:var(--t3) }
-.em-flow       { max-width:560px; margin:0 auto; animation:fadeUp .3s var(--ease) }
+.em-flow       { max-width:760px; margin:0 auto; animation:fadeUp .3s var(--ease) }
 .em-flow-header{ font:700 18px/1.3 var(--sans); color:var(--t0); margin-bottom:16px; letter-spacing:-.2px }
 .em-flow-body  { margin-bottom:16px }
 .em-flow-actions { display:flex; gap:7px; justify-content:flex-end }
@@ -967,7 +967,7 @@ input, textarea { font-family:var(--sans) }
 /* ── STARTER PROMPT GRID ──────────────────────────────────── */
 /* ── SUGGESTION CHIPS (below chat input) ────────────────────────────────── */
 .suggestion-chips-wrap {
-  display:flex; flex-wrap:wrap; gap:7px;
+  display:flex; flex-wrap:wrap; gap:7px; justify-content:center;
   max-width:760px; margin:10px auto 0; padding:0 2px;
   animation:fadeUp .25s var(--ease);
 }
