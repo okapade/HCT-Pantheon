@@ -971,7 +971,7 @@ function initCatalog() {
   const cs = $('#catSearch'); if (cs) cs.oninput = () => filterCatalog();
   populateCatalog();
 }
-function populateCatalog() {
+function populateCatalog() { $$(".ctx-chip").forEach(function(c){c.classList.remove("active")}); var first = $("#ctxCatNav .ctx-nav-btn"); if(first) first.classList.add("active");
   const grid = $('#catGrid'); if (!grid) return;
   grid.innerHTML = getAllCatalogItems().map(item => {
     const icoN = item.cat === 'suppression' ? 'suppression' : item.cat === 'detection' ? 'detection' : item.cat === 'inspections' ? 'search' : item.cat === 'consults' ? 'monitor' : item.cat === 'drone' ? 'drone' : 'shield';
