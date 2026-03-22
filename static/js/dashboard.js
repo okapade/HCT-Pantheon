@@ -1191,7 +1191,7 @@ function initChannels() {
 }
 
 /* ═══ ROLE SELECTOR ═══ */
-const ROLES = [
+var ROLES = [
   { id: 'facility-mgr', label: 'Facility Manager', sub: 'Building ops, maintenance', icon: 'warehouse' },
   { id: 'first-responder', label: 'First Responder', sub: 'Fire, EMS, hazmat', icon: 'fire' },
   { id: 'insurance', label: 'Insurance / Risk', sub: 'Underwriting, claims', icon: 'shield' },
@@ -1264,7 +1264,7 @@ function showPostRole() {
 }
 
 /* ═══ EMERGENCY RESPONSE ═══ */
-const DISASTER_TYPES = [
+var DISASTER_TYPES = [
   { id: 'thermal-runaway', label: 'Li-ion Thermal Runaway', sub: 'Battery fire, off-gas, cascade', icon: 'fire', severity: 'critical' },
   { id: 'electrical-fire', label: 'Electrical Fire', sub: 'Arc flash, panel, transformer', icon: 'detection', severity: 'high' },
   { id: 'chemical-release', label: 'Chemical / HF Gas Release', sub: 'Toxic vapor, spill, leak', icon: 'suppression', severity: 'critical' },
@@ -1275,9 +1275,9 @@ const DISASTER_TYPES = [
   { id: 'structural', label: 'Structural Failure', sub: 'Collapse, compromise', icon: 'warehouse', severity: 'high' },
 ];
 
-const SEVERITY_LEVELS = ['Contained', 'Escalating', 'Uncontrolled', 'Mass casualty'];
+var SEVERITY_LEVELS = ['Contained', 'Escalating', 'Uncontrolled', 'Mass casualty'];
 
-const AHJ_ROUTING = {
+var AHJ_ROUTING = {
   'thermal-runaway': {
     authorities: [
       { name: 'Local Fire Department', action: '911 — immediate dispatch', when: 'Immediately', docs: ['Incident location & floor', 'Battery chemistry (NMC/NCA/LFP)', 'Number of modules involved', 'HF gas presence Y/N'] },
@@ -2130,7 +2130,7 @@ function renderTrainingCtx() {
 
 /* === 1. LIVE SIMULATION EXPERIENCE === */
 /* Assets degrade in sidebar as each act streams */
-const SIM_TIMELINE = {
+var SIM_TIMELINE = {
   full: [
     { act: 0, assets: { 'UPS Battery Array A': 'degraded', 'Aspirating Smoke Detector': 'operational', 'MV Switchgear': 'operational' }, alerts: [], monitorTemp: 28 },
     { act: 1, assets: { 'UPS Battery Array A': 'degraded' }, alerts: ['BMS threshold raised — Module 247 voltage trending'], monitorTemp: 31 },
@@ -2530,7 +2530,7 @@ function showToast(message, type, duration) {
 }
 
 /* ═══ SIMULATION TOAST TIMELINE ═══ */
-const SIM_TOASTS = {
+var SIM_TOASTS = {
   full: [
     { act: 0, delay: 500, msg: 'Loading facility baseline — 24 hours prior to incident', type: 'info' },
     { act: 1, delay: 500, msg: 'Risk accumulation detected — 5 of 6 factors CRITICAL', type: 'warning' },
@@ -2763,7 +2763,7 @@ function geoToState(lat, lon) {
 
 /* ═══ JURISDICTION DETECTION v2 — Full names, proper matching ═══ */
 
-const COUNTRY_DB = {
+var COUNTRY_DB = {
   'united states': 'US', 'united states of america': 'US', 'usa': 'US',
   'united kingdom': 'UK', 'england': 'UK', 'scotland': 'UK', 'wales': 'UK', 'great britain': 'UK', 'britain': 'UK',
   'australia': 'AU',
@@ -2781,7 +2781,7 @@ const COUNTRY_DB = {
   'philippines': 'PH', 'malaysia': 'MY', 'indonesia': 'ID_COUNTRY',
 };
 
-const US_STATES = {
+var US_STATES = {
   'alabama': 'AL', 'alaska': 'AK', 'arizona': 'AZ', 'arkansas': 'AR',
   'california': 'CA', 'colorado': 'CO', 'connecticut': 'CT', 'delaware': 'DE',
   'florida': 'FL', 'georgia': 'GA', 'hawaii': 'HI', 'idaho': 'ID',
@@ -2797,7 +2797,7 @@ const US_STATES = {
   'wisconsin': 'WI', 'wyoming': 'WY',
 };
 
-const CITY_TO_STATE = {
+var CITY_TO_STATE = {
   'los angeles': 'CA', 'san francisco': 'CA', 'san diego': 'CA', 'sacramento': 'CA', 'san jose': 'CA', 'oakland': 'CA', 'irvine': 'CA', 'palo alto': 'CA',
   'new york city': 'NY', 'manhattan': 'NY', 'brooklyn': 'NY', 'queens': 'NY', 'buffalo': 'NY', 'albany': 'NY',
   'houston': 'TX', 'dallas': 'TX', 'austin': 'TX', 'san antonio': 'TX', 'fort worth': 'TX', 'el paso': 'TX', 'plano': 'TX',
@@ -2824,7 +2824,7 @@ const CITY_TO_STATE = {
   'columbus': 'OH', 'cleveland': 'OH', 'cincinnati': 'OH',
 };
 
-const INTL_CITIES = {
+var INTL_CITIES = {
   'london': 'UK', 'manchester': 'UK', 'birmingham': 'UK', 'edinburgh': 'UK', 'glasgow': 'UK', 'leeds': 'UK', 'bristol': 'UK',
   'sydney': 'AU', 'melbourne': 'AU', 'brisbane': 'AU', 'perth': 'AU', 'adelaide': 'AU',
   'munich': 'DE', 'frankfurt': 'DE', 'berlin': 'DE', 'hamburg': 'DE', 'cologne': 'DE', 'stuttgart': 'DE',
