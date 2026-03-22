@@ -777,7 +777,7 @@ def api_log_event():
 
 @app.route("/api/user/chats", methods=["GET"])
 def api_user_chats():
-    return jsonify({"ok": True, "chats": []})
+    return jsonify({"ok": True, "chats": []})
 
 @app.route("/api/status")
 def api_status():
