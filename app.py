@@ -780,6 +780,30 @@ def api_status():
 
 # ── AI streaming ───────────────────────────────────────────────────────────────
 
+@app.route('/api/monitor/alerts', methods=['GET'])
+def api_monitor_alerts():
+    return jsonify({"alerts": [], "count": 0})
+
+@app.route('/api/compliance/check', methods=['POST'])
+def api_compliance_check():
+    return jsonify({"ok": True, "gaps": []})
+
+@app.route('/api/telemetry/act', methods=['POST'])
+def api_telemetry_act():
+    return jsonify({"ok": True})
+
+@app.route('/api/user/state', methods=['GET', 'POST'])
+def api_user_state_post():
+    if request.method == 'POST':
+        return jsonify({"ok": True})
+    u = session.get('user_id', '')
+    return jsonify({"ok": True, "email": u, "onboarding_complete": session.get('onboarding_complete', False)})
+
+@app.route('/api/chat/home', methods=['POST'])
+def api_chat_home():
+    return api_chat()
+
+
 
 # ── Suppression Standards Matrix ───────────────────────────────────────────────
 # Technology → NFPA standard → VdS equivalent → compatibility
