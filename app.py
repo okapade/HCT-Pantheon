@@ -379,7 +379,7 @@ def api_onboarding_save():
                     sheets_update_cell_sync('Users', i+1, 18, 'true')
                     break
         except: pass
-    return jsonify({"ok": True})
+    return jsonify({"ok": True, "has_key": bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY"))})
 
 @app.route('/admin')
 def admin_page():
@@ -426,7 +426,7 @@ def auth_register():
     send_verify_link(email, token)
     if not SENDGRID_KEY:
         print(f"[DEV] http://localhost:5002/verify?token={token}")
-    return jsonify({"ok": True})
+    return jsonify({"ok": True, "has_key": bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY"))})
 
 @app.route('/verify')
 def verify_email_link():
@@ -511,7 +511,7 @@ def auth_logout():
         _summarise_session(session['user_id'], session.get('session_id', ''))
         sheets_append('Activity Log', [now_str(), session.get('user_id',''), session.get('user_name',''), session.get('user_org',''), 'Logged Out', '', '', '', '', '', ''])
     session.clear()
-    return jsonify({"ok": True})
+    return jsonify({"ok": True, "has_key": bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY"))})
 
 @app.route('/api/auth/me')
 def auth_me():
@@ -555,7 +555,7 @@ def onboarding_save():
 
     device, browser = get_device_info()
     sheets_append('Activity Log', [now_str(), email, session.get('user_name',''), b.get('org',''), 'Completed Onboarding', b.get('role',''), b.get('facility_type',''), b.get('location',''), '', device, browser])
-    return jsonify({"ok": True})
+    return jsonify({"ok": True, "has_key": bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY"))})
 
 @app.route('/api/onboarding/profile')
 @login_required
@@ -584,7 +584,7 @@ def actions_log():
     sid = session.get('session_id', secrets.token_hex(4))
     for a in actions:
         sheets_append('Actions', [now_str(), session['user_id'], a.get('action',''), a.get('urgency','MEDIUM'), 'open', sid, b.get('source','simulation'), ''])
-    return jsonify({"ok": True})
+    return jsonify({"ok": True, "has_key": bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY"))})
 
 @app.route('/api/actions/update', methods=['POST'])
 @login_required
@@ -602,7 +602,7 @@ def actions_update():
             if status == 'dismissed':
                 sheets_append('Activity Log', [now_str(), session['user_id'], session.get('user_name',''), session.get('user_org',''), 'Action Dismissed', action, '', '', '', '', ''])
             break
-    return jsonify({"ok": True})
+    return jsonify({"ok": True, "has_key": bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY"))})
 
 @app.route('/api/actions/open')
 @login_required
@@ -709,7 +709,7 @@ def admin_revoke():
     row, row_num = find_user(email)
     if row and row_num > 0:
         sheets_update_cell('Users', row_num, 13, 'Revoked')
-        return jsonify({"ok": True})
+        return jsonify({"ok": True, "has_key": bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY"))})
     return jsonify({"error": "User not found"}), 404
 
 @app.route('/api/admin/reset_password', methods=['POST'])
@@ -722,7 +722,7 @@ def admin_reset_password():
     row, row_num = find_user(email)
     if not row: return jsonify({"error": "User not found"}), 404
     sheets_update_cell_sync('Users', row_num, 5, new_pw.strip())
-    return jsonify({"ok": True})
+    return jsonify({"ok": True, "has_key": bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY"))})
 
 # ── Telemetry ──────────────────────────────────────────────────────────────────
 
@@ -732,7 +732,7 @@ def api_log_action():
     b = request.get_json()
     device, browser = get_device_info()
     sheets_append('Activity Log', [now_str(), session.get('user_id',''), session.get('user_name',''), session.get('user_org',''), b.get('action',''), b.get('detail1',''), b.get('detail2',''), b.get('detail3',''), b.get('time_spent',''), device, browser])
-    return jsonify({"ok": True})
+    return jsonify({"ok": True, "has_key": bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY"))})
 
 @app.route('/api/telemetry/simulation', methods=['POST'])
 @login_required
@@ -745,14 +745,14 @@ def api_log_simulation():
         total = int(row[11]) if len(row) > 11 and row[11] else 0
         sheets_update_cell('Users', row_num, 11, str(sims + 1))
         sheets_update_cell('Users', row_num, 12, str(total + 1))
-    return jsonify({"ok": True})
+    return jsonify({"ok": True, "has_key": bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY"))})
 
 @app.route('/api/telemetry/product', methods=['POST'])
 @login_required
 def api_log_product():
     b = request.get_json()
     sheets_append('Product Interest', [now_str(), session.get('user_id',''), session.get('user_org',''), b.get('product',''), b.get('source',''), b.get('time_on',0), b.get('clicked_learn_more','No')])
-    return jsonify({"ok": True})
+    return jsonify({"ok": True, "has_key": bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY"))})
 
 # ── Incident data ──────────────────────────────────────────────────────────────
 
@@ -772,11 +772,11 @@ def api_user_state():
 
 @app.route('/api/log-event', methods=['POST'])
 def api_log_event():
-    return jsonify({"ok": True})
+    return jsonify({"ok": True, "has_key": bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY"))})
 
 @app.route('/api/status')
 def api_status():
-    return jsonify({"ok": True})
+    return jsonify({"ok": True, "has_key": bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY"))})
 
 # ── AI streaming ───────────────────────────────────────────────────────────────
 
@@ -790,12 +790,12 @@ def api_compliance_check():
 
 @app.route('/api/telemetry/act', methods=['POST'])
 def api_telemetry_act():
-    return jsonify({"ok": True})
+    return jsonify({"ok": True, "has_key": bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY"))})
 
 @app.route('/api/user/state', methods=['GET', 'POST'])
 def api_user_state_post():
     if request.method == 'POST':
-        return jsonify({"ok": True})
+        return jsonify({"ok": True, "has_key": bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY"))})
     u = session.get('user_id', '')
     return jsonify({"ok": True, "email": u, "onboarding_complete": session.get('onboarding_complete', False)})
 
@@ -1334,7 +1334,7 @@ def auth_forgot_password():
                 print(f"SendGrid reset error: {e}")
         else:
             print(f"[DEV] Reset link for {email}: {reset_url}")
-    return jsonify({"ok": True})
+    return jsonify({"ok": True, "has_key": bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY"))})
 
 @app.route('/reset-password')
 def reset_password_page():
@@ -1364,7 +1364,7 @@ def auth_reset_password():
     if not row: return jsonify({"error": "Account not found"}), 404
     sheets_update_cell_sync('Users', row_num, 5, new_pw.strip())
     sheets_append('Activity Log', [now_str(), email, row[0], '', 'Password Reset', '', '', '', '', '', ''])
-    return jsonify({"ok": True})
+    return jsonify({"ok": True, "has_key": bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY"))})
 
 @app.route('/api/auth/resend_otp', methods=['POST'])
 def auth_resend_otp():

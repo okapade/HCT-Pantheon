@@ -4252,7 +4252,7 @@ function hideSuggestionChips() {
   if (wrap) wrap.style.display = 'none';
 }
 
-function sendStarterPrompt(msg) {
+function sendStarterPrompt(msg) { if (!facilityConfig) facilityConfig = {type:"general",typeName:"General Facility",suppression:"Unknown",detection:"Unknown"};
   var inputEl = document.getElementById('homeChat');
   if (!inputEl) return;
   hideSuggestionChips();
