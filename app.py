@@ -774,7 +774,12 @@ def api_user_state():
 def api_log_event():
     return jsonify({"ok": True, "has_key": bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY"))})
 
-@app.route('/api/status')
+
+@app.route("/api/user/chats", methods=["GET"])
+def api_user_chats():
+    return jsonify({"ok": True, "chats": []})
+
+@app.route("/api/status")
 def api_status():
     return jsonify({"ok": True, "has_key": bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY"))})
 

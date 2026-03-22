@@ -1873,8 +1873,8 @@ function renderMonitorGrid() {
   if (!grid) return;
   // Use facility profile zones if available
   var profile = null;
-  if (typeof FACILITY_PROFILES !== 'undefined' && typeof facilityConfig !== 'undefined' && facilityConfig.type) {
-    profile = FACILITY_PROFILES[facilityConfig.type.toLowerCase().replace(/[\s-]+/g,'')] || null;
+  if (typeof FACILITY_PROFILES !== 'undefined' && typeof facilityConfig !== 'undefined' && facilityConfig && facilityConfig.type) {
+    profile = FACILITY_PROFILES[facilityConfig?.type?.toLowerCase().replace(/[\s-]+/g,'')] || null;
   }
   var defaultZones = [
     { name: 'Battery Room 5F', status: 'normal', temp: '28.3', gas: '0 ppm', sensors: 4, icon: 'fire' },
